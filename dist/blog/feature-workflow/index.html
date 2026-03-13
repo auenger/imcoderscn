@@ -1,0 +1,166 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><link rel="stylesheet" href="/_astro/_slug_.CV6OZGc2.css">
+<link rel="stylesheet" href="/_astro/_slug_.9-dlC8NA.css"></head> <body> <nav class="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
+杨正武<span>.imcoders</span> </a> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>   <article class="article-container" data-astro-cid-4sn4zg3r> <header class="article-header" data-astro-cid-4sn4zg3r> <div class="article-meta" data-astro-cid-4sn4zg3r> <time class="article-date" data-astro-cid-4sn4zg3r> <i class="far fa-calendar" data-astro-cid-4sn4zg3r></i> 2026年3月13日 </time> <span class="article-author" data-astro-cid-4sn4zg3r> <i class="far fa-user" data-astro-cid-4sn4zg3r></i> 杨正武 </span> <div class="article-tags" data-astro-cid-4sn4zg3r> <span class="tag" data-astro-cid-4sn4zg3r>工作流</span><span class="tag" data-astro-cid-4sn4zg3r>Git Worktree</span><span class="tag" data-astro-cid-4sn4zg3r>并行开发</span><span class="tag" data-astro-cid-4sn4zg3r>多Agent</span><span class="tag" data-astro-cid-4sn4zg3r>AILock-Step</span> </div> </div> <h1 class="article-title" data-astro-cid-4sn4zg3r>Feature Workflow：基于 Worktree 的多特性并行开发范式</h1> <p class="article-description" data-astro-cid-4sn4zg3r>融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发</p> </header> <div class="article-content" data-astro-cid-4sn4zg3r> <h2 id="引言">引言</h2>
+<p>在 AI 辅助开发的实际应用中，多特性并行开发面临几个核心问题。不同需求的代码会相互干扰，AI 容易产生上下文混淆。传统分支切换方式会导致工作进度丢失。多个 AI Agent 同时工作时，代码冲突难以避免。需求状态管理混乱，无法追溯开发历史。</p>
+<p>为了解决这些问题，我设计了 Feature Workflow。这是一个融合了 Bmad 和 OpenSpec 优秀理念的工作流范式，基于 Git Worktree 实现真正的物理隔离，支持多 Agent 并行开发，从根本上避免了代码冲突问题。</p>
+<h2 id="worktree-物理隔离">Worktree 物理隔离</h2>
+<h3 id="传统开发方式的问题">传统开发方式的问题</h3>
+<p>传统 Git 工作流使用分支隔离代码，但开发环境共享同一个工作目录。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>OA_Tool/                    # 唯一的工作目录</span></span>
+<span class="line"><span>├── src/</span></span>
+<span class="line"><span>├── package.json</span></span>
+<span class="line"><span>└── .git/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># 切换分支时的困境</span></span>
+<span class="line"><span>git checkout feature/auth</span></span>
+<span class="line"><span># 当前未提交的代码被覆盖，需要 stash 或 commit</span></span>
+<span class="line"><span># 开发一半的 dashboard 功能无法保留</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>这种方式导致三个问题。切换分支会丢失未完成的工作进度。无法同时开发多个需求。AI 上下文在分支切换时容易混淆。</p>
+<h3 id="worktree-的物理隔离方案">Worktree 的物理隔离方案</h3>
+<p>Git Worktree 允许在同一个仓库下同时检出多个分支到不同目录。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>OA_Tool/                        # 主仓库 (main 分支)</span></span>
+<span class="line"><span>├── src/</span></span>
+<span class="line"><span>├── package.json</span></span>
+<span class="line"><span>└── feature-workflow/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>OA_Tool-feat-auth/              # Worktree 1 (feature/auth 分支)</span></span>
+<span class="line"><span>├── src/auth/                   # 独立的代码副本</span></span>
+<span class="line"><span>├── .git/                       # 共享 Git 数据库</span></span>
+<span class="line"><span>└── features/</span></span>
+<span class="line"><span>    └── active-feat-auth/</span></span>
+<span class="line"><span>        ├── spec.md</span></span>
+<span class="line"><span>        ├── task.md</span></span>
+<span class="line"><span>        └── checklist.md</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>OA_Tool-feat-dashboard/         # Worktree 2 (feature/dashboard 分支)</span></span>
+<span class="line"><span>├── src/dashboard/              # 独立的代码副本</span></span>
+<span class="line"><span>└── features/</span></span>
+<span class="line"><span>    └── active-feat-dashboard/</span></span>
+<span class="line"><span>        ├── spec.md</span></span>
+<span class="line"><span>        ├── task.md</span></span>
+<span class="line"><span>        └── checklist.md</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>每个 worktree 有独立的文件副本和 HEAD，但共享同一个 Git 数据库。这带来了几个关键优势。</p>
+<h3 id="开发环境完全隔离">开发环境完全隔离</h3>
+<p>不同需求的代码互不干扰，可以真正并行开发。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span># 终端 1：开发认证功能</span></span>
+<span class="line"><span>cd OA_Tool-feat-auth</span></span>
+<span class="line"><span>npm run dev</span></span>
+<span class="line"><span># 运行在 3000 端口</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># 终端 2：开发仪表盘功能</span></span>
+<span class="line"><span>cd OA_Tool-feat-dashboard</span></span>
+<span class="line"><span>npm run dev</span></span>
+<span class="line"><span># 运行在 3001 端口</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>无需频繁切换分支，每个需求有独立的开发服务器。AI Agent 可以在不同的 worktree 中并行工作，上下文完全隔离。</p>
+<h3 id="独立的测试验证">独立的测试验证</h3>
+<p>每个 worktree 有独立的测试环境，证据收集互不干扰。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>OA_Tool-feat-auth/</span></span>
+<span class="line"><span>├── e2e/</span></span>
+<span class="line"><span>│   └── auth.spec.ts           # 只测试认证功能</span></span>
+<span class="line"><span>└── evidence/</span></span>
+<span class="line"><span>    ├── screenshots/</span></span>
+<span class="line"><span>    └── traces/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>OA_Tool-feat-dashboard/</span></span>
+<span class="line"><span>├── e2e/</span></span>
+<span class="line"><span>│   └── dashboard.spec.ts      # 只测试仪表盘功能</span></span>
+<span class="line"><span>└── evidence/</span></span>
+<span class="line"><span>    ├── screenshots/</span></span>
+<span class="line"><span>    └── traces/</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>Playwright 测试可以并行执行，截图和 trace 文件隔离存储，不会相互覆盖。</p>
+<h3 id="安全的合并策略">安全的合并策略</h3>
+<p>传统方式直接合并到 main 分支，冲突在 main 分支解决，容易污染主干代码。</p>
+<p>Worktree 方式采用 rebase 策略，冲突在 feature 分支内解决。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>feature/auth 分支</span></span>
+<span class="line"><span>    ↓ git rebase main</span></span>
+<span class="line"><span>feature/auth 分支 (包含所有 main 的最新变更)</span></span>
+<span class="line"><span>    ↓ 解决冲突 (在 feature 分支内)</span></span>
+<span class="line"><span>feature/auth 分支 (冲突已解决)</span></span>
+<span class="line"><span>    ↓ git merge --ff-only</span></span>
+<span class="line"><span>main 分支 (快速前进，干净合并)</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>main 分支始终保持干净状态，冲突解决在 feature 分支完成，解决后可重新验证。</p>
+<h2 id="多特性并行开发">多特性并行开发</h2>
+<h3 id="并行控制机制">并行控制机制</h3>
+<p>Feature Workflow 通过 <code>queue.yaml</code> 管理需求队列，<code>config.yaml</code> 控制并行数量。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># config.yaml</span></span>
+<span class="line"><span style="color:#85E89D">parallelism</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  max_concurrent</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span><span style="color:#6A737D">              # 最多同时开发 2 个需求</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># queue.yaml</span></span>
+<span class="line"><span style="color:#85E89D">active</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">用户认证</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">90</span></span>
+<span class="line"><span style="color:#85E89D">    worktree</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">../OA_Tool-feat-auth</span></span>
+<span class="line"><span style="color:#85E89D">    branch</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feature/auth</span></span>
+<span class="line"><span style="color:#85E89D">    status</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">implementing</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-dashboard</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">仪表盘</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span>
+<span class="line"><span style="color:#85E89D">    worktree</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">../OA_Tool-feat-dashboard</span></span>
+<span class="line"><span style="color:#85E89D">    branch</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feature/dashboard</span></span>
+<span class="line"><span style="color:#85E89D">    status</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">implementing</span></span>
+<span class="line"></span></code></pre>
+<p>只有 active 数量小于 max_concurrent 时，才能从 pending 启动新需求。依赖关系确保前置需求完成后才能启动后续需求。</p>
+<h2 id="多-agent-并行架构">多 Agent 并行架构</h2>
+<h3 id="主从式-agent-设计">主从式 Agent 设计</h3>
+<p>Feature Workflow 采用主从式 Agent 架构实现多特性并行开发。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>┌─────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│ 主 Agent (无状态，可恢复)                                    │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ 职责：                                                        │</span></span>
+<span class="line"><span>│ 1. 读取 queue.yaml 获取 active features                     │</span></span>
+<span class="line"><span>│ 2. 检查每个 .status 文件判断当前状态                         │</span></span>
+<span class="line"><span>│ 3. 启动独立的 Feature Agent 进程                             │</span></span>
+<span class="line"><span>│ 4. 监控进度，处理阻塞和错误                                   │</span></span>
+<span class="line"><span>└─────────────────────────────────────────────────────────────┘</span></span>
+<span class="line"><span>         │ 启动独立进程</span></span>
+<span class="line"><span>         ▼</span></span>
+<span class="line"><span>┌─────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│ Feature Agent (独立进程，自治)                               │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ 生命周期：implement → verify → complete → 退出              │</span></span>
+<span class="line"><span>│ 输出：.status 文件 + .log 文件                              │</span></span>
+<span class="line"><span>└─────────────────────────────────────────────────────────────┘</span></span>
+<span class="line"><span></span></span></code></pre>
+<h3 id="代码冲突解决方案">代码冲突解决方案</h3>
+<h3 id="物理隔离避免冲突">物理隔离避免冲突</h3>
+<p>Worktree 机制从根本上避免了开发时的冲突。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>传统方式 (同一工作目录):</span></span>
+<span class="line"><span>┌─────────────────────────────────────┐</span></span>
+<span class="line"><span>│ OA_Tool/                            │</span></span>
+<span class="line"><span>│  └── src/                           │</span></span>
+<span class="line"><span>│      ├── auth.ts    ← Agent A 修改  │</span></span>
+<span class="line"><span>│      └── dash.ts    ← Agent B 修改  │</span></span>
+<span class="line"><span>└─────────────────────────────────────┘</span></span>
+<span class="line"><span>问题：两个 Agent 同时修改 src/utils.ts</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Worktree 方式 (独立工作目录):</span></span>
+<span class="line"><span>┌─────────────────────────────────────┐</span></span>
+<span class="line"><span>│ OA_Tool-feat-auth/                  │</span></span>
+<span class="line"><span>│  └── src/auth.ts    ← Agent A       │</span></span>
+<span class="line"><span>└─────────────────────────────────────┘</span></span>
+<span class="line"><span>┌─────────────────────────────────────┐</span></span>
+<span class="line"><span>│ OA_Tool-feat-dashboard/             │</span></span>
+<span class="line"><span>│  └── src/dash.ts    ← Agent B       │</span></span>
+<span class="line"><span>└─────────────────────────────────────┘</span></span>
+<span class="line"><span>优势：两个 Agent 操作不同文件副本</span></span>
+<span class="line"><span></span></span></code></pre>
+<h3 id="依赖关系管理">依赖关系管理</h3>
+<p>通过 dependencies 字段管理需求间的依赖关系，只有所有依赖都已完成才能启动。</p>
+<h3 id="合并前冲突检测">合并前冲突检测</h3>
+<p>在 <code>complete-feature</code> 流程中加入合并前冲突检测。冲突在 feature 分支内解决，解决后可以重新运行测试验证。main 分支始终保持干净状态。</p>
+<h2 id="相关资源">相关资源</h2>
+<ul>
+<li><a href="https://github.com/auenger/AILock-Step/tree/main/feature-workflow-LockStep">Feature Workflow 源码</a></li>
+<li><a href="https://github.com/auenger/AILock-Step">AILock-Step 协议文档</a></li>
+<li><a href="https://github.com/auenger/OA_Tool">OA_Tool 项目实践</a></li>
+</ul> </div> <footer class="article-footer" data-astro-cid-4sn4zg3r> <a href="/blog" class="back-to-blog" data-astro-cid-4sn4zg3r> <i class="fas fa-arrow-left" data-astro-cid-4sn4zg3r></i>
+返回博客列表
+</a> </footer> </article>  </main> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>

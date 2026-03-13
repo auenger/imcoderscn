@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>欢迎来到我的技术博客 - 杨正武</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><link rel="stylesheet" href="/_astro/_slug_.CV6OZGc2.css">
+<link rel="stylesheet" href="/_astro/_slug_.9-dlC8NA.css"></head> <body> <nav class="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
+杨正武<span>.imcoders</span> </a> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>   <article class="article-container" data-astro-cid-4sn4zg3r> <header class="article-header" data-astro-cid-4sn4zg3r> <div class="article-meta" data-astro-cid-4sn4zg3r> <time class="article-date" data-astro-cid-4sn4zg3r> <i class="far fa-calendar" data-astro-cid-4sn4zg3r></i> 2026年3月13日 </time> <span class="article-author" data-astro-cid-4sn4zg3r> <i class="far fa-user" data-astro-cid-4sn4zg3r></i> 杨正武 </span> <div class="article-tags" data-astro-cid-4sn4zg3r> <span class="tag" data-astro-cid-4sn4zg3r>AI</span><span class="tag" data-astro-cid-4sn4zg3r>Astro</span><span class="tag" data-astro-cid-4sn4zg3r>博客系统</span> </div> </div> <h1 class="article-title" data-astro-cid-4sn4zg3r>欢迎来到我的技术博客</h1> <p class="article-description" data-astro-cid-4sn4zg3r>基于 Astro 构建的 AI 友好博客系统</p> </header> <div class="article-content" data-astro-cid-4sn4zg3r> <h2 id="引言">引言</h2>
+<p>这是基于 Astro 构建的个人技术博客。系统设计考虑了 AI 协作创作的需求，让 AI 可以直接创建 Markdown 文件并自动生成静态页面。</p>
+<h2 id="系统特性">系统特性</h2>
+<h3 id="简单的内容创作">简单的内容创作</h3>
+<p>AI 可以直接在 <code>src/content/blog/</code> 目录下创建 <code>.md</code> 文件。系统会自动解析 frontmatter 元数据，生成静态页面，并添加到博客列表。整个过程无需手动配置。</p>
+<h3 id="标准化的文章格式">标准化的文章格式</h3>
+<p>每篇文章只需要包含基本的 frontmatter 信息：</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"><span style="color:#85E89D">title</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"文章标题"</span></span>
+<span class="line"><span style="color:#85E89D">description</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"文章简介"</span></span>
+<span class="line"><span style="color:#85E89D">pubDate</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2026-03-13</span></span>
+<span class="line"><span style="color:#85E89D">tags</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">"标签1"</span><span style="color:#E1E4E8">, </span><span style="color:#9ECBFF">"标签2"</span><span style="color:#E1E4E8">]</span></span>
+<span class="line"><span style="color:#85E89D">author</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"杨正武"</span></span>
+<span class="line"><span style="color:#B392F0">---</span></span>
+<span class="line"></span></code></pre>
+<h3 id="完整的-markdown-支持">完整的 Markdown 支持</h3>
+<p>系统支持完整的 Markdown 语法。代码块带语法高亮，表格用于数据展示，引用块突出重点内容，列表用于结构化信息，链接可以引用外部资源。</p>
+<h2 id="技术栈">技术栈</h2>
+<p>这个博客使用 Astro 作为静态站点生成器。Astro 的优势在于零默认的 JavaScript，页面加载速度快，对搜索引擎友好。</p>
+<p>内容使用 Markdown 格式存储，方便版本控制和协作编辑。TypeScript 提供类型安全，减少运行时错误。</p>
+<p>视觉设计采用黑金配色方案，保持整个站点的视觉一致性。</p>
+<h2 id="开始使用">开始使用</h2>
+<p>创建新文章只需要三个步骤。直接在 <code>src/content/blog/</code> 创建新的 <code>.md</code> 文件，按照模板格式编写内容，然后运行 <code>npm run build</code> 生成静态站点。</p>
+<p>完整的写作指南和模板参考 <code>AI_WRITING_GUIDE.md</code> 和 <code>BLOG_TEMPLATE.md</code>。</p> </div> <footer class="article-footer" data-astro-cid-4sn4zg3r> <a href="/blog" class="back-to-blog" data-astro-cid-4sn4zg3r> <i class="fas fa-arrow-left" data-astro-cid-4sn4zg3r></i>
+返回博客列表
+</a> </footer> </article>  </main> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>
