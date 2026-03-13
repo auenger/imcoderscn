@@ -1,262 +1,240 @@
-# AI 写作指南
+# AI 写作标准
 
-本指南专为 AI Agent 设计，说明如何在这个 Astro 博客系统中创建和编辑内容。
+本标准为 AI Agent 设计，定义了如何在 Astro 博客系统中创建高质量内容的规范。
 
-## 系统设计理念
+## 系统架构
 
-这个博客系统是为 AI 协作创作而优化的：
+### Astro 内容集合
 
-1. **零配置**: AI 可以直接创建 Markdown 文件，无需修改配置
-2. **类型安全**: TypeScript schema 确保数据结构正确
-3. **自动化**: 构建系统自动处理路由、列表和详情页
-4. **标准化**: 统一的文章格式，便于 AI 理解和创作
-
-## 内容集合
-
-### 博客文章 (`src/content/blog/`)
-
-博客文章使用以下 schema：
+博客使用 Astro 的内容集合（Content Collections）功能：
 
 ```typescript
-{
-  title: string;           // 文章标题
-  description: string;     // 文章简介（显示在列表页）
-  pubDate: Date;          // 发布日期
-  tags: string[];         // 标签数组
-  author: string;         // 作者（默认"杨正武"）
-  image?: string;         // 可选的封面图
-  draft?: boolean;        // 是否为草稿（默认 false）
-}
+// src/content.config.ts
+import { defineCollection, z } from 'astro:content';
+
+const blog = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),           // 文章标题
+    description: z.string(),     // SEO 描述
+    pubDate: z.coerce.date(),    // 发布日期
+    tags: z.array(z.string()).default([]),  // 标签
+    author: z.string().default('杨正武'),    // 作者
+    image: z.string().optional(),           // 封面图
+    draft: z.boolean().default(false),      // 草稿标记
+  }),
+});
+
+const podcast = defineCollection({
+  type: 'content',
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    pubDate: z.coerce.date(),
+    tags: z.array(z.string()).default([]),
+    duration: z.string().optional(),
+    audioUrl: z.string().optional(),
+    guest: z.string().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog, podcast };
 ```
 
-### 播客内容 (`src/content/podcast/`)
+## 文章格式标准
 
-播客内容使用以下 schema：
-
-```typescript
-{
-  title: string;           // 标题
-  description: string;     // 简介
-  pubDate: Date;          // 发布日期
-  tags: string[];         // 标签
-  duration?: string;      // 可选的时长
-  audioUrl?: string;      // 可选的音频链接
-  guest?: string;         // 可选的嘉宾
-  draft?: boolean;        // 是否为草稿
-}
-```
-
-## 创建新文章
-
-### 步骤 1: 创建文件
-
-在 `src/content/blog/` 目录下创建新的 `.md` 文件。
-
-**文件命名规范**:
-- 使用小写字母
-- 用连字符分隔单词
-- 使用描述性名称
-- 例如: `ai-agent-engineering.md`
-
-### 步骤 2: 编写 Frontmatter
-
-每个文章必须以 frontmatter 开头：
+### Frontmatter 模板
 
 ```yaml
 ---
-title: "文章标题"
-description: "简短的文章描述，会显示在博客列表页"
+title: "文章标题：简洁有力，包含核心关键词"
+description: "一句话概括文章内容，用于 SEO 和列表展示"
 pubDate: 2026-03-13
 tags: ["标签1", "标签2", "标签3"]
 author: "杨正武"
 ---
 ```
 
-**字段说明**:
-- `title`: 完整的文章标题
-- `description`: 1-2 句话的简介，用于 SEO 和列表展示
-- `pubDate`: 发布日期（YYYY-MM-DD 格式）
-- `tags`: 相关标签，会被索引用于搜索和过滤
-- `author`: 作者名称（可选，默认"杨正武"）
+### 字段规范
 
-### 步骤 3: 编写内容
+**title（标题）**
+- 长度：10-30 字
+- 格式：主标题 + 可选副标题
+- 要求：包含核心关键词，吸引读者但不过度标题党
 
-使用标准 Markdown 语法：
+**description（描述）**
+- 长度：50-100 字
+- 用途：SEO 元描述 + 博客列表展示
+- 要求：准确概括文章价值，包含 2-3 个关键词
 
-```markdown
-## 引言
+**pubDate（发布日期）**
+- 格式：YYYY-MM-DD
+- 时区：使用本地时区（中国标准时间）
 
-这是文章的引言部分...
+**tags（标签）**
+- 数量：3-5 个
+- 格式：短语或名词，大驼峰或下划线
+- 用途：分类、搜索、相关文章推荐
+- 示例：["AI Agent", "AILock-Step", "工程实践"]
 
-## 主要内容
+**author（作者）**
+- 默认值："杨正武"
+- 联合作者："杨正武, 合作者名"
 
-### 子标题
-
-内容可以包含：
-- **粗体文本**
-- *斜体文本*
-- `代码片段`
-- [链接](https://example.com)
-
-### 代码块
-
-\`\`\`typescript
-function example() {
-  console.log("Hello, World!");
-}
-\`\`\`
-
-### 列表
-
-1. 有序列表项
-2. 另一项
-
-- 无序列表项
-- 另一项
-
-### 引用
-
-> 这是一段引用文本
-
-### 表格
-
-| 列1 | 列2 |
-|-----|-----|
-| 数据1 | 数据2 |
-```
-
-## 内容创作最佳实践
+## 内容结构标准
 
 ### 标题层级
 
-- 标题（`#`）用于文章标题（在 frontmatter 中）
-- 二级标题（`##`）用于主要章节
-- 三级标题（`###`）用于子章节
-- 避免使用四级及以下标题
+```markdown
+# H1 - 文章标题（在 frontmatter 中，不要在正文中使用）
 
-### 段落
+## H2 - 主要章节
+### H3 - 子章节
+#### H4 - 细节说明（尽量避免使用）
 
-- 每段之间用空行分隔
-- 段落不要太长（建议 3-5 句话）
-- 使用简单直接的语言
+正文段落...
+```
 
-### 代码
+### 标准文章结构
 
-- 始终指定代码语言：
-  ```typescript
-  // 而不是
-  ```
-- 代码块前后各空一行
-- 代码注释使用中文
+1. **引言（可选）**
+   - 简要说明主题重要性
+   - 1-2 段，不超过 200 字
 
-### 链接
+2. **核心内容**
+   - 3-5 个主要章节（H2）
+   - 每个章节包含 2-4 个子要点
+   - 使用代码块、列表、表格等丰富格式
 
-- 使用描述性链接文本：
-  - ✅ `[Astro 文档](https://docs.astro.build)`
-  - ❌ `[点击这里](https://docs.astro.build)`
+3. **总结（可选）**
+   - 回顾关键要点
+   - 提供进一步阅读方向
+   - 1 段，不超过 150 字
 
-- 优先使用相对链接引用内部内容
+### 代码块规范
 
-### 图片
+```markdown
+\`\`\`typescript
+// 始终指定语言
+function example() {
+  return 'Hello';
+}
+\`\`\`
 
-- 将图片放在 `public/` 目录
-- 使用绝对路径引用：`![描述](/image.png)`
-- 提供有意义的 alt 文本
+// ❌ 不要使用无语言标记的代码块
+\`\`\`
+some code
+\`\`\`
+```
+
+### 列表规范
+
+```markdown
+// 无序列表（默认）
+- 要点 1
+- 要点 2
+
+// 有序列表（步骤或优先级）
+1. 第一步
+2. 第二步
+
+// 嵌套列表
+- 主要点
+  - 子要点
+  - 另一个子要点
+```
+
+### 链接规范
+
+```markdown
+// 内部链接（相对路径）
+[相关文章](/blog/related-post)
+
+// 外部链接
+[Astro 文档](https://docs.astro.build)
+
+// 引用链接
+[GitHub][github-link]
+
+[github-link]: https://github.com/auenger
+```
+
+## 内容质量标准
+
+### 语气和风格
+
+- **专业但不过度正式**：使用"你"直接称呼读者
+- **简洁清晰**：每段 3-5 句话，每句 15-25 字
+- **避免过度术语**：必要时解释技术概念
+- **使用主动语态**："系统构建了..." 而不是"...被系统构建"
+
+### 段落结构
+
+- **每段一个主题**：不要混合多个观点
+- **第一句主题句**：快速告诉读者这段讲什么
+- **最后一句总结**：自然过渡到下一段
+
+### 可读性优化
+
+- **使用粗体强调**：核心概念、关键结论
+- **使用引用突出**：重要定义、警示信息
+- **使用代码格式**：技术术语、命令、文件名
+- **使用列表拆分**：超过 3 个项目的信息
 
 ## AI 创作流程
 
-### 理解任务
+### 接收任务
 
-当收到"写一篇关于 X 的博客文章"时：
+当收到创作任务时，按以下步骤执行：
 
-1. **分析主题**: 理解 X 的核心概念
-2. **确定结构**: 引言 → 主要内容 → 结论
-3. **列出要点**: 覆盖主题的关键方面
-4. **选择标签**: 从内容中提取 3-5 个标签
+1. **理解主题**
+   - 分析核心概念
+   - 确定目标读者
+   - 明确文章价值
 
-### 起草内容
+2. **规划结构**
+   - 列出 3-5 个主要章节
+   - 为每个章节分配要点
+   - 确定 3-5 个标签
 
-```markdown
----
-title: "分析后的主题标题"
-description: "一两句话总结文章内容"
-pubDate: 2026-03-13
-tags: ["主题", "相关技术", "应用场景"]
-author: "杨正武"
----
+3. **起草内容**
+   - 按照标准结构写作
+   - 使用适当的格式
+   - 添加代码示例
 
-## 引言
+4. **质量检查**
+   - [ ] Frontmatter 完整且正确
+   - [ ] 标题层级合理
+   - [ ] 代码块指定语言
+   - [ ] 链接使用描述文本
+   - [ ] 标签相关且准确
+   - [ ] 内容结构清晰
 
-简要介绍主题，说明为什么重要...
+### 文件创建
 
-## 核心概念
-
-### 概念 1
-
-详细说明...
-
-### 概念 2
-
-详细说明...
-
-## 实际应用
-
-展示如何使用...
-
-## 总结
-
-总结要点，提供进一步阅读的链接...
-```
-
-### 验证质量
-
-在创建文件后，检查：
-
-- [ ] Frontmatter 格式正确
-- [ ] 所有必填字段都有值
-- [ ] 标题层级合理
-- [ ] 代码块指定了语言
-- [ ] 链接使用描述性文本
-- [ ] 标签相关且准确
-- [ ] 内容结构清晰
-
-## 构建和测试
-
-### 构建站点
+在 `src/content/blog/` 创建文件：
 
 ```bash
-npm run build
+# 文件命名规范
+yyyy-mm-dd-short-title.md
+# 例如
+2026-03-13-ai-agent-engineering.md
 ```
-
-### 预览结果
-
-```bash
-npm run preview
-```
-
-访问 http://localhost:4322 查看结果
-
-### 开发模式
-
-```bash
-npm run dev
-```
-
-文件更改会自动刷新页面
 
 ## 常见问题
 
 ### Q: 文章没有出现在列表中？
 
-A: 检查：
-1. 文件是否在 `src/content/blog/` 目录
-2. frontmatter 格式是否正确
-3. `draft` 字段是否为 `false` 或未设置
+**A**: 检查：
+1. 文件在 `src/content/blog/` 目录
+2. frontmatter 格式正确
+3. `draft: false` 或未设置
 4. 运行 `npm run build` 重新构建
 
 ### Q: 如何创建草稿？
 
-A: 设置 `draft: true`：
+**A**: 设置 `draft: true`：
 
 ```yaml
 ---
@@ -265,45 +243,24 @@ draft: true
 ---
 ```
 
-### Q: 如何修改文章 URL？
+### Q: 如何修改 URL？
 
-A: 修改文件名。URL 路径基于文件名：
-- `ai-agent-engineering.md` → `/blog/ai-agent-engineering`
+**A**: 修改文件名。URL 基于文件名：
+- `2026-03-13-my-post.md` → `/blog/2026-03-13-my-post`
 - `my-post.md` → `/blog/my-post`
 
-### Q: 可以使用子目录吗？
+### Q: 支持子目录吗？
 
-A: 可以，但需要更新 `getStaticPaths()` 函数。当前实现不支持子目录。
+**A**: 当前不支持。所有文件直接放在 `src/content/blog/`。
 
-## 内容风格指南
+## 最佳实践总结
 
-### 语气
-
-- 专业但不过于正式
-- 使用"你"直接称呼读者
-- 避免过度使用技术术语
-- 必要时解释技术概念
-
-### 格式
-
-- **重点**: 使用粗体强调关键概念
-- **代码术语**: 使用代码格式
-- **引用**: 使用引用块突出重要信息
-
-### 长度
-
-- 简介: 1-2 段
-- 主要内容: 3-5 个章节
-- 每个章节: 2-4 段
-- 总长度: 500-1500 字
-
-## 相关资源
-
-- [Astro 内容集合文档](https://docs.astro.build/en/guides/content-collections/)
-- [Markdown 基础语法](https://www.markdownguide.org/basic-syntax/)
-- [项目 README](./README.md)
-- [博客模板](./BLOG_TEMPLATE.md)
+1. **从模板开始**：使用 BLOG_TEMPLATE.md 确保格式正确
+2. **保持一致**：所有文章使用相同的结构和风格
+3. **SEO 优化**：标题和描述包含关键词
+4. **可扫描性**：使用标题、列表、粗体让内容易于浏览
+5. **原创价值**：提供独特见解，避免重复已有内容
 
 ---
 
-**记住**: 这个系统设计为让 AI 能够轻松创作。保持简单，遵循标准，系统会处理其余的事情。
+**记住**：这个系统的设计目标是让 AI 能够轻松创建高质量内容。保持简单，遵循标准，系统会处理其余的事情。
