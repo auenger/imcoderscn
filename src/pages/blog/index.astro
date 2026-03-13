@@ -1,0 +1,638 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const allPosts = await getCollection('blog');
+const posts = allPosts
+  .filter(post => !post.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+
+const allTags = posts.flatMap(post => post.data.tags);
+const tagCounts = allTags.reduce((acc, tag) => {
+  acc[tag] = (acc[tag] || 0) + 1;
+  return acc;
+}, {});
+
+const uniqueTags = Object.entries(tagCounts)
+  .sort((a, b) => (b[1] as number) - (a[1] as number))
+  .map(([tag, count]) => ({ tag, count: count as number }));
+---
+
+<Layout title="博客 - 杨正武">
+  <style>
+    .blog-header {
+      text-align: center;
+      padding: 4rem 0 3rem;
+      background: linear-gradient(135deg, #0a0a0f 0%, #141414 100%);
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .blog-title {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #d4af37, #f5c842, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .blog-subtitle {
+      font-size: 1.1rem;
+      color: #a0a0a0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .controls-section {
+      max-width: 900px;
+      margin: 2rem auto 0;
+      padding: 0 2rem;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 2rem;
+    }
+
+    .search-input {
+      width: 100%;
+      padding: 1rem 1rem 1rem 3rem;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #f0f0f0;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    .search-input:focus {
+      outline: none;
+      border-color: #d4af37;
+      box-shadow: 0 0 0 3px rgba(212, 175, 55, 0.1);
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #a0a0a0;
+      pointer-events: none;
+    }
+
+    .tag-cloud {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+
+    .tag-cloud-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .tag-cloud-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #f0f0f0;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .clear-tags {
+      background: transparent;
+      border: none;
+      color: #d4af37;
+      cursor: pointer;
+      font-size: 0.85rem;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      display: none;
+    }
+
+    .clear-tags:hover {
+      background: rgba(212, 175, 55, 0.1);
+    }
+
+    .clear-tags.visible {
+      display: block;
+    }
+
+    .tag-cloud-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+
+    .cloud-tag {
+      position: relative;
+      padding: 0.5rem 1rem;
+      background: #141414;
+      border: 1px solid #2a2a2a;
+      border-radius: 6px;
+      color: #a0a0a0;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-size: 0.85rem;
+    }
+
+    .cloud-tag::before {
+      content: attr(data-count);
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      background: #d4af37;
+      color: #0a0a0f;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.1rem 0.35rem;
+      border-radius: 10px;
+      min-width: 18px;
+      text-align: center;
+    }
+
+    .cloud-tag:hover {
+      border-color: #d4af37;
+      color: #d4af37;
+      transform: translateY(-2px);
+    }
+
+    .cloud-tag.active {
+      background: #d4af37;
+      color: #0a0a0f;
+      border-color: #d4af37;
+    }
+
+    .filter-tag {
+      position: relative;
+      padding: 0.5rem 2rem 0.5rem 1rem;
+      background: #d4af37;
+      border: 1px solid #d4af37;
+      border-radius: 6px;
+      color: #0a0a0f;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      font-size: 0.85rem;
+      font-weight: 600;
+      user-select: none;
+    }
+
+    .filter-tag::after {
+      content: '\00d7';
+      position: absolute;
+      right: 0.5rem;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 1.1rem;
+      line-height: 1;
+      font-weight: 700;
+      transition: all 0.2s ease;
+    }
+
+    .filter-tag:hover {
+      opacity: 0.7;
+      background: #c49b30;
+      border-color: #c49b30;
+      transform: scale(0.95);
+      box-shadow: 0 2px 8px rgba(212, 175, 55, 0.3);
+    }
+
+    .filter-tag:hover::after {
+      transform: translateY(-50%) scale(1.2);
+      font-weight: 800;
+    }
+
+    .filter-tag:active {
+      transform: scale(0.9);
+      opacity: 0.5;
+    }
+
+    .blog-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .results-info {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.5rem;
+      padding: 1rem;
+      background: #1a1a1a;
+      border-radius: 8px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .results-count {
+      color: #a0a0a0;
+      font-size: 0.9rem;
+    }
+
+    .results-count strong {
+      color: #d4af37;
+    }
+
+    .active-filters {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+
+    .posts-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .post-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 12px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .post-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: #d4af37;
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    .post-card:hover {
+      border-color: #d4af37;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .post-card:hover::before {
+      transform: scaleY(1);
+    }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .post-date {
+      color: #d4af37;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .post-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .tag {
+      background: #141414;
+      color: #a0a0a0;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid #2a2a2a;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+
+    .post-card:hover .tag {
+      border-color: #d4af37;
+    }
+
+    .tag.active {
+      background: #d4af37;
+      color: #0a0a0f;
+      border-color: #d4af37;
+    }
+
+    .post-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #f0f0f0;
+      margin-bottom: 0.75rem;
+      line-height: 1.4;
+    }
+
+    .post-description {
+      color: #a0a0a0;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .post-read-more {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #d4af37;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .post-read-more i {
+      transition: transform 0.3s ease;
+    }
+
+    .post-card:hover .post-read-more i {
+      transform: translateX(4px);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: #a0a0a0;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #d4af37;
+      margin-bottom: 1.5rem;
+      opacity: 0.5;
+    }
+
+    .empty-state h3 {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+      color: #f0f0f0;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 768px) {
+      .blog-title {
+        font-size: 2rem;
+      }
+
+      .controls-section,
+      .blog-content {
+        padding: 1.5rem;
+      }
+
+      .post-card {
+        padding: 1.5rem;
+      }
+
+      .post-title {
+        font-size: 1.25rem;
+      }
+
+      .results-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+    }
+  </style>
+
+  <div class="blog-header">
+    <div class="container">
+      <h1 class="blog-title">技术博客</h1>
+      <p class="blog-subtitle">记录 AI Agent 工程实践、前端技术探索与个人思考</p>
+    </div>
+  </div>
+
+  <div class="controls-section">
+    <div class="search-box">
+      <i class="fas fa-search search-icon"></i>
+      <input
+        type="text"
+        id="searchInput"
+        class="search-input"
+        placeholder="搜索标题、描述或标签..."
+        autocomplete="off"
+      >
+    </div>
+
+    <div class="tag-cloud">
+      <div class="tag-cloud-header">
+        <span class="tag-cloud-title">标签云</span>
+        <button id="clearTags" class="clear-tags">清除筛选</button>
+      </div>
+      <div class="tag-cloud-list" id="tagCloud">
+        {uniqueTags.map(({ tag, count }) => (
+          <span class="cloud-tag" data-tag={tag} data-count={count}>
+            {tag}
+          </span>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <div class="blog-content">
+    <div class="results-info">
+      <span class="results-count">
+        找到 <strong id="resultsCount">{posts.length}</strong> 篇文章
+      </span>
+      <div class="active-filters" id="activeFilters"></div>
+    </div>
+
+    <div class="posts-list" id="postsList">
+      {posts.map((post) => {
+        const tagList = post.data.tags.map((t: string) => t.toLowerCase()).join('|||');
+        return (
+          <a
+            href={`/blog/${post.slug}`}
+            class="post-card"
+            data-post-id={post.id}
+            data-title={post.data.title.toLowerCase()}
+            data-description={post.data.description.toLowerCase()}
+            data-tag-list={tagList}
+          >
+            <div class="post-meta">
+              <time class="post-date">
+                <i class="far fa-calendar"></i>
+                {post.data.pubDate.toLocaleDateString('zh-CN', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </time>
+              <div class="post-tags">
+                {post.data.tags.map((tag: string) => (
+                  <span class="tag" data-tag={tag}>{tag}</span>
+                ))}
+              </div>
+            </div>
+            <h2 class="post-title">{post.data.title}</h2>
+            <p class="post-description">{post.data.description}</p>
+            <span class="post-read-more">
+              阅读全文 <i class="fas fa-arrow-right"></i>
+            </span>
+          </a>
+        );
+      })}
+    </div>
+
+    <div class="empty-state hidden" id="emptyState">
+      <i class="fas fa-pen-fancy"></i>
+      <h3>没有找到匹配的文章</h3>
+      <p>尝试调整搜索关键词或选择其他标签</p>
+    </div>
+  </div>
+</Layout>
+
+<script is:inline>
+  const searchInput = document.getElementById('searchInput');
+  const postsList = document.getElementById('postsList');
+  const emptyState = document.getElementById('emptyState');
+  const resultsCount = document.getElementById('resultsCount');
+  const activeFiltersContainer = document.getElementById('activeFilters');
+  const clearTagsBtn = document.getElementById('clearTags');
+  const tagCloud = document.getElementById('tagCloud');
+
+  let activeTags = new Set();
+  let searchQuery = '';
+
+  function filterPosts() {
+    const cards = postsList.querySelectorAll('.post-card');
+    let visibleCount = 0;
+
+    cards.forEach(card => {
+      const title = card.getAttribute('data-title') || '';
+      const description = card.getAttribute('data-description') || '';
+      const tagList = card.getAttribute('data-tag-list') || '';
+      const cardTags = tagList ? tagList.split('|||') : [];
+
+      const matchesSearch = searchQuery === '' ||
+        title.includes(searchQuery) ||
+        description.includes(searchQuery) ||
+        cardTags.some(tag => tag.includes(searchQuery));
+
+      const matchesTags = activeTags.size === 0 ||
+        cardTags.some(tag => activeTags.has(tag));
+
+      const shouldShow = matchesSearch && matchesTags;
+
+      if (shouldShow) {
+        card.classList.remove('hidden');
+        visibleCount++;
+      } else {
+        card.classList.add('hidden');
+      }
+    });
+
+    resultsCount.textContent = visibleCount.toString();
+
+    if (visibleCount === 0) {
+      emptyState.classList.remove('hidden');
+      postsList.classList.add('hidden');
+    } else {
+      emptyState.classList.add('hidden');
+      postsList.classList.remove('hidden');
+    }
+
+    updateActiveFilters();
+    updateTagStates();
+  }
+
+  function updateActiveFilters() {
+    activeFiltersContainer.innerHTML = '';
+
+    activeTags.forEach(tag => {
+      const filterTag = document.createElement('span');
+      filterTag.className = 'filter-tag';
+      filterTag.setAttribute('data-tag', tag);
+      filterTag.textContent = tag;
+      activeFiltersContainer.appendChild(filterTag);
+    });
+
+    if (activeTags.size > 0) {
+      clearTagsBtn.classList.add('visible');
+    } else {
+      clearTagsBtn.classList.remove('visible');
+    }
+  }
+
+  function updateTagStates() {
+    document.querySelectorAll('.cloud-tag, .tag').forEach(tagEl => {
+      const tag = tagEl.getAttribute('data-tag');
+      if (tag && activeTags.has(tag.toLowerCase())) {
+        tagEl.classList.add('active');
+      } else {
+        tagEl.classList.remove('active');
+      }
+    });
+  }
+
+  function toggleTag(tag) {
+    const normalizedTag = tag.toLowerCase();
+    if (activeTags.has(normalizedTag)) {
+      activeTags.delete(normalizedTag);
+    } else {
+      activeTags.add(normalizedTag);
+    }
+    filterPosts();
+  }
+
+  function clearAllTags() {
+    activeTags.clear();
+    filterPosts();
+  }
+
+  searchInput?.addEventListener('input', (e) => {
+    searchQuery = e.target.value.toLowerCase();
+    filterPosts();
+  });
+
+  tagCloud?.addEventListener('click', (e) => {
+    const target = e.target;
+    const tagEl = target.closest('.cloud-tag');
+    if (tagEl) {
+      const tag = tagEl.getAttribute('data-tag');
+      if (tag) {
+        toggleTag(tag);
+      }
+    }
+  });
+
+  postsList?.addEventListener('click', (e) => {
+    const target = e.target;
+    const tagEl = target.closest('.tag');
+    if (tagEl) {
+      e.preventDefault();
+      const tag = tagEl.getAttribute('data-tag');
+      if (tag) {
+        toggleTag(tag);
+      }
+    }
+  });
+
+  activeFiltersContainer?.addEventListener('click', (e) => {
+    const tag = e.target.getAttribute('data-tag');
+    if (tag) {
+      activeTags.delete(tag.toLowerCase());
+      filterPosts();
+    }
+  });
+
+  clearTagsBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    clearAllTags();
+  });
+</script>
