@@ -7,6 +7,75 @@ interface Props {
 const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智能体的高效工程实践' } = Astro.props;
 ---
 
+<script>
+  // 移动端菜单切换
+  let menuOpen = false;
+
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    const nav = document.querySelector('.navbar-nav');
+    const hamburger = document.querySelector('.hamburger');
+    const navbar = document.querySelector('.navbar');
+
+    if (nav && hamburger && navbar) {
+      nav.classList.toggle('active', menuOpen);
+      hamburger.classList.toggle('active', menuOpen);
+      navbar.classList.toggle('menu-open', menuOpen);
+      // 防止背景滚动
+      document.body.style.overflow = menuOpen ? 'hidden' : '';
+    }
+  }
+
+  // 点击导航链接后关闭菜单
+  document.addEventListener('DOMContentLoaded', () => {
+    const navLinks = document.querySelectorAll('.navbar-nav a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          menuOpen = false;
+          const nav = document.querySelector('.navbar-nav');
+          const hamburger = document.querySelector('.hamburger');
+          const navbar = document.querySelector('.navbar');
+          if (nav && hamburger && navbar) {
+            nav.classList.remove('active');
+            hamburger.classList.remove('active');
+            navbar.classList.remove('menu-open');
+            document.body.style.overflow = '';
+          }
+        }
+      });
+    });
+
+    // 点击遮罩层关闭菜单
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+      navbar.addEventListener('click', (e) => {
+        if (e.target === navbar && menuOpen) {
+          toggleMenu();
+        }
+      });
+    }
+  });
+
+  // 窗口大小变化时重置菜单状态
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      menuOpen = false;
+      const nav = document.querySelector('.navbar-nav');
+      const hamburger = document.querySelector('.hamburger');
+      const navbar = document.querySelector('.navbar');
+      if (nav && hamburger && navbar) {
+        nav.classList.remove('active');
+        hamburger.classList.remove('active');
+        navbar.classList.remove('menu-open');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+
+  (window as any).toggleMenu = toggleMenu;
+</script>
+
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
@@ -86,6 +155,7 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
         display: flex;
         justify-content: space-between;
         align-items: center;
+        position: relative;
       }
 
       .navbar-brand {
@@ -96,6 +166,7 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
         align-items: center;
         gap: 0.75rem;
         text-decoration: none;
+        z-index: 1002;
       }
 
       .navbar-logo {
@@ -111,6 +182,40 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
 
       .navbar-brand span {
         color: var(--accent);
+      }
+
+      /* 汉堡菜单按钮 */
+      .hamburger {
+        display: none;
+        flex-direction: column;
+        justify-content: space-around;
+        width: 28px;
+        height: 24px;
+        background: transparent;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        z-index: 1002;
+      }
+
+      .hamburger span {
+        width: 100%;
+        height: 2px;
+        background: var(--accent);
+        border-radius: 2px;
+        transition: all 0.3s ease;
+      }
+
+      .hamburger.active span:nth-child(1) {
+        transform: rotate(45deg) translate(5px, 5px);
+      }
+
+      .hamburger.active span:nth-child(2) {
+        opacity: 0;
+      }
+
+      .hamburger.active span:nth-child(3) {
+        transform: rotate(-45deg) translate(7px, -7px);
       }
 
       .navbar-nav {
@@ -177,8 +282,8 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
 
       /* 响应式断点 */
 
-      /* 手机（最大宽度 640px）*/
-      @media (max-width: 640px) {
+      /* 手机和小平板（最大宽度 768px）- 使用汉堡菜单 */
+      @media (max-width: 768px) {
         .container {
           padding: 0 1rem;
         }
@@ -192,24 +297,82 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
         }
 
         .navbar-logo {
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
         }
 
+        /* 显示汉堡菜单按钮 */
+        .hamburger {
+          display: flex;
+        }
+
+        /* 移动端导航菜单样式 */
         .navbar-nav {
-          gap: 0.75rem;
-          flex-wrap: wrap;
-          justify-content: center;
+          position: fixed;
+          top: 0;
+          right: -100%;
+          width: 70%;
+          max-width: 280px;
+          height: 100vh;
+          background: rgba(20, 20, 20, 0.98);
+          backdrop-filter: blur(20px);
+          flex-direction: column;
+          gap: 0;
+          padding: 5rem 1.5rem 2rem;
+          border-left: 1px solid var(--border);
+          transition: right 0.3s ease;
+          overflow-y: auto;
+        }
+
+        .navbar-nav.active {
+          right: 0;
+        }
+
+        .navbar-nav li {
+          width: 100%;
+          border-bottom: 1px solid var(--border);
         }
 
         .navbar-nav a {
-          font-size: 0.75rem;
-          padding: 0.4rem 0;
+          display: block;
+          width: 100%;
+          padding: 1rem 0;
+          font-size: 1rem;
+        }
+
+        .navbar-nav a::after {
+          display: none;
+        }
+
+        .navbar-nav a:hover {
+          color: var(--accent);
+          background: rgba(212, 175, 55, 0.1);
+          padding-left: 0.5rem;
+        }
+
+        /* 遮罩层 */
+        .navbar::after {
+          content: '';
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.6);
+          opacity: 0;
+          visibility: hidden;
+          transition: all 0.3s ease;
+          z-index: 1001;
+        }
+
+        .navbar.menu-open::after {
+          opacity: 1;
+          visibility: visible;
         }
       }
 
-      /* 平板（641px - 1024px）*/
-      @media (min-width: 641px) and (max-width: 1024px) {
+      /* 中小平板（769px - 1024px）- 简化导航 */
+      @media (min-width: 769px) and (max-width: 1024px) {
         .container {
           padding: 0 1.5rem;
         }
@@ -224,6 +387,7 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
 
         .navbar-nav a {
           font-size: 0.85rem;
+          padding: 0.4rem 0;
         }
       }
 
@@ -243,12 +407,17 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
     </style>
   </head>
   <body>
-    <nav class="navbar">
+    <nav class="navbar" id="navbar">
       <div class="container">
         <a href="/" class="navbar-brand">
           <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
           杨正武<span>.imcoders</span>
         </a>
+        <button class="hamburger" onclick="toggleMenu()" aria-label="切换菜单">
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
         <ul class="navbar-nav">
           <li><a href="/">首页</a></li>
           <li><a href="/#about">核心理念</a></li>
