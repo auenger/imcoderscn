@@ -161,13 +161,83 @@ const { Content } = await episode.render();
       transform: translateX(-3px);
     }
 
-    @media (max-width: 768px) {
-      .episode-title {
-        font-size: 2rem;
+    /* 响应式断点 */
+
+    /* 手机（最大宽度 640px）*/
+    @media (max-width: 640px) {
+      .episode-container {
+        padding: 1rem;
       }
 
+      .episode-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1.5rem;
+      }
+
+      .episode-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+      }
+
+      .episode-date,
+      .episode-duration,
+      .episode-guest {
+        font-size: 0.8rem;
+      }
+
+      .episode-tags {
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+      }
+
+      .tag {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+      }
+
+      .episode-title {
+        font-size: 1.75rem;
+      }
+
+      .episode-description {
+        font-size: 0.95rem;
+      }
+
+      .episode-content {
+        font-size: 1rem;
+      }
+
+      .episode-content :global(h2) {
+        font-size: 1.4rem;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+      }
+
+      .episode-content :global(h3) {
+        font-size: 1.2rem;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .episode-content :global(p) {
+        margin-bottom: 1rem;
+      }
+
+      .episode-footer {
+        margin-top: 3rem;
+      }
+    }
+
+    /* 平板（641px - 1024px）*/
+    @media (min-width: 641px) and (max-width: 1024px) {
       .episode-container {
         padding: 1.5rem;
+      }
+
+      .episode-title {
+        font-size: 2rem;
       }
     }
   </style>

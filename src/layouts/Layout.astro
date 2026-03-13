@@ -175,17 +175,69 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
         scroll-behavior: smooth;
       }
 
-      @media (max-width: 768px) {
+      /* 响应式断点 */
+
+      /* 手机（最大宽度 640px）*/
+      @media (max-width: 640px) {
+        .container {
+          padding: 0 1rem;
+        }
+
+        .navbar {
+          padding: 0.75rem 0;
+        }
+
+        .navbar-brand {
+          font-size: 1.2rem;
+        }
+
+        .navbar-logo {
+          width: 24px;
+          height: 24px;
+        }
+
+        .navbar-nav {
+          gap: 0.75rem;
+          flex-wrap: wrap;
+          justify-content: center;
+        }
+
+        .navbar-nav a {
+          font-size: 0.75rem;
+          padding: 0.4rem 0;
+        }
+      }
+
+      /* 平板（641px - 1024px）*/
+      @media (min-width: 641px) and (max-width: 1024px) {
         .container {
           padding: 0 1.5rem;
         }
 
+        .navbar-brand {
+          font-size: 1.3rem;
+        }
+
         .navbar-nav {
-          gap: 2rem;
+          gap: 1.5rem;
         }
 
         .navbar-nav a {
-          font-size: 0.9rem;
+          font-size: 0.85rem;
+        }
+      }
+
+      /* 小屏幕电脑/大平板（1025px - 1280px）*/
+      @media (min-width: 1025px) and (max-width: 1280px) {
+        .container {
+          max-width: 1100px;
+        }
+      }
+
+      /* 超大屏幕（1281px+）*/
+      @media (min-width: 1281px) {
+        .container {
+          max-width: 1400px;
         }
       }
     </style>

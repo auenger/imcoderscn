@@ -167,9 +167,70 @@ const episodes = allEpisodes
       transform: translateX(4px);
     }
 
-    @media (max-width: 768px) {
+    /* 响应式断点 */
+
+    /* 手机（最大宽度 640px）*/
+    @media (max-width: 640px) {
+      .podcast-header {
+        padding: 3rem 0 2rem;
+      }
+
       .podcast-title {
         font-size: 2rem;
+      }
+
+      .podcast-subtitle {
+        font-size: 0.95rem;
+      }
+
+      .podcast-content {
+        padding: 1rem;
+      }
+
+      .episode-card {
+        padding: 1rem;
+      }
+
+      .episode-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+      }
+
+      .episode-date,
+      .episode-duration,
+      .episode-guest {
+        font-size: 0.75rem;
+      }
+
+      .episode-title {
+        font-size: 1.15rem;
+      }
+
+      .episode-description {
+        font-size: 0.85rem;
+      }
+
+      .episode-tags {
+        gap: 0.4rem;
+        margin-bottom: 1rem;
+      }
+
+      .tag {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.5rem;
+      }
+
+      .episode-link {
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+      }
+    }
+
+    /* 平板（641px - 1024px）*/
+    @media (min-width: 641px) and (max-width: 1024px) {
+      .podcast-title {
+        font-size: 2.5rem;
       }
 
       .podcast-content {
@@ -181,7 +242,7 @@ const episodes = allEpisodes
       }
 
       .episode-title {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
       }
     }
   </style>
