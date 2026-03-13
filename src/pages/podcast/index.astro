@@ -1,0 +1,239 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+
+const allEpisodes = await getCollection('podcast');
+const episodes = allEpisodes
+  .filter(episode => !episode.data.draft)
+  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+---
+
+<Layout title="播客 - 杨正武">
+  <style>
+    .podcast-header {
+      text-align: center;
+      padding: 4rem 0 3rem;
+      background: linear-gradient(135deg, #0a0a0f 0%, #141414 100%);
+      border-bottom: 1px solid #2a2a2a;
+    }
+
+    .podcast-title {
+      font-size: 3rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #d4af37, #f5c842, #ffd700);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 1rem;
+    }
+
+    .podcast-subtitle {
+      font-size: 1.1rem;
+      color: #a0a0a0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .podcast-content {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .episodes-list {
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+
+    .episode-card {
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-radius: 16px;
+      padding: 2rem;
+      transition: all 0.3s ease;
+      text-decoration: none;
+      display: block;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .episode-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 4px;
+      height: 100%;
+      background: #d4af37;
+      transform: scaleY(0);
+      transition: transform 0.3s ease;
+    }
+
+    .episode-card:hover {
+      border-color: #d4af37;
+      transform: translateY(-4px);
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .episode-card:hover::before {
+      transform: scaleY(1);
+    }
+
+    .episode-meta {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .episode-date {
+      color: #d4af37;
+      font-size: 0.85rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .episode-duration {
+      color: #a0a0a0;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .episode-guest {
+      color: #a0a0a0;
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .episode-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #f0f0f0;
+      margin-bottom: 1rem;
+      line-height: 1.3;
+    }
+
+    .episode-description {
+      color: #a0a0a0;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+
+    .episode-tags {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin-bottom: 1.5rem;
+    }
+
+    .tag {
+      background: #141414;
+      color: #a0a0a0;
+      padding: 0.25rem 0.75rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      border: 1px solid #2a2a2a;
+      transition: all 0.3s ease;
+    }
+
+    .episode-card:hover .tag {
+      border-color: #d4af37;
+    }
+
+    .episode-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #d4af37;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.3s ease;
+    }
+
+    .episode-link i {
+      transition: transform 0.3s ease;
+    }
+
+    .episode-card:hover .episode-link i {
+      transform: translateX(4px);
+    }
+
+    @media (max-width: 768px) {
+      .podcast-title {
+        font-size: 2rem;
+      }
+
+      .podcast-content {
+        padding: 1.5rem;
+      }
+
+      .episode-card {
+        padding: 1.5rem;
+      }
+
+      .episode-title {
+        font-size: 1.25rem;
+      }
+    }
+  </style>
+
+  <div class="podcast-header">
+    <div class="container">
+      <h1 class="podcast-title">技术播客</h1>
+      <p class="podcast-subtitle">探讨 AI Agent、自动化测试、前端技术等话题</p>
+    </div>
+  </div>
+
+  <div class="podcast-content">
+    <div class="episodes-list">
+      {episodes.map((episode) => (
+        <a
+          href={`/podcast/${episode.slug}`}
+          class="episode-card"
+        >
+          <div class="episode-meta">
+            <time class="episode-date">
+              <i class="far fa-calendar"></i>
+              {episode.data.pubDate.toLocaleDateString('zh-CN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+              })}
+            </time>
+            {episode.data.duration && (
+              <span class="episode-duration">
+                <i class="far fa-clock"></i>
+                {episode.data.duration}
+              </span>
+            )}
+            {episode.data.guest && (
+              <span class="episode-guest">
+                <i class="far fa-user"></i>
+                {episode.data.guest}
+              </span>
+            )}
+          </div>
+          <h2 class="episode-title">{episode.data.title}</h2>
+          <p class="episode-description">{episode.data.description}</p>
+          <div class="episode-tags">
+            {episode.data.tags.map((tag: string) => (
+              <span class="tag">{tag}</span>
+            ))}
+          </div>
+          <span class="episode-link">
+            收听完整内容 <i class="fas fa-arrow-right"></i>
+          </span>
+        </a>
+      ))}
+    </div>
+  </div>
+</Layout>
