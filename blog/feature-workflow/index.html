@@ -1,0 +1,375 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><link rel="stylesheet" href="/_astro/_slug_.BskLr3ge.css">
+<link rel="stylesheet" href="/_astro/_slug_.CFMVo17U.css"></head> <body> <nav class="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
+杨正武<span>.imcoders</span> </a> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>   <article class="article-container" data-astro-cid-7jjqptxk> <header class="article-header" data-astro-cid-7jjqptxk> <h1 class="article-title" data-astro-cid-7jjqptxk>Feature Workflow：基于 Worktree 的多特性并行开发范式</h1> <div class="article-meta" data-astro-cid-7jjqptxk> <div class="article-meta-item" data-astro-cid-7jjqptxk> <i class="far fa-calendar" data-astro-cid-7jjqptxk></i> <time datetime="2026-03-13T00:00:00.000Z" data-astro-cid-7jjqptxk> 2026年3月13日 </time> </div> <div class="article-meta-item" data-astro-cid-7jjqptxk> <i class="far fa-user" data-astro-cid-7jjqptxk></i> <span data-astro-cid-7jjqptxk>杨正武</span> </div> </div> <div class="article-tags" data-astro-cid-7jjqptxk> <span class="tag" data-astro-cid-7jjqptxk>工作流</span><span class="tag" data-astro-cid-7jjqptxk>Git Worktree</span><span class="tag" data-astro-cid-7jjqptxk>并行开发</span><span class="tag" data-astro-cid-7jjqptxk>多Agent</span><span class="tag" data-astro-cid-7jjqptxk>AILock-Step</span> </div> </header> <div class="article-content" data-astro-cid-7jjqptxk> <h2 id="引言">引言</h2>
+<p>在 AI 辅助开发的实际应用中，多特性并行开发面临几个核心问题。不同需求的代码会相互干扰，AI 容易产生上下文混淆。传统分支切换方式会导致工作进度丢失。多个 AI Agent 同时工作时，代码冲突难以避免。需求状态管理混乱，无法追溯开发历史。</p>
+<p>为了解决这些问题，我设计了 Feature Workflow。这是一个融合了 Bmad 和 OpenSpec 优秀理念的工作流范式，基于 Git Worktree 实现真正的物理隔离，支持多 Agent 并行开发，从根本上避免了代码冲突问题。</p>
+<h2 id="worktree-物理隔离">Worktree 物理隔离</h2>
+<h3 id="传统开发方式的问题">传统开发方式的问题</h3>
+<p>传统 Git 工作流使用分支隔离代码，但开发环境共享同一个工作目录。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>OA_Tool/                    # 唯一的工作目录</span></span>
+<span class="line"><span>├── src/</span></span>
+<span class="line"><span>├── package.json</span></span>
+<span class="line"><span>└── .git/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># 切换分支时的困境</span></span>
+<span class="line"><span>git checkout feature/auth</span></span>
+<span class="line"><span># 当前未提交的代码被覆盖，需要 stash 或 commit</span></span>
+<span class="line"><span># 开发一半的 dashboard 功能无法保留</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>这种方式导致三个问题。切换分支会丢失未完成的工作进度。无法同时开发多个需求。AI 上下文在分支切换时容易混淆。</p>
+<h3 id="worktree-的物理隔离方案">Worktree 的物理隔离方案</h3>
+<p>Git Worktree 允许在同一个仓库下同时检出多个分支到不同目录。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>OA_Tool/                        # 主仓库 (main 分支)</span></span>
+<span class="line"><span>├── src/</span></span>
+<span class="line"><span>├── package.json</span></span>
+<span class="line"><span>└── feature-workflow/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>OA_Tool-feat-auth/              # Worktree 1 (feature/auth 分支)</span></span>
+<span class="line"><span>├── src/auth/                   # 独立的代码副本</span></span>
+<span class="line"><span>├── .git/                       # 共享 Git 数据库</span></span>
+<span class="line"><span>└── features/</span></span>
+<span class="line"><span>    └── active-feat-auth/</span></span>
+<span class="line"><span>        ├── spec.md</span></span>
+<span class="line"><span>        ├── task.md</span></span>
+<span class="line"><span>        └── checklist.md</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>OA_Tool-feat-dashboard/         # Worktree 2 (feature/dashboard 分支)</span></span>
+<span class="line"><span>├── src/dashboard/              # 独立的代码副本</span></span>
+<span class="line"><span>└── features/</span></span>
+<span class="line"><span>    └── active-feat-dashboard/</span></span>
+<span class="line"><span>        ├── spec.md</span></span>
+<span class="line"><span>        ├── task.md</span></span>
+<span class="line"><span>        └── checklist.md</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>每个 worktree 有独立的文件副本和 HEAD，但共享同一个 Git 数据库。这带来了几个关键优势。</p>
+<h3 id="开发环境完全隔离">开发环境完全隔离</h3>
+<p>不同需求的代码互不干扰，可以真正并行开发。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span># 终端 1：开发认证功能</span></span>
+<span class="line"><span>cd OA_Tool-feat-auth</span></span>
+<span class="line"><span>npm run dev</span></span>
+<span class="line"><span># 运行在 3000 端口</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span># 终端 2：开发仪表盘功能</span></span>
+<span class="line"><span>cd OA_Tool-feat-dashboard</span></span>
+<span class="line"><span>npm run dev</span></span>
+<span class="line"><span># 运行在 3001 端口</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>无需频繁切换分支，每个需求有独立的开发服务器。AI Agent 可以在不同的 worktree 中并行工作，上下文完全隔离。</p>
+<h3 id="独立的测试验证">独立的测试验证</h3>
+<p>每个 worktree 有独立的测试环境，证据收集互不干扰。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>OA_Tool-feat-auth/</span></span>
+<span class="line"><span>├── e2e/</span></span>
+<span class="line"><span>│   └── auth.spec.ts           # 只测试认证功能</span></span>
+<span class="line"><span>└── evidence/</span></span>
+<span class="line"><span>    ├── screenshots/</span></span>
+<span class="line"><span>    └── traces/</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>OA_Tool-feat-dashboard/</span></span>
+<span class="line"><span>├── e2e/</span></span>
+<span class="line"><span>│   └── dashboard.spec.ts      # 只测试仪表盘功能</span></span>
+<span class="line"><span>└── evidence/</span></span>
+<span class="line"><span>    ├── screenshots/</span></span>
+<span class="line"><span>    └── traces/</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>Playwright 测试可以并行执行，截图和 trace 文件隔离存储，不会相互覆盖。</p>
+<h3 id="安全的合并策略">安全的合并策略</h3>
+<p>传统方式直接合并到 main 分支，冲突在 main 分支解决，容易污染主干代码。</p>
+<p>Worktree 方式采用 rebase 策略，冲突在 feature 分支内解决。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>feature/auth 分支</span></span>
+<span class="line"><span>    ↓ git rebase main</span></span>
+<span class="line"><span>feature/auth 分支 (包含所有 main 的最新变更)</span></span>
+<span class="line"><span>    ↓ 解决冲突 (在 feature 分支内)</span></span>
+<span class="line"><span>feature/auth 分支 (冲突已解决)</span></span>
+<span class="line"><span>    ↓ git merge --ff-only</span></span>
+<span class="line"><span>main 分支 (快速前进，干净合并)</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>main 分支始终保持干净状态，冲突解决在 feature 分支完成，解决后可以重新验证。</p>
+<h2 id="多特性并行开发">多特性并行开发</h2>
+<h3 id="并行控制机制">并行控制机制</h3>
+<p>Feature Workflow 通过 <code>queue.yaml</code> 管理需求队列，<code>config.yaml</code> 控制并行数量。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># config.yaml</span></span>
+<span class="line"><span style="color:#85E89D">parallelism</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  max_concurrent</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2</span><span style="color:#6A737D">              # 最多同时开发 2 个需求</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># queue.yaml</span></span>
+<span class="line"><span style="color:#85E89D">active</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">用户认证</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">90</span></span>
+<span class="line"><span style="color:#85E89D">    worktree</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">../OA_Tool-feat-auth</span></span>
+<span class="line"><span style="color:#85E89D">    branch</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feature/auth</span></span>
+<span class="line"><span style="color:#85E89D">    status</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">implementing</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-dashboard</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">仪表盘</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">80</span></span>
+<span class="line"><span style="color:#85E89D">    worktree</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">../OA_Tool-feat-dashboard</span></span>
+<span class="line"><span style="color:#85E89D">    branch</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feature/dashboard</span></span>
+<span class="line"><span style="color:#85E89D">    status</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">implementing</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#85E89D">pending</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-notification</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">消息通知</span></span>
+<span class="line"><span style="color:#85E89D">    priority</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">70</span></span>
+<span class="line"><span style="color:#85E89D">    dependencies</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">feat-auth</span><span style="color:#E1E4E8">]     </span><span style="color:#6A737D"># 依赖认证功能</span></span>
+<span class="line"></span></code></pre>
+<p>只有 active 数量小于 max_concurrent 时，才能从 pending 启动新需求。依赖关系确保前置需求完成后才能启动后续需求。</p>
+<h3 id="需求生命周期">需求生命周期</h3>
+<p>每个需求经历完整的生命周期管理。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>/new-feature        创建需求文档</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>pending-feat-xxx/   进入等待队列</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>/start-feature      创建 worktree 和分支</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>active-feat-xxx/    进入开发状态</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>/implement-feature  AI 实现代码</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>/verify-feature     运行测试验证</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>/complete-feature   合并到 main 并归档</span></span>
+<span class="line"><span>     ↓</span></span>
+<span class="line"><span>archive/</span></span>
+<span class="line"><span>└── done-feat-xxx/  归档所有文档和证据</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>每个阶段都有对应的命令和状态文件，确保流程可追溯。</p>
+<h2 id="多-agent-并行架构">多 Agent 并行架构</h2>
+<h3 id="主从式-agent-设计">主从式 Agent 设计</h3>
+<p>Feature Workflow 采用主从式 Agent 架构实现多特性并行开发。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>┌─────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│ 主 Agent (无状态，可恢复)                                    │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ 职责：                                                        │</span></span>
+<span class="line"><span>│ 1. 读取 queue.yaml 获取 active features                     │</span></span>
+<span class="line"><span>│ 2. 检查每个 .status 文件判断当前状态                         │</span></span>
+<span class="line"><span>│ 3. 启动独立的 Feature Agent 进程                             │</span></span>
+<span class="line"><span>│ 4. 监控进度，处理阻塞和错误                                   │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ 特点：                                                        │</span></span>
+<span class="line"><span>│ - 上下文极小，只读取 .status 文件                            │</span></span>
+<span class="line"><span>│ - 可随时中断和恢复                                           │</span></span>
+<span class="line"><span>│ - 不直接参与代码实现                                         │</span></span>
+<span class="line"><span>└─────────────────────────────────────────────────────────────┘</span></span>
+<span class="line"><span>         │ 启动独立进程</span></span>
+<span class="line"><span>         │ ./scripts/start-feature-agent.sh feat-auth &#x26;</span></span>
+<span class="line"><span>         ▼</span></span>
+<span class="line"><span>┌─────────────────────────────────────────────────────────────┐</span></span>
+<span class="line"><span>│ Feature Agent (独立进程，自治)                               │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ 生命周期：implement → verify → complete → 退出              │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ 输出：                                                       │</span></span>
+<span class="line"><span>│ - .status (结构化状态文件)                                   │</span></span>
+<span class="line"><span>│ - .log (日志 + EVENT token)                                 │</span></span>
+<span class="line"><span>│                                                              │</span></span>
+<span class="line"><span>│ EVENT Token:                                                 │</span></span>
+<span class="line"><span>│ - EVENT:START feat-auth                                     │</span></span>
+<span class="line"><span>│ - EVENT:STAGE feat-auth implement                           │</span></span>
+<span class="line"><span>│ - EVENT:PROGRESS feat-auth 3/5                              │</span></span>
+<span class="line"><span>│ - EVENT:BLOCKED feat-auth "reason"                          │</span></span>
+<span class="line"><span>│ - EVENT:COMPLETE feat-auth feat-auth-20260305              │</span></span>
+<span class="line"><span>└─────────────────────────────────────────────────────────────┘</span></span>
+<span class="line"><span></span></span></code></pre>
+<h3 id="状态文件设计">状态文件设计</h3>
+<p>每个 Feature Agent 通过 <code>.status</code> 文件向主 Agent 报告状态。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># features/active-feat-auth/.status</span></span>
+<span class="line"><span style="color:#85E89D">feature_id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth</span></span>
+<span class="line"><span style="color:#85E89D">feature_name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">用户认证</span></span>
+<span class="line"><span style="color:#85E89D">status</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">implementing</span><span style="color:#6A737D">              # started | implementing | verifying | completing | blocked | done</span></span>
+<span class="line"><span style="color:#85E89D">stage</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">implement</span><span style="color:#6A737D">                  # init | implement | verify | complete</span></span>
+<span class="line"><span style="color:#85E89D">progress</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  tasks_total</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span>
+<span class="line"><span style="color:#85E89D">  tasks_done</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">3</span></span>
+<span class="line"><span style="color:#85E89D">  current_task</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"实现登录 API"</span></span>
+<span class="line"><span style="color:#85E89D">started_at</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2026-03-05T10:00:00Z</span></span>
+<span class="line"><span style="color:#85E89D">updated_at</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">2026-03-05T10:30:00Z</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 完成时添加</span></span>
+<span class="line"><span style="color:#85E89D">completion</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  duration</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"2h 30m"</span></span>
+<span class="line"><span style="color:#85E89D">  commits</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">5</span></span>
+<span class="line"><span style="color:#85E89D">  tag</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth-20260305</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 阻塞时添加</span></span>
+<span class="line"><span style="color:#85E89D">blocked</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  reason</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"Rebase 冲突"</span></span>
+<span class="line"><span style="color:#85E89D">  stage</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">"complete"</span></span>
+<span class="line"><span style="color:#85E89D">  needs_help</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span></span>
+<span class="line"></span></code></pre>
+<p>主 Agent 通过轮询 <code>.status</code> 文件监控进度，不需要维护内存状态。任何时候被中断，重新读取文件即可恢复。</p>
+<h3 id="event-token-可观测性">EVENT Token 可观测性</h3>
+<p>Feature Agent 在 <code>.log</code> 文件中输出标准事件。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>EVENT:START feat-auth</span></span>
+<span class="line"><span>EVENT:STAGE feat-auth implement</span></span>
+<span class="line"><span>EVENT:PROGRESS feat-auth 1/5</span></span>
+<span class="line"><span>EVENT:PROGRESS feat-auth 2/5</span></span>
+<span class="line"><span>EVENT:PROGRESS feat-auth 3/5</span></span>
+<span class="line"><span>EVENT:BLOCKED feat-auth "API 依赖缺失"</span></span>
+<span class="line"><span>EVENT:RESOLVED feat-auth</span></span>
+<span class="line"><span>EVENT:PROGRESS feat-auth 4/5</span></span>
+<span class="line"><span>EVENT:PROGRESS feat-auth 5/5</span></span>
+<span class="line"><span>EVENT:STAGE feat-auth verify</span></span>
+<span class="line"><span>EVENT:STAGE feat-auth complete</span></span>
+<span class="line"><span>EVENT:COMPLETE feat-auth feat-auth-20260305</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>这些事件方便调试和审计，可以通过 <code>grep "^EVENT:" .log | tail -10</code> 快速查看最近发生的事情。</p>
+<h2 id="代码冲突解决方案">代码冲突解决方案</h2>
+<h3 id="物理隔离避免冲突">物理隔离避免冲突</h3>
+<p>Worktree 机制从根本上避免了开发时的冲突。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>传统方式 (同一工作目录):</span></span>
+<span class="line"><span>┌─────────────────────────────────────┐</span></span>
+<span class="line"><span>│ OA_Tool/                            │</span></span>
+<span class="line"><span>│  └── src/                           │</span></span>
+<span class="line"><span>│      ├── auth.ts    ← Agent A 修改  │</span></span>
+<span class="line"><span>│      └── dash.ts    ← Agent B 修改  │</span></span>
+<span class="line"><span>└─────────────────────────────────────┘</span></span>
+<span class="line"><span>问题：两个 Agent 同时修改 src/utils.ts</span></span>
+<span class="line"><span>      → 代码覆盖，逻辑冲突</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>Worktree 方式 (独立工作目录):</span></span>
+<span class="line"><span>┌─────────────────────────────────────┐</span></span>
+<span class="line"><span>│ OA_Tool-feat-auth/                  │</span></span>
+<span class="line"><span>│  └── src/auth.ts    ← Agent A       │</span></span>
+<span class="line"><span>└─────────────────────────────────────┘</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>┌─────────────────────────────────────┐</span></span>
+<span class="line"><span>│ OA_Tool-feat-dashboard/             │</span></span>
+<span class="line"><span>│  └── src/dash.ts    ← Agent B       │</span></span>
+<span class="line"><span>└─────────────────────────────────────┘</span></span>
+<span class="line"><span>优势：两个 Agent 操作不同文件副本</span></span>
+<span class="line"><span>      → 不会有冲突</span></span>
+<span class="line"><span></span></span></code></pre>
+<h3 id="依赖关系管理">依赖关系管理</h3>
+<p>通过 dependencies 字段管理需求间的依赖关系。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># queue.yaml</span></span>
+<span class="line"><span style="color:#85E89D">pending</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth-register</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">用户注册</span></span>
+<span class="line"><span style="color:#85E89D">    dependencies</span><span style="color:#E1E4E8">: []</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth-login</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">用户登录</span></span>
+<span class="line"><span style="color:#85E89D">    dependencies</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">feat-auth-register</span><span style="color:#E1E4E8">]    </span><span style="color:#6A737D"># 依赖注册功能</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#E1E4E8">  - </span><span style="color:#85E89D">id</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">feat-auth-permission</span></span>
+<span class="line"><span style="color:#85E89D">    name</span><span style="color:#E1E4E8">: </span><span style="color:#9ECBFF">权限管理</span></span>
+<span class="line"><span style="color:#85E89D">    dependencies</span><span style="color:#E1E4E8">: [</span><span style="color:#9ECBFF">feat-auth-login</span><span style="color:#E1E4E8">]       </span><span style="color:#6A737D"># 依赖登录功能</span></span>
+<span class="line"></span></code></pre>
+<p>启动需求时检查依赖，只有所有依赖都已完成才能启动。这确保了开发顺序的正确性，避免了因依赖未就绪导致的代码冲突。</p>
+<h3 id="合并前冲突检测">合并前冲突检测</h3>
+<p>在 <code>complete-feature</code> 流程中加入合并前冲突检测。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># 在合并到 main 之前</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> fetch</span><span style="color:#9ECBFF"> origin</span><span style="color:#9ECBFF"> main</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> rebase</span><span style="color:#9ECBFF"> origin/main</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 检测是否有冲突</span></span>
+<span class="line"><span style="color:#F97583">if</span><span style="color:#B392F0"> git</span><span style="color:#9ECBFF"> ls-files</span><span style="color:#79B8FF"> -u</span><span style="color:#F97583"> |</span><span style="color:#B392F0"> grep</span><span style="color:#79B8FF"> -q</span><span style="color:#9ECBFF"> .</span><span style="color:#E1E4E8">; </span><span style="color:#F97583">then</span></span>
+<span class="line"><span style="color:#79B8FF">  echo</span><span style="color:#9ECBFF"> "检测到冲突，需要先解决"</span></span>
+<span class="line"><span style="color:#B392F0">  git</span><span style="color:#9ECBFF"> diff</span><span style="color:#79B8FF"> --name-only</span><span style="color:#79B8FF"> --diff-filter=U</span></span>
+<span class="line"><span style="color:#79B8FF">  exit</span><span style="color:#79B8FF"> 1</span></span>
+<span class="line"><span style="color:#F97583">fi</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#6A737D"># 无冲突才能继续</span></span>
+<span class="line"><span style="color:#B392F0">git</span><span style="color:#9ECBFF"> merge</span><span style="color:#79B8FF"> --ff-only</span><span style="color:#9ECBFF"> main</span></span>
+<span class="line"></span></code></pre>
+<p>冲突在 feature 分支内解决，解决后可以重新运行测试验证。main 分支始终保持干净状态，不会被冲突污染。</p>
+<h3 id="文件重叠预警">文件重叠预警</h3>
+<p>系统可以检测多个活跃 worktree 是否修改了相同的文件。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="yaml"><code><span class="line"><span style="color:#6A737D"># config.yaml</span></span>
+<span class="line"><span style="color:#85E89D">conflict</span><span style="color:#E1E4E8">:</span></span>
+<span class="line"><span style="color:#85E89D">  check_before_merge</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span><span style="color:#6A737D">           # 合并前检测</span></span>
+<span class="line"><span style="color:#85E89D">  notify_on_overlap</span><span style="color:#E1E4E8">: </span><span style="color:#79B8FF">true</span><span style="color:#6A737D">            # 文件重叠时提醒</span></span>
+<span class="line"></span></code></pre>
+<p>当检测到两个 active features 可能修改相同文件时，系统提前预警，建议调整开发顺序或进行代码拆分。</p>
+<h2 id="bmad-与-openspec-的融合">Bmad 与 OpenSpec 的融合</h2>
+<h3 id="bmad-的文档驱动理念">Bmad 的文档驱动理念</h3>
+<p>Bmad 强调用 Markdown 文档作为单一数据源。所有信息都在文档中，AI 通过阅读和写入文档来完成任务。</p>
+<p>Feature Workflow 借鉴了这个理念，每个需求包含三个核心文档。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#E1E4E8">features/active-feat-auth/</span></span>
+<span class="line"><span style="color:#E1E4E8">├── spec.md              # 需求规范（Gherkin 验收场景）</span></span>
+<span class="line"><span style="color:#E1E4E8">├── task.md              # 任务列表（可勾选的清单）</span></span>
+<span class="line"><span style="color:#E1E4E8">└── checklist.md         # 检查清单（代码质量、测试覆盖）</span></span>
+<span class="line"></span></code></pre>
+<p>spec.md 定义需求要达成的目标，task.md 分解实现步骤，checklist.md 验证完成质量。AI 完全基于这些文档工作，工作流程清晰可见。</p>
+<h3 id="openspec-的结构化规范">OpenSpec 的结构化规范</h3>
+<p>OpenSpec 强调用结构化的规范描述需求，确保输出质量可预测。</p>
+<p>Feature Workflow 引入了 Gherkin 格式的验收场景。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="markdown"><code><span class="line"><span style="color:#79B8FF;font-weight:bold">## 验收标准 (Acceptance Criteria)</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">### 用户故事</span></span>
+<span class="line"><span style="color:#E1E4E8">作为 用户，我希望 登录系统，以便 访问受保护的功能。</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">### Gherkin 验收场景</span></span>
+<span class="line"></span>
+<span class="line"><span style="color:#79B8FF;font-weight:bold">#### 场景 1: 用户登录成功</span></span>
+<span class="line"><span style="color:#E1E4E8">```gherkin</span></span>
+<span class="line"><span style="color:#E1E4E8">Given 用户在登录页面</span></span>
+<span class="line"><span style="color:#E1E4E8">When 用户输入正确的用户名和密码</span></span>
+<span class="line"><span style="color:#E1E4E8">Then 页面跳转到首页</span></span>
+<span class="line"><span style="color:#E1E4E8">And 显示欢迎消息</span></span>
+<span class="line"></span></code></pre>
+<h4 id="场景-2-用户登录失败">场景 2: 用户登录失败</h4>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="gherkin"><code><span class="line"><span style="color:#F97583">Given </span><span style="color:#E1E4E8">用户在登录页面</span></span>
+<span class="line"><span style="color:#F97583">When </span><span style="color:#E1E4E8">用户输入错误的用户名或密码</span></span>
+<span class="line"><span style="color:#F97583">Then </span><span style="color:#E1E4E8">显示错误提示</span></span>
+<span class="line"><span style="color:#F97583">And </span><span style="color:#E1E4E8">保持在登录页面</span></span>
+<span class="line"></span></code></pre>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span></span></span>
+<span class="line"><span>结构化的验收场景让 AI 能够准确理解需求，避免因歧义导致的实现偏差。验证时可以直接用 Playwright MCP 执行这些场景。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>### AILock-Step 协议的执行保证</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>整个工作流基于 AILock-Step 协议实现。</span></span>
+<span class="line"><span></span></span>
+<span class="line"><span>```yaml</span></span>
+<span class="line"><span># implement-feature 执行流程</span></span>
+<span class="line"><span>STP-001: 读取 spec.md 和 task.md</span></span>
+<span class="line"><span>STP-002: 分析项目上下文</span></span>
+<span class="line"><span>STP-003: 逐项实现任务</span></span>
+<span class="line"><span>  └─ 每个任务都是独立的状态锚点</span></span>
+<span class="line"><span>STP-004: 运行测试验证</span></span>
+<span class="line"><span>STP-005: 更新 .status 文件</span></span>
+<span class="line"><span>  └─ 支持断点续传</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>状态锚点强制线性执行，AI 不能跳过步骤。每个状态锚点都关联物理存盘点，即使执行中断也能精准恢复。</p>
+<h2 id="实际应用效果">实际应用效果</h2>
+<h3 id="oa_tool-项目实践">OA_Tool 项目实践</h3>
+<p>OA_Tool 是一个协作工具平台，使用 Feature Workflow 进行开发管理。</p>
+<p><strong>并行开发场景</strong></p>
+<p>同时开发三个特性：用户认证、仪表盘、消息通知。三个 AI Agent 在各自的 worktree 中并行工作，互不干扰。</p>
+<p><strong>效果评估</strong></p>
+<p>开发效率提升明显。多个特性可以真正并行推进，不用等待前一个特性完全完成。AI 输出质量更加稳定，每个需求有明确的验收标准。代码冲突大幅减少，Worktree 物理隔离从根本上避免了问题。</p>
+<h3 id="可维护性提升">可维护性提升</h3>
+<p>所有特性都遵循相同的开发模式，新成员快速上手。历史项目容易理解，每个完成的特性都有完整的归档记录。重构风险可控，可以通过 tag 快速查看任何历史版本的代码。</p>
+<h3 id="完整的追溯能力">完整的追溯能力</h3>
+<p>每个完成的特性都会创建 Git Tag（如 <code>feat-auth-20260305</code>），保留完整的验证证据（截图、trace、测试报告），归档所有文档（spec、task、checklist）。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="plaintext"><code><span class="line"><span>features/archive/done-feat-auth-20260305/</span></span>
+<span class="line"><span>├── spec.md                    # 需求文档（包含合并记录）</span></span>
+<span class="line"><span>├── task.md                    # 任务清单</span></span>
+<span class="line"><span>├── checklist.md               # 检查清单</span></span>
+<span class="line"><span>└── evidence/                  # 验收证据</span></span>
+<span class="line"><span>    ├── verification-report.md</span></span>
+<span class="line"><span>    ├── screenshots/</span></span>
+<span class="line"><span>    └── traces/</span></span>
+<span class="line"><span></span></span></code></pre>
+<p>通过 archive-log.yaml 可以快速查找任何历史特性，通过 Git tag 可以快速恢复任何历史代码。</p>
+<h2 id="未来方向">未来方向</h2>
+<h3 id="与-claude-code-原生-worktree-结合">与 Claude Code 原生 Worktree 结合</h3>
+<p>Claude Code 从 v2.1.50 开始原生支持 <code>--worktree</code> 参数。可以在 worktree 内直接启动 Claude 会话。</p>
+<pre class="astro-code github-dark" style="background-color:#24292e;color:#e1e4e8; overflow-x: auto;" tabindex="0" data-language="bash"><code><span class="line"><span style="color:#6A737D"># start-feature 创建 worktree 后</span></span>
+<span class="line"><span style="color:#79B8FF">cd</span><span style="color:#9ECBFF"> ../OA_Tool-feat-auth</span></span>
+<span class="line"><span style="color:#B392F0">claude</span><span style="color:#6A737D">  # 在 worktree 里启动 Claude 会话</span></span>
+<span class="line"></span></code></pre>
+<h3 id="增强冲突预警">增强冲突预警</h3>
+<p>计划实现文件重叠预警机制。当检测到多个 active features 可能修改相同文件时，提前通知开发者调整策略。</p>
+<h3 id="更多技能模块">更多技能模块</h3>
+<p>当前实现了基础的特性开发技能。未来计划添加代码重构技能、性能优化技能、安全审计技能。每个新技能都是一个完整的 AILock-Step 执行流程。</p>
+<h2 id="相关资源">相关资源</h2>
+<ul>
+<li><a href="https://github.com/auenger/AILock-Step/tree/main/feature-workflow-LockStep">Feature Workflow 源码</a></li>
+<li><a href="https://github.com/auenger/AILock-Step">AILock-Step 协议文档</a></li>
+<li><a href="https://github.com/auenger/OA_Tool">OA_Tool 项目实践</a></li>
+</ul> </div> <footer class="article-footer" data-astro-cid-7jjqptxk> <a href="/blog" class="back-link" data-astro-cid-7jjqptxk> <i class="fas fa-arrow-left" data-astro-cid-7jjqptxk></i>
+返回博客列表
+</a> </footer> </article>  </main> <!-- Footer --> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>

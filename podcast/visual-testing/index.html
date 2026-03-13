@@ -1,0 +1,24 @@
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>下一代自动化测试：视觉驱动的新范式 - 播客 - 杨正武</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><link rel="stylesheet" href="/_astro/_slug_.BskLr3ge.css">
+<link rel="stylesheet" href="/_astro/_slug_.4cBOolsV.css"></head> <body> <nav class="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
+杨正武<span>.imcoders</span> </a> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>   <div class="podcast-detail" data-astro-cid-3mnkyo5w> <a href="/podcast" class="back-link" data-astro-cid-3mnkyo5w> <i class="fas fa-arrow-left" data-astro-cid-3mnkyo5w></i>
+返回播客列表
+</a> <header class="podcast-header" data-astro-cid-3mnkyo5w> <div class="podcast-meta" data-astro-cid-3mnkyo5w> <time class="meta-item" data-astro-cid-3mnkyo5w> <i class="far fa-calendar" data-astro-cid-3mnkyo5w></i> 2026年3月8日 </time> <span class="meta-item" data-astro-cid-3mnkyo5w> <i class="far fa-clock" data-astro-cid-3mnkyo5w></i> 52分钟 </span> <span class="meta-item" data-astro-cid-3mnkyo5w> <i class="fas fa-user" data-astro-cid-3mnkyo5w></i> 杨正武 </span> </div> <h1 class="podcast-title" data-astro-cid-3mnkyo5w>下一代自动化测试：视觉驱动的新范式</h1> <p class="podcast-description" data-astro-cid-3mnkyo5w>深入讨论 Visual Replay Tester 的设计理念，探索基于视觉的自动化测试解决方案</p> <div class="podcast-tags" data-astro-cid-3mnkyo5w> <span class="podcast-tag" data-astro-cid-3mnkyo5w>自动化测试</span><span class="podcast-tag" data-astro-cid-3mnkyo5w>Playwright</span><span class="podcast-tag" data-astro-cid-3mnkyo5w>VLM</span> </div> </header>  <div class="content-wrapper" data-astro-cid-3mnkyo5w> <h2 id="节目简介">节目简介</h2>
+<p>传统前端 E2E 测试存在两个问题。脚本维护成本高，UI 变动会导致测试失败。视觉覆盖不全，Canvas、Shadow DOM 等场景难以测试。</p>
+<p>Visual Replay Tester 是一个集成了 Playwright、Electron 和 MCP 的自动化测试工具，我们讨论了它的设计理念和实现方案。</p>
+<h2 id="核心价值">核心价值</h2>
+<p>VRT 的核心价值在于将昂贵的 AI 推理转化为低成本、高稳定性的工程化脚本。初次探索使用 AI，后续回归使用固化脚本，成本大幅降低。</p>
+<h2 id="四层自动化体系">四层自动化体系</h2>
+<h3 id="l1-高保真录制回放">L1 高保真录制回放</h3>
+<p>适用于冒烟测试和固定业务流程回归。首选策略基于唯一 CSS 选择器进行精准操作。当选择器失效时，降级策略自动切换至空间坐标系。关键步骤强制进行视觉 Diff，确保渲染层面的正确性。</p>
+<h3 id="l2-cdp-语义交互">L2 CDP 语义交互</h3>
+<p>适用于动态复杂页面和高频交互场景。不依赖脆弱的 DOM 结构，而是基于稳定的无障碍语义树。根据 Viewport 和交互上下文，只提取即时可用的语义节点。</p>
+<h3 id="l3-纯视觉-ai">L3 纯视觉 AI</h3>
+<p>适用于 Shadow DOM、Canvas、Web 游戏。利用 VLM 像人类一样通过截图理解屏幕。默认使用 CDP 获取轻量级语义，仅在遇到黑盒区域时才唤起 VLM。</p>
+<h3 id="l4-智能-agent">L4 智能 Agent</h3>
+<p>适用于探索性测试和模糊指令执行。基于观察、思考、行动、修正的循环。将 Agent 的探索过程持久化为标准测试脚本。</p>
+<h2 id="混合执行引擎">混合执行引擎</h2>
+<p>对于标准 HTML 元素，通过 MCP 协议直接调用 CDP 接口。这种方式速度快、稳定性高、可记录为标准代码，能处理 80% 的标准 DOM 操作。</p>
+<p>当遇到 Canvas 画布、极度混淆的 DOM、ShadowRoot 内部时，调用 VLM 进行判断。计算目标图像坐标，模拟鼠标物理点击。</p>
+<h2 id="成本分析">成本分析</h2>
+<p>只在初次探索和生成脚本阶段大量消耗 Token 和算力。脚本生成后，后续回归测试仅运行固化的脚本，成本趋近于零。</p>
+<p>通过 VLM 视觉方案，解决了 Canvas、WebGL 等传统自动化工具难以处理的场景。</p> </div>  </div>  </main> <!-- Footer --> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>
