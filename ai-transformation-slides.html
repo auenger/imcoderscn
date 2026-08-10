@@ -1,0 +1,830 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 全栈研发转型 — 从痛点到实践</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+[data-theme="dark"] {
+  --bg: #0b0b14; --bg2: #0f0f1c; --surface: #161628; --surface2: #1c1c36; --surface3: #22223e;
+  --border: rgba(255,255,255,0.06); --border-strong: rgba(255,255,255,0.12);
+  --text: #e6e6f2; --text2: #9090ac; --text3: #606078;
+  --accent: #7b6cf0; --accent2: #a8a0ff;
+  --green: #00d4aa; --green-bg: rgba(0,212,170,0.08); --green-border: rgba(0,212,170,0.2);
+  --red: #ff6b6b; --red-bg: rgba(255,107,107,0.08); --red-border: rgba(255,107,107,0.2);
+  --orange: #f0b848; --orange-bg: rgba(240,184,72,0.08); --orange-border: rgba(240,184,72,0.2);
+  --accent-bg: rgba(123,108,240,0.08); --accent-border: rgba(123,108,240,0.18);
+  --code-bg: #111124; --code-border: rgba(123,108,240,0.12); --code-text: #00d4aa;
+  --shadow: 0 2px 16px rgba(0,0,0,0.4); --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --quote-bg: rgba(123,108,240,0.06); --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+  --key-border: rgba(123,108,240,0.18);
+  --toggle-bg: rgba(255,255,255,0.08); --toggle-hover: rgba(255,255,255,0.14);
+  --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+}
+[data-theme="light"] {
+  --bg: #f4f4fb; --bg2: #eaeaf4; --surface: #ffffff; --surface2: #f0f0fa; --surface3: #e6e6f2;
+  --border: rgba(0,0,0,0.07); --border-strong: rgba(0,0,0,0.12);
+  --text: #1a1a30; --text2: #5a5a78; --text3: #9898ac;
+  --accent: #5b4cc4; --accent2: #7b6cf0;
+  --green: #009a7c; --green-bg: rgba(0,154,124,0.06); --green-border: rgba(0,154,124,0.18);
+  --red: #d44040; --red-bg: rgba(212,64,64,0.06); --red-border: rgba(212,64,64,0.18);
+  --orange: #b88020; --orange-bg: rgba(184,128,32,0.06); --orange-border: rgba(184,128,32,0.18);
+  --accent-bg: rgba(91,76,196,0.06); --accent-border: rgba(91,76,196,0.15);
+  --code-bg: #1a1a30; --code-border: rgba(91,76,196,0.12); --code-text: #00d4aa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06); --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --quote-bg: rgba(91,76,196,0.04); --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+  --key-border: rgba(91,76,196,0.12);
+  --toggle-bg: rgba(0,0,0,0.06); --toggle-hover: rgba(0,0,0,0.1);
+  --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+}
+
+html, body, .slide, .progress, .slide-number, .nav-hint,
+.col-card, .tip, pre, .quote, .key-point, .flow-item, .tag,
+.theme-toggle, .tip-num, .step-card, .loop-card, .nav-dot, .nav-dots,
+.challenge-item, .volume-card, .data-table {
+  transition: background 0.4s ease, color 0.4s ease,
+              border-color 0.4s ease, box-shadow 0.4s ease,
+              opacity 0.4s ease;
+}
+
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg); color: var(--text);
+}
+
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px;
+  background: var(--progress-bg); z-index: 100;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle {
+  position: fixed; bottom: 2.5vh; right: 7vw;
+  z-index: 60; width: 36px; height: 36px; border-radius: 50%;
+  background: var(--toggle-bg); border: 1px solid var(--border-strong);
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(8px);
+}
+.theme-toggle:hover { background: var(--toggle-hover); }
+.theme-toggle svg { width: 16px; height: 16px; fill: var(--text2); }
+[data-theme="dark"] .icon-sun { display: block; }
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="light"] .icon-sun { display: none; }
+[data-theme="light"] .icon-moon { display: block; }
+
+.slides { width: 100%; height: 100%; position: relative; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 6vh 8vw;
+  opacity: 0; transform: translateX(60px);
+  transition: opacity 0.45s ease, transform 0.45s ease;
+  pointer-events: none;
+  overflow-y: auto; scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+.slide > * { max-width: 860px; width: 100%; }
+.slide > .tag { width: auto; }
+.slide::-webkit-scrollbar { width: 4px; }
+.slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+.slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+.slide-number {
+  position: fixed; bottom: 2.5vh; right: 3vw;
+  font-size: 0.82rem; color: var(--text3);
+  z-index: 50; font-variant-numeric: tabular-nums; font-weight: 500;
+}
+.nav-hint {
+  position: fixed; bottom: 56px; left: 3vw;
+  font-size: 0.72rem; color: var(--text3); z-index: 50; opacity: 0.5;
+}
+
+h1 { font-size: clamp(2rem,5vw,3.6rem); font-weight: 900; line-height: 1.15; margin-bottom: 1.2rem; letter-spacing: -0.02em; }
+h2 { font-size: clamp(1.4rem,3.2vw,2.4rem); font-weight: 700; line-height: 1.25; margin-bottom: 1rem; color: var(--accent2); }
+h3 { font-size: clamp(1rem,2vw,1.35rem); font-weight: 600; line-height: 1.4; margin-bottom: 0.6rem; }
+p, li { font-size: clamp(0.92rem,1.5vw,1.12rem); line-height: 1.8; color: var(--text); }
+
+ul { list-style: none; padding-left: 0; }
+ul li { position: relative; padding-left: 1.6em; margin-bottom: 0.5em; }
+ul li::before {
+  content: ''; position: absolute; left: 0.2em; top: 0.7em;
+  width: 5px; height: 5px; border-radius: 50%; background: var(--accent);
+}
+
+.tag {
+  display: inline-block; padding: 0.3em 1em; border-radius: 20px;
+  font-size: 0.78rem; font-weight: 600; letter-spacing: 0.04em;
+  margin-bottom: 1rem;
+}
+.tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+
+.key-point {
+  background: var(--key-bg); border: 1px solid var(--key-border);
+  border-radius: 10px; padding: 1rem 1.4rem;
+}
+.key-point p { font-size: clamp(0.88rem,1.4vw,1.02rem); line-height: 1.7; }
+
+.quote {
+  background: var(--quote-bg); border-left: 3px solid var(--quote-border);
+  padding: 0.9rem 1.4rem; border-radius: 0 8px 8px 0;
+  font-style: italic; color: var(--text2); line-height: 1.7;
+}
+.quote em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+.flow { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; justify-content: center; }
+.flow-item {
+  background: var(--surface); border: 1px solid var(--border-strong);
+  border-radius: 8px; padding: 0.55rem 1.2rem;
+  font-size: clamp(0.82rem,1.3vw,0.95rem); font-weight: 500;
+  white-space: nowrap;
+}
+.flow-item.green { border-color: var(--green-border); color: var(--green); }
+.flow-item.red { border-color: var(--red-border); color: var(--red); }
+.flow-item.accent { border-color: var(--accent-border); color: var(--accent); }
+.flow-item.orange { border-color: var(--orange-border); color: var(--orange); }
+.flow-arrow { color: var(--text3); font-size: 1.2rem; }
+
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+.col-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.1rem 1.3rem; box-shadow: var(--shadow);
+}
+.col-card h3 { margin-bottom: 0.6rem; font-size: clamp(0.95rem,1.6vw,1.1rem); }
+.col-card ul { padding-left: 0; }
+.col-card li { font-size: clamp(0.82rem,1.3vw,0.95rem); }
+.col-card.green-card { border-color: var(--green-border); }
+.col-card.red-card { border-color: var(--red-border); }
+.col-card.accent-card { border-color: var(--accent-border); }
+.col-card.orange-card { border-color: var(--orange-border); }
+
+.steps { display: flex; flex-direction: column; gap: 0.7rem; }
+.step-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.9rem 1.2rem;
+  display: flex; align-items: flex-start; gap: 0.8rem;
+}
+.step-label {
+  flex-shrink: 0; padding: 0.2em 0.7em; border-radius: 6px;
+  font-size: 0.78rem; font-weight: 600; white-space: nowrap;
+  background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border);
+}
+.step-label.agile { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+.step-body { font-size: clamp(0.88rem,1.4vw,1rem); line-height: 1.7; }
+
+.challenge-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.challenge-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.8rem 1.1rem;
+  display: flex; align-items: flex-start; gap: 0.8rem;
+}
+.challenge-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--red); color: #fff; font-size: 0.82rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.challenge-body p { font-size: clamp(0.82rem,1.3vw,0.95rem); }
+
+.vs-block { display: flex; gap: 0; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+.vs-side { flex: 1; padding: 1rem 1.2rem; }
+.vs-side.red-side { background: var(--red-bg); }
+.vs-side.green-side { background: var(--green-bg); }
+.vs-divider { width: 1px; background: var(--border); }
+.vs-side h4 { font-size: 0.92rem; margin-bottom: 0.6rem; }
+.vs-side ul { list-style: none; padding: 0; }
+.vs-side li { font-size: clamp(0.82rem,1.3vw,0.95rem); padding-left: 1.4em; margin-bottom: 0.4em; }
+.vs-side li::before { background: var(--text3); }
+
+.loop-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-left: 3px solid var(--green); border-radius: 0 10px 10px 0;
+  padding: 0.9rem 1.2rem;
+}
+.loop-card h4 { font-size: 0.95rem; margin-bottom: 0.4rem; }
+.loop-card p { font-size: clamp(0.82rem,1.3vw,0.95rem); }
+
+.volume-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.3rem;
+}
+.volume-card h3 { font-size: clamp(0.95rem,1.5vw,1.05rem); }
+.volume-card.vol1 { border-left: 3px solid var(--accent); }
+.volume-card.vol2 { border-left: 3px solid var(--orange); }
+.volume-card.vol3 { border-left: 3px solid var(--green); }
+
+.tips { display: flex; flex-direction: column; gap: 0.7rem; }
+.tip {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.9rem 1.2rem;
+  display: flex; align-items: flex-start; gap: 0.8rem;
+}
+.tip-num {
+  flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%;
+  background: var(--accent); color: #fff; font-size: 0.82rem; font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+}
+.tip-text { font-size: clamp(0.88rem,1.4vw,1rem); line-height: 1.7; }
+
+.slide-cover { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%); }
+.slide-cover h1 {
+  background: var(--progress-bg); -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent; background-clip: text;
+}
+.slide-cover .divider { width: 60px; height: 2px; margin: 1.8rem auto; background: var(--progress-bg); border-radius: 1px; }
+.slide-cover .subtitle { font-size: clamp(0.95rem,1.8vw,1.2rem); color: var(--text2); line-height: 1.6; }
+.slide-cover .meta { font-size: 0.88rem; color: var(--text3); margin-top: 0.8rem; }
+
+.slide-end { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%); }
+
+.nav-arrow {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  width: 48px; height: 80px; opacity: 0; cursor: pointer; z-index: 50;
+  display: flex; align-items: center; justify-content: center;
+}
+.nav-arrow:hover { opacity: 1 !important; }
+.nav-left { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.nav-right { right: 0; background: linear-gradient(270deg, var(--bg), transparent); }
+.nav-arrow svg { width: 24px; height: 24px; fill: none; stroke: var(--text2); stroke-width: 2; }
+.nav-arrow.flash { opacity: 0.7; }
+
+.nav-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 90; padding: 8px 0 10px; pointer-events: none;
+}
+.nav-dots {
+  display: flex; align-items: center; position: relative;
+  background: var(--toggle-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: 24px;
+  padding: 8px 18px; gap: 6px; pointer-events: auto;
+  transition: background 0.25s, transform 0.25s;
+}
+.nav-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text3); border: none; cursor: pointer;
+  transition: all 0.25s ease; position: relative;
+  opacity: 0.4; flex-shrink: 0; outline: none;
+}
+.nav-dot:hover { opacity: 0.9; transform: scale(1.3); }
+.nav-dot.active {
+  background: var(--accent); opacity: 1; width: 24px; border-radius: 4px;
+  box-shadow: 0 0 8px var(--accent);
+}
+.nav-dot .dot-tip {
+  position: absolute; bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 0.7rem; color: var(--text2);
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.2s;
+  box-shadow: var(--shadow);
+}
+.nav-dot:hover .dot-tip { opacity: 1; }
+.nav-dots.dragging { background: var(--border-strong); transform: scaleY(1.25); }
+.nav-dots.dragging .nav-dot { opacity: 0.7; }
+.nav-dots.dragging .nav-dot.active { opacity: 1; width: 28px; box-shadow: 0 0 12px var(--accent); }
+.nav-dots.dragging .nav-dot .dot-tip { opacity: 0 !important; }
+.drag-label {
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: white;
+  padding: 5px 14px; border-radius: 8px;
+  font-size: 0.8rem; font-weight: 600;
+  pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.nav-dots.dragging .drag-label { opacity: 1; }
+
+@media (max-width: 768px) {
+  .slide { padding: 4vh 5vw; }
+  .cols { grid-template-columns: 1fr; }
+  .flow { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .vs-block { flex-direction: column; }
+  .nav-dots { padding: 6px 12px; gap: 4px; }
+  .nav-dot { width: 6px; height: 6px; }
+  .nav-dot.active { width: 18px; }
+}
+@media (hover: none) { .nav-hint { display: none; } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+<div class="nav-arrow nav-left flash" id="navLeft">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</div>
+<div class="nav-arrow nav-right flash" id="navRight">
+  <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+</div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<div class="slides" id="slides">
+
+  <!-- ===== Slide 0: Cover ===== -->
+  <div class="slide slide-cover active">
+    <span class="tag tag-section">一期实践 + 二期规划</span>
+    <h1>AI 全栈研发转型<br>从痛点到实践</h1>
+    <div class="divider"></div>
+    <p class="subtitle">泛半导体 CIM 企业一期实践回顾 + 二期拓展规划</p>
+    <p class="meta">Harness Engineering Playbook · Spec Coding · Skill 沉淀</p>
+  </div>
+
+  <!-- ===== Slide 1: 四大核心痛点 ===== -->
+  <div class="slide">
+    <span class="tag tag-red">痛点诊断</span>
+    <h2>四大核心痛点</h2>
+    <p>团队正处于"技术范式变革"与"传统管理体制"碰撞的阵痛期。</p>
+    <div class="challenge-list" style="margin-top:1rem;">
+      <div class="challenge-item">
+        <div class="challenge-num">1</div>
+        <div class="challenge-body">
+          <strong>外部趋势 vs 内部"散兵游勇"</strong>
+          <p>行业已将 AI 全栈作为主流，内部停留在"自发小范围探索"，知识碎片化</p>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">2</div>
+        <div class="challenge-body">
+          <strong>传统分工被打破后的"角色迷茫"</strong>
+          <p>前端、后台、测试边界被 AI 模糊化，新的职责边界和转型路径完全不明确</p>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">3</div>
+        <div class="challenge-body">
+          <strong>重型 CMMI vs 敏捷 AI 开发</strong>
+          <p>CMMI 强调严密文档和流转，AI 驱动开发追求快速迭代，管理动作成为绊脚石</p>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">4</div>
+        <div class="challenge-body">
+          <strong>局部优秀经验无法"复制变现"</strong>
+          <p>骨干有基础但无法复制给全员；AI 工具炫酷但不知如何与核心业务场景结合</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Slide 2: 解题思路（压缩单页） ===== -->
+  <div class="slide">
+    <span class="tag tag-section">解题思路</span>
+    <h2>差距来自制度，不是模型</h2>
+    <div class="quote">用人类时代的旧流程指挥 Agent，就像用马车交规管高速公路。<em>制度必须跟着变。</em></div>
+    <div class="flow" style="margin-top:1rem;">
+      <div class="flow-item accent">Spec 规约驱动</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item orange">AI 特区小组验证</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">Skill 沉淀复用</div>
+    </div>
+    <div class="cols" style="margin-top:1rem;">
+      <div class="col-card accent-card">
+        <h3>核心方法论</h3>
+        <ul>
+          <li><strong>特性驱动</strong>：垂直切片打破分工壁垒</li>
+          <li><strong>Spec 先行</strong>：需求 → Spec → Agent → 验证</li>
+          <li><strong>闭环演进</strong>：每次闭环回写知识</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>工程化框架</h3>
+        <ul>
+          <li><strong>Worktree 隔离</strong>：特性独立文件系统</li>
+          <li><strong>Context 传播</strong>：归档特性成为知识输入</li>
+          <li><strong>Skill 沉淀</strong>：经验封装为可复用 Skill</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p>同样的 AI 工具，有规约、有知识基座、有 AI 特区小组，阶梯才能走得通。下面看一期项目怎么落地。</p>
+    </div>
+  </div>
+
+  <!-- ===== Slide 3: 核心成果数据 ===== -->
+  <div class="slide">
+    <span class="tag tag-section">核心成果</span>
+    <h2>硬指标：一个人，能做到什么</h2>
+    <div class="cols" style="margin-top:0.8rem;">
+      <div class="col-card accent-card">
+        <h3>基础数据模块 · 一周</h3>
+        <ul>
+          <li><strong>1 人 · 1 周</strong>，从零全栈开发</li>
+          <li>Vue + Java + MySQL <strong>全部自动化打通</strong></li>
+          <li>实现 <strong>~10 个业务模型</strong>完整逻辑</li>
+          <li>交付<strong>完整前端 e2e 测试报告</strong></li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>测机场景 · 两周</h3>
+        <ul>
+          <li><strong>1 人 · 2 周</strong>，工作流快速开发</li>
+          <li>从 0 → 1 三端服务<strong>MVP 跑通</strong></li>
+          <li>测试服务独立，解耦三端依赖</li>
+          <li>多台设备<strong>并行对接</strong></li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p><strong>对金融客户意味着什么：</strong>传统模式下一个模块需前端、后端、DBA 多人数周。现在 1 人 1 周交付，且带完整测试报告和人工 review 确认。数量级提升。</p>
+    </div>
+  </div>
+
+  <!-- ===== Slide 5: 测机业务 ===== -->
+  <div class="slide">
+    <span class="tag tag-orange">成果一</span>
+    <h2>测机业务：架构重构带来质变</h2>
+    <div class="quote">之前设备对接<em>完全靠人手工对接 EAP 服务</em>。我们重新拆解业务，解耦三端，直接对接设备——不再依赖完整 EAP 部署。</div>
+    <div class="vs-block" style="margin-top:0.8rem;">
+      <div class="vs-side red-side">
+        <h4>改造前：人肉串行</h4>
+        <ul>
+          <li>设备对接完全靠人工操作 EAP</li>
+          <li>必须等待完整 EAP 部署才能测机</li>
+          <li>三端强耦合，一台卡住全部排队</li>
+          <li>耗时漫长，严重制约交付节奏</li>
+        </ul>
+      </div>
+      <div class="vs-divider"></div>
+      <div class="vs-side green-side">
+        <h4>改造后：解耦并行</h4>
+        <ul>
+          <li><strong>业务重新拆解</strong>，解耦三端依赖</li>
+          <li><strong>快速开发独立测试服务</strong></li>
+          <li>不再依赖完整 EAP，<strong>多设备并行对接</strong></li>
+          <li>效率提升数倍，为 Agent 转换奠定基础</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p><strong>关键：</strong>从架构层面重新拆解业务，解耦后每台设备可独立并行对接，彻底打破串行瓶颈。为后续 Agent 自动化奠定架构基础。</p>
+    </div>
+  </div>
+
+  <!-- ===== Slide 5: LiteMES ===== -->
+  <div class="slide">
+    <span class="tag tag-orange">成果二</span>
+    <h2>LiteMES：客户自主开发产品</h2>
+    <div class="quote">客户在我们指导下，用 Harness <em>快速开发 LiteMES 系统</em>，并自主开发自定义 Skill。从"被服务"变为"自主开发"。</div>
+    <div class="steps" style="margin-top:0.8rem;">
+      <div class="step-card"><span class="step-label agile">掌握</span><div class="step-body"><strong>客户熟练掌握 Superpower</strong> — 通过培训指导，客户已能独立使用 Harness 快速开发产品</div></div>
+      <div class="step-card"><span class="step-label agile">沉淀</span><div class="step-body"><strong>自主开发自定义 Skills</strong> — 客户将自身业务经验沉淀为可复用的 Skill 卡片</div></div>
+      <div class="step-card"><span class="step-label agile">流程</span><div class="step-body"><strong>设计 Harness 工作流</strong> — 在我们帮助下完成 LiteMES 业务场景的 Harness 流程设计</div></div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p><strong>里程碑：</strong>客户能自己快速开发产品并造 Skill，方法论和工具真正可复制。</p>
+    </div>
+  </div>
+
+  <!-- ===== Slide 7: 质量与沉淀 ===== -->
+  <div class="slide">
+    <span class="tag tag-section">质量与沉淀</span>
+    <h2>质量达标 + 知识沉淀</h2>
+    <div class="cols">
+      <div class="col-card accent-card">
+        <h3>代码质量保障</h3>
+        <ul>
+          <li>生成代码<strong>符合项目编码标准</strong></li>
+          <li>所有代码经过<strong>人工 review 确认</strong></li>
+          <li>交付<strong>完整前端 e2e 测试报告</strong></li>
+          <li>不是"能用就行"，是达到交付标准</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>开发工作流沉淀</h3>
+        <ul>
+          <li><strong>Feature 工作流</strong>：自动化特性开发全流程沉淀</li>
+          <li><strong>Superpowers 工作流</strong>：逻辑持续丰富积累</li>
+          <li>Agent / CLI / MCP 设计指导完成</li>
+          <li>为二期多 Agent 协作打下技术基座</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p><strong>双重沉淀：</strong>开发过程中不仅交付业务代码，同时沉淀完整工作流。Feature + Superpowers 形成可复用工程资产。客户评价非常高，目前正在洽谈二期拓展。</p>
+    </div>
+  </div>
+
+  <!-- ===== Slide 7: 一期总结 ===== -->
+  <div class="slide">
+    <span class="tag tag-section">一期总结</span>
+    <h2>一期成果：方向正确，效果显著</h2>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;margin-top:0.8rem;">
+      <div class="loop-card">
+        <h4>开发速度</h4>
+        <p>1 人 1 周完成全栈模块（Vue + Java + MySQL），~10 个业务模型。1 人 2 周完成测机三端 MVP 跑通。</p>
+      </div>
+      <div class="loop-card">
+        <h4>质量达标</h4>
+        <p>代码符合项目编码标准，人工 review 确认，交付完整前端 e2e 测试报告。</p>
+      </div>
+      <div class="loop-card">
+        <h4>知识沉淀</h4>
+        <p>Feature + Superpowers 双重工作流沉淀。Agent/CLI/MCP 技术基座已建立。</p>
+      </div>
+      <div class="loop-card">
+        <h4>客户认可</h4>
+        <p>LiteMES 客户快速开发产品并沉淀自定义 Skill。客户评价非常高，正在洽谈二期。</p>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p><strong>核心结论：</strong>一人 + AI Agent 可以完成传统多人团队工作，且质量达标、知识可沉淀。二期重点：扩大覆盖面，加速复制。</p>
+    </div>
+  </div>
+
+  <!-- ===== Slide 8: 二期拓展 ===== -->
+  <div class="slide">
+    <span class="tag tag-section">二期规划</span>
+    <h2>二期拓展：从验证到规模化</h2>
+    <p>一期验证了方向和方法。二期的核心是扩大覆盖面、深化能力沉淀、解决资源瓶颈。</p>
+    <div style="display:flex;flex-direction:column;gap:0.7rem;margin-top:0.8rem;">
+      <div class="volume-card vol1">
+        <h3>核心：Agent 创建</h3>
+        <p>基于一期 Agent/CLI/MCP 基座，创建面向业务场景的专用 Agent。测机 Agent、实施 Agent、运维 Agent 多角色并行。</p>
+      </div>
+      <div class="volume-card vol2">
+        <h3>扩大 AI 特区小组</h3>
+        <p>投入更多人力，组建更多 AI 特区小组并行覆盖更多业务场景。加强项目管理和里程碑节奏。</p>
+      </div>
+      <div class="volume-card vol3">
+        <h3>Skill 市场化</h3>
+        <p>推动 Skill 从"个人创造"到"团队共享"，建立内部 Skill 市场。LiteMES 的 Skill 直接复用到其他业务线。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Slide 9: 行动清单 ===== -->
+  <div class="slide">
+    <span class="tag tag-section">行动清单</span>
+    <h2>二期落地的关键动作</h2>
+    <div class="tips">
+      <div class="tip">
+        <div class="tip-num">1</div>
+        <div class="tip-text"><strong>解决人力瓶颈。</strong>一期最大制约是人力不足。二期必须有充足人力投入，项目负责人全职投入。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">2</div>
+        <div class="tip-text"><strong>加强项目管理。</strong>建立明确的里程碑和交付节奏，避免一期"有成果但节奏慢"的问题。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">3</div>
+        <div class="tip-text"><strong>创建专用 Agent。</strong>基于一期基座，创建面向具体业务场景的 Agent，实现多 Agent 协作。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">4</div>
+        <div class="tip-text"><strong>Skill 从点到面。</strong>客户已经能造 Skill。推动 Skill 市场化，从"个人创造"到"团队共享复用"。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">5</div>
+        <div class="tip-text"><strong>验证更多场景。</strong>测机和 LiteMES 验证了方向。二期拓展到更多业务场景，用结果说话。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Slide 10: End ===== -->
+  <div class="slide slide-end">
+    <h2>方向正确，加速推进</h2>
+    <div class="divider" style="margin:1.2rem auto;"></div>
+    <p class="subtitle">一期验证了方向和方法，二期解决资源和节奏</p>
+    <p class="meta" style="max-width:560px;">
+      测机业务重构 · LiteMES 自主掌握 · Agent/CLI/MCP 基座
+    </p>
+    <div class="quote" style="margin-top:1.5rem;max-width:640px;">
+      "一人 + AI Agent 可以完成传统多人团队的工作，且质量达标、知识可沉淀。<br>二期的核心：扩大覆盖面，加速复制。"
+    </div>
+  </div>
+
+</div>
+
+<div class="nav-bar" id="navBar"></div>
+
+<script>
+var slides = document.querySelectorAll('.slide');
+var progress = document.getElementById('progress');
+var slideNum = document.getElementById('slideNum');
+var themeToggle = document.getElementById('themeToggle');
+var current = 0;
+var isAnimating = false;
+var total = slides.length;
+
+themeToggle.addEventListener('click', function(e) {
+  e.stopPropagation();
+  var html = document.documentElement;
+  var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('slide-theme', next);
+});
+
+(function() {
+  var saved = localStorage.getItem('slide-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
+var navLeft = document.getElementById('navLeft');
+var navRight = document.getElementById('navRight');
+var flashTimer = null;
+
+function flashArrows() {
+  navLeft.classList.add('flash');
+  navRight.classList.add('flash');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(function() {
+    navLeft.classList.remove('flash');
+    navRight.classList.remove('flash');
+  }, 1200);
+}
+
+navLeft.addEventListener('click', function(e) { e.stopPropagation(); updateSlide(current - 1, 'prev'); });
+navRight.addEventListener('click', function(e) { e.stopPropagation(); updateSlide(current + 1, 'next'); });
+
+function updateSlide(newIdx, direction) {
+  if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+  isAnimating = true;
+  var oldSlide = slides[current];
+  var newSlide = slides[newIdx];
+  var exitX = direction === 'next' ? '-60px' : '60px';
+  var enterX = direction === 'next' ? '60px' : '-60px';
+
+  oldSlide.classList.remove('active');
+  newSlide.style.transition = 'none';
+  newSlide.style.transform = 'translateX(' + enterX + ')';
+  newSlide.classList.add('active');
+
+  void newSlide.offsetWidth;
+  newSlide.style.transition = '';
+  newSlide.style.transform = '';
+  oldSlide.style.transform = 'translateX(' + exitX + ')';
+
+  current = newIdx;
+  updateUI();
+  flashArrows();
+
+  setTimeout(function() {
+    oldSlide.style.transform = '';
+    isAnimating = false;
+  }, 460);
+}
+
+var dots = [];
+
+function updateUI() {
+  progress.style.width = ((current + 1) / total * 100) + '%';
+  slideNum.textContent = (current + 1) + ' / ' + total;
+  navLeft.style.display = current === 0 ? 'none' : '';
+  navRight.style.display = current === total - 1 ? 'none' : '';
+  dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); updateSlide(current + 1, 'next'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); updateSlide(current - 1, 'prev'); }
+});
+
+var touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', function(e) {
+  if (e.target.closest('.nav-bar')) { touchStartX = -1; return; }
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+document.addEventListener('touchend', function(e) {
+  if (touchStartX === -1) return;
+  var dx = e.changedTouches[0].screenX - touchStartX;
+  var dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < 0) updateSlide(current + 1, 'next');
+    else updateSlide(current - 1, 'prev');
+  }
+}, { passive: true });
+
+document.addEventListener('click', function(e) {
+  if (e.target.closest('.theme-toggle') || e.target.closest('.nav-arrow') || e.target.closest('.nav-bar')) return;
+  var x = e.clientX / window.innerWidth;
+  var y = e.clientY / window.innerHeight;
+  if (y > 0.88) return;
+  if (x > 0.65) updateSlide(current + 1, 'next');
+  else if (x < 0.35) updateSlide(current - 1, 'prev');
+});
+
+// Nav dots with drag support
+var navBar = document.getElementById('navBar');
+var dotsContainer = document.createElement('div');
+dotsContainer.className = 'nav-dots';
+var slideLabels = [];
+var dotPositions = [];
+
+slides.forEach(function(slide, i) {
+  var h2 = slide.querySelector('h2');
+  var tag = slide.querySelector('.tag');
+  var label = h2 ? h2.textContent.trim() : (tag ? tag.textContent.trim() : '');
+  if (label.length > 16) label = label.substring(0, 14) + '…';
+  slideLabels.push(label);
+  var dot = document.createElement('button');
+  dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+  dot.innerHTML = '<span class="dot-tip">' + (i + 1) + (label ? '. ' + label : '') + '</span>';
+  dotsContainer.appendChild(dot);
+  dots.push(dot);
+});
+
+var dragLabel = document.createElement('div');
+dragLabel.className = 'drag-label';
+dotsContainer.appendChild(dragLabel);
+navBar.appendChild(dotsContainer);
+
+var isDragging = false;
+
+function getIdxFromX(clientX) {
+  var closest = 0, minDist = Infinity;
+  dotPositions.forEach(function(cx, i) {
+    var d = Math.abs(clientX - cx);
+    if (d < minDist) { minDist = d; closest = i; }
+  });
+  return closest;
+}
+
+function jumpTo(idx) {
+  if (idx === current || idx < 0 || idx >= total) return;
+  isAnimating = false;
+  slides[current].classList.remove('active');
+  slides[current].style.transform = '';
+  slides[idx].style.transition = 'none';
+  slides[idx].style.transform = '';
+  slides[idx].classList.add('active');
+  void slides[idx].offsetWidth;
+  slides[idx].style.transition = '';
+  current = idx;
+  updateUI();
+}
+
+function updateDragLabel() {
+  dragLabel.textContent = (current + 1) + ' / ' + total + (slideLabels[current] ? '  ' + slideLabels[current] : '');
+}
+
+dotsContainer.addEventListener('mousedown', function(e) {
+  e.preventDefault();
+  isDragging = true;
+  dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+  dotsContainer.classList.add('dragging');
+  var idx = getIdxFromX(e.clientX);
+  if (idx !== current) jumpTo(idx);
+  updateDragLabel();
+});
+
+document.addEventListener('mousemove', function(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  var idx = getIdxFromX(e.clientX);
+  if (idx !== current) jumpTo(idx);
+  updateDragLabel();
+});
+
+document.addEventListener('mouseup', function() {
+  if (!isDragging) return;
+  isDragging = false;
+  dotsContainer.classList.remove('dragging');
+});
+
+dotsContainer.addEventListener('touchstart', function(e) {
+  isDragging = true;
+  dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+  dotsContainer.classList.add('dragging');
+  var idx = getIdxFromX(e.touches[0].clientX);
+  if (idx !== current) jumpTo(idx);
+  updateDragLabel();
+}, { passive: true });
+
+dotsContainer.addEventListener('touchmove', function(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  var idx = getIdxFromX(e.touches[0].clientX);
+  if (idx !== current) jumpTo(idx);
+  updateDragLabel();
+}, { passive: false });
+
+dotsContainer.addEventListener('touchend', function() {
+  isDragging = false;
+  dotsContainer.classList.remove('dragging');
+});
+
+updateUI();
+flashArrows();
+</script>
+</body>
+</html>

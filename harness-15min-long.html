@@ -1,0 +1,804 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从 Vibe Coding 到 Harness Engineering — 长截图</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  [data-theme="light"] {
+    --bg: #f4f4fb;
+    --bg2: #eaeaf4;
+    --surface: #ffffff;
+    --surface2: #f0f0fa;
+    --surface3: #e6e6f2;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #1a1a30;
+    --text2: #5a5a78;
+    --text3: #9898ac;
+    --accent: #5b4cc4;
+    --accent2: #7b6cf0;
+    --green: #009a7c;
+    --green-bg: rgba(0,154,124,0.06);
+    --green-border: rgba(0,154,124,0.18);
+    --red: #d44040;
+    --red-bg: rgba(212,64,64,0.06);
+    --red-border: rgba(212,64,64,0.18);
+    --orange: #b88020;
+    --orange-bg: rgba(184,128,32,0.06);
+    --orange-border: rgba(184,128,32,0.18);
+    --accent-bg: rgba(91,76,196,0.06);
+    --accent-border: rgba(91,76,196,0.15);
+    --code-bg: #1a1a30;
+    --code-border: rgba(91,76,196,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+    --quote-bg: rgba(91,76,196,0.04);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+    --key-border: rgba(91,76,196,0.12);
+    --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+  }
+
+  html, body {
+    width: 100%;
+    overflow-x: hidden;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .slides-container {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .slide {
+    position: relative;
+    width: 1200px;
+    min-height: 675px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 96px;
+    background: var(--bg);
+    box-sizing: border-box;
+  }
+  .slide + .slide {
+    border-top: 1px solid var(--border);
+  }
+  .slide > * { max-width: 920px; width: 100%; }
+  .slide > .tag { width: auto; }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: 900; line-height: 1.15;
+    margin-bottom: 1.2rem; letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 2rem;
+    font-weight: 700; line-height: 1.25;
+    margin-bottom: 1rem; color: var(--accent2);
+  }
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600; line-height: 1.4;
+    margin-bottom: 0.6rem;
+  }
+  p, li {
+    font-size: 1.05rem;
+    line-height: 1.8; color: var(--text);
+  }
+
+  ul { list-style: none; padding-left: 0; }
+  ul li {
+    position: relative; padding-left: 1.6em;
+    margin-bottom: 0.5em;
+  }
+  ul li::before {
+    content: ''; position: absolute;
+    left: 0.2em; top: 0.7em;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.8rem; letter-spacing: 0.02em;
+  }
+  .tag-lesson {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .tag-section {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+  .tag-red {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid var(--red-border);
+  }
+  .tag-orange {
+    background: var(--orange-bg);
+    color: var(--orange);
+    border: 1px solid var(--orange-border);
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin: 0.8rem 0;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    box-shadow: var(--shadow);
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    color: var(--code-text);
+  }
+
+  .quote {
+    border-left: 3px solid var(--quote-border);
+    padding: 1rem 1.4rem;
+    margin: 1rem 0;
+    background: var(--quote-bg);
+    border-radius: 0 8px 8px 0;
+    font-size: 1.05rem;
+    line-height: 1.75; color: var(--accent2);
+    font-weight: 500;
+  }
+  .quote .attr {
+    display: block; margin-top: 0.4rem;
+    font-size: 0.78rem; color: var(--text3);
+    font-weight: 400;
+  }
+
+  .key-point {
+    background: var(--key-bg);
+    border: 1px solid var(--key-border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    margin-top: 1rem;
+  }
+  .key-point p {
+    font-size: 1rem;
+    font-weight: 500; line-height: 1.75;
+  }
+  .key-point strong { color: var(--accent2); }
+
+  .flow {
+    display: flex; align-items: center;
+    justify-content: center;
+    gap: 0.5rem; flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+  .flow-item {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 0.5rem 1rem; border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 500; white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .flow-arrow { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+  .flow-item.green { border-color: var(--green-border); color: var(--green); background: var(--green-bg); }
+  .flow-item.red { border-color: var(--red-border); color: var(--red); background: var(--red-bg); }
+  .flow-item.orange { border-color: var(--orange-border); color: var(--orange); background: var(--orange-bg); }
+  .flow-item.accent { border-color: var(--accent-border); color: var(--accent2); background: var(--accent-bg); }
+
+  .cols {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.2rem; margin-top: 0.8rem;
+  }
+  .col-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .col-card h3 { margin-bottom: 0.7rem; }
+  .col-card.green-card h3 { color: var(--green); }
+  .col-card.orange-card h3 { color: var(--orange); }
+  .col-card.red-card h3 { color: var(--red); }
+  .col-card.accent-card h3 { color: var(--accent2); }
+  .col-card li {
+    font-size: 0.92rem;
+    margin-bottom: 0.4em; line-height: 1.65;
+  }
+
+  .steps {
+    display: flex; flex-direction: column;
+    gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .step-card {
+    background: var(--surface);
+    border-radius: 10px; padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    display: flex; gap: 0.9rem; align-items: flex-start;
+  }
+  .step-label {
+    flex-shrink: 0;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .step-label.waterfall {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .step-label.agile {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+  .step-body {
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+  .step-body strong { color: var(--accent2); }
+
+  .loop-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    box-shadow: var(--shadow);
+  }
+  .loop-card h4 {
+    font-size: 1rem;
+    font-weight: 600; margin-bottom: 0.5rem;
+    color: var(--green);
+  }
+  .loop-card p {
+    font-size: 0.9rem;
+    line-height: 1.65; color: var(--text2);
+  }
+
+  .slide-cover {
+    text-align: center; align-items: center;
+    background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+  }
+  .slide-cover h1 {
+    background: var(--progress-bg);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    font-size: 3.4rem;
+    line-height: 1.35;
+  }
+  .slide-cover .subtitle {
+    font-size: 1.2rem;
+    color: var(--text2); font-weight: 300;
+    line-height: 1.7; max-width: 600px;
+    letter-spacing: 0.04em;
+  }
+  .slide-cover .meta {
+    margin-top: 2.5rem; font-size: 0.82rem;
+    color: var(--text3);
+  }
+  .slide-cover .divider {
+    width: 60px; height: 2px; margin: 1.8rem auto;
+    background: var(--progress-bg); border-radius: 1px;
+  }
+
+  .slide-end { text-align: center; align-items: center; }
+  .slide-end h2 {
+    font-size: 2rem;
+    color: var(--text); margin-bottom: 1.2rem;
+  }
+
+  .vs-block {
+    display: flex; align-items: stretch;
+    gap: 0; margin-top: 1rem;
+  }
+  .vs-side {
+    flex: 1; padding: 1.2rem 1.4rem;
+  }
+  .vs-side.red-side {
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    border-radius: 12px 0 0 12px;
+  }
+  .vs-side.green-side {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    border-radius: 0 12px 12px 0;
+  }
+  .vs-side h4 {
+    font-size: 1rem;
+    font-weight: 700; margin-bottom: 0.5rem;
+  }
+  .vs-side.red-side h4 { color: var(--red); }
+  .vs-side.green-side h4 { color: var(--green); }
+  .vs-side li {
+    font-size: 0.88rem;
+    line-height: 1.65; margin-bottom: 0.3em;
+  }
+  .vs-divider {
+    width: 3px; background: var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  /* End slide two-col */
+  .end-cols {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2.5rem;
+    width: 100%;
+    max-width: 920px;
+    align-items: center;
+  }
+  .end-left { text-align: left; }
+  .end-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .qr-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 1.8rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    text-align: center;
+    width: 100%;
+  }
+  .qr-card canvas { border-radius: 8px; }
+  .qr-card .qr-label {
+    margin-top: 0.8rem;
+    font-size: 0.82rem;
+    color: var(--text3);
+    line-height: 1.5;
+  }
+  .qr-card .qr-url {
+    font-size: 0.88rem;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-top: 0.3rem;
+  }
+
+  .slide-badge {
+    position: absolute;
+    top: 20px; right: 28px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Mapping table */
+  .map-table {
+    display: flex; flex-direction: column;
+    gap: 0.5rem; margin-top: 0.8rem;
+  }
+  .map-row {
+    display: flex; align-items: center;
+    gap: 0;
+  }
+  .map-challenge {
+    flex: 1;
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    border-radius: 8px 0 0 8px;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--red);
+    line-height: 1.5;
+  }
+  .map-arrow {
+    padding: 0 0.6rem;
+    color: var(--accent);
+    font-size: 1.2rem;
+    font-weight: 700;
+  }
+  .map-solution {
+    flex: 1;
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    border-radius: 0 8px 8px 0;
+    padding: 0.7rem 1rem;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--green);
+    line-height: 1.5;
+  }
+
+  /* Challenge card with number */
+  .challenge-list {
+    display: flex; flex-direction: column;
+    gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .challenge-item {
+    display: flex; align-items: flex-start; gap: 1rem;
+    background: var(--surface);
+    border-radius: 10px; padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .challenge-num {
+    flex-shrink: 0;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700; color: var(--red);
+  }
+  .challenge-body {
+    flex: 1;
+  }
+  .challenge-title {
+    font-size: 0.95rem; font-weight: 600;
+    margin-bottom: 0.2rem; color: var(--text);
+  }
+  .challenge-desc {
+    font-size: 0.85rem; color: var(--text2);
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+
+<div class="slides-container">
+
+  <!-- ====== Slide 1: 封面 ====== -->
+  <div class="slide slide-cover">
+    <span class="slide-badge">1 / 11</span>
+    <span class="tag tag-lesson">Based on Harness Engineering Playbook</span>
+    <h1>从 Vibe Coding<br>到 Harness Engineering</h1>
+    <div class="divider"></div>
+    <p class="subtitle">五个挑战，五个解法，一条路</p>
+    <p class="meta">AgentsZone 社区 · Harness Engineering Playbook</p>
+  </div>
+
+  <!-- ====== Slide 2: 五个具体挑战 ====== -->
+  <div class="slide">
+    <span class="slide-badge">2 / 11</span>
+    <span class="tag tag-red">挑战</span>
+    <h2>五个问题，从单点到规模化依次暴露</h2>
+    <p style="margin-bottom:0.8rem;">用 AI 写代码，一开始感觉爽。但项目持续迭代，问题会沿着这条链路依次出现。</p>
+    <div class="challenge-list">
+      <div class="challenge-item">
+        <div class="challenge-num">1</div>
+        <div class="challenge-body">
+          <div class="challenge-title">模糊处随机决策</div>
+          <div class="challenge-desc">Agent 对模糊需求忠实执行，模糊的地方全部变成随机决策。你写"修一下排序"，它改了排序、改了数据类型、还顺手重构了组件。</div>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">2</div>
+        <div class="challenge-body">
+          <div class="challenge-title">规约膨胀与演进困难</div>
+          <div class="challenge-desc">单个 spec 好写，spec 积攒多了，新 feature 要融入已有结构，老功能改了 spec 也得跟着改。规约库本身变成了需要维护的系统。Agent 会复制已有代码的模式，包括坏模式——spec 不更新，坏模式一代代传下去。</div>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">3</div>
+        <div class="challenge-body">
+          <div class="challenge-title">审查带宽被击穿</div>
+          <div class="challenge-desc">代码生成速度远超人类审查能力。PR 堆积，review 排队，bug 率没降反升。靠人肉 review 保质量这条路走不通了。</div>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">4</div>
+        <div class="challenge-body">
+          <div class="challenge-title">认知爆炸</div>
+          <div class="challenge-desc">系统复杂度指数增长，个人经验覆盖不了所有场景。边界 case 总是事后补，来不及。测试场景永远想不全。</div>
+        </div>
+      </div>
+      <div class="challenge-item">
+        <div class="challenge-num">5</div>
+        <div class="challenge-body">
+          <div class="challenge-title">并行冲突</div>
+          <div class="challenge-desc">多个 Agent 同时改代码，互相覆盖，依赖冲突。传统分支管理扛不住 Agent 级别的并行密度。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 3: 挑战→解法映射 ====== -->
+  <div class="slide">
+    <span class="slide-badge">3 / 11</span>
+    <span class="tag tag-section">映射</span>
+    <h2>每个挑战对应一个解法</h2>
+    <p style="margin-bottom:0.8rem;">方法论不是凭空设计的。每个工程实践都是为了解决上面那个具体问题。按"从单点到规模化"的顺序展开。</p>
+    <div class="map-table">
+      <div class="map-row">
+        <div class="map-challenge">1. 模糊处随机决策</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">结构化规约 + 实例化需求</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">2. 规约膨胀 + 演进困难</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">瀑布+敏捷混合 + 循环自驱动</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">3. 审查带宽被击穿</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">文档测试 + 语义推理 + 质量量化</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">4. 认知爆炸</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">语义推理补全测试场景</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">5. 并行冲突</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">Worktree 隔离归档</div>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>下面逐个讲：挑战是什么，为什么这个解法能解决它。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 4: 模糊决策 → 规约 ====== -->
+  <div class="slide">
+    <span class="slide-badge">4 / 11</span>
+    <span class="tag tag-red">挑战 1</span>
+    <h2>模糊决策 → 规约 + 实例化需求</h2>
+    <div class="cols">
+      <div class="col-card red-card">
+        <h3 style="font-size:1rem;">问题</h3>
+        <p style="font-size:0.9rem;color:var(--text2);line-height:1.6;">Agent 拿到模糊的 prompt，对模糊处随机决策。你说"修一下排序"，它改了排序、数据类型、还重构了组件。改动范围完全不可控。</p>
+      </div>
+      <div class="col-card green-card">
+        <h3 style="font-size:1rem;">为什么用规约</h3>
+        <p style="font-size:0.9rem;color:var(--text2);line-height:1.6;">规约把"修什么""改哪里""不动什么""怎么验证"全部写死。Agent 没有自由发挥的空间，只能按规约执行。</p>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>实例化需求是规约的关键技巧：把模糊的业务描述变成具体的、可验证的实例。这些实例同时是需求文档、测试用例和验收标准。</p>
+    </div>
+    <pre style="margin-top:0.8rem;"><code>## Feature: 订单日期筛选
+
+**实例 1**: 默认状态 → 显示全部订单
+**实例 2**: 选择"最近 30 天" → 只显示范围内订单
+**实例 3**: 清除筛选 → 恢复全部显示
+**实例 4**: 跨时区 → 以用户本地时间为准</code></pre>
+  </div>
+
+  <!-- ====== Slide 5: 规约膨胀 → 瀑布+敏捷 ====== -->
+  <div class="slide">
+    <span class="slide-badge">5 / 11</span>
+    <span class="tag tag-red">挑战 2</span>
+    <h2>规约膨胀 + 演进困难 → 瀑布 + 敏捷混合</h2>
+    <div class="steps" style="margin-top:0.5rem;">
+      <div class="step-card">
+        <span class="step-label" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border);">问题</span>
+        <div class="step-body">单个 spec 好写，spec 积攒多了，新 feature 要融入已有结构。老功能改了，对应的 spec 也得跟着改。软件持续演进，规约库本身也变成了需要维护的系统。而且 Agent 会忠实复制代码库里的模式——spec 不更新，坏模式就一代代传下去。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">解法</span>
+        <div class="step-body"><strong>上游用瀑布，下游用敏捷。</strong>新功能的需求定义、架构决策、验收标准必须在 Agent 上手之前定死——这是瀑布的部分。定好之后 Agent 拿到 spec 快速迭代执行，CI 持续验证——这是敏捷的部分。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">为什么</span>
+        <div class="step-body">纯瀑布太重，改一次需求就要走一遍完整流程。纯敏捷太松，没有上游约束 Agent 就乱来。spec 越积越多这个场景下，需要瀑布的严谨来守住上游，敏捷的节奏来驱动下游。</div>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>瀑布管"新功能怎么定义"，敏捷管"Agent 怎么执行和验证"。两者搭配，规约库才能跟着软件一起演进，而不是越积越烂。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 6: 审查击穿 + 认知爆炸 → 文档测试 + 语义推理 ====== -->
+  <div class="slide">
+    <span class="slide-badge">6 / 11</span>
+    <span class="tag tag-red">挑战 3 & 4</span>
+    <h2>审查击穿 + 认知爆炸 → 文档测试 + 语义推理</h2>
+    <p style="margin-top:0;">spec 解决了"怎么写需求"，瀑布+敏捷解决了"怎么组织流程"。但 spec 写了之后，验证怎么办？</p>
+    <div class="steps" style="margin-top:0.8rem;">
+      <div class="step-card">
+        <span class="step-label" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border);">问题</span>
+        <div class="step-body">代码产出速度远超人类审查能力，人肉 review 保质量这条路断了。同时系统复杂度指数增长，个人经验覆盖不了所有测试场景，边界 case 总是事后补。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">解法</span>
+        <div class="step-body"><strong>针对文档进行测试</strong>——测试不光是测代码，更关键的是测文档本身。通过实例化需求让每条规约自带验证条件，文档写完了测试清单也就出来了。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">解法</span>
+        <div class="step-body"><strong>语义推理补全</strong>——AI 读 spec，通过语义推理枚举场景。技术边界（空值、类型、溢出）自动覆盖。人补业务语境的盲区（时区、交互状态、空状态）。两份合并才完整。</div>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>AI 擅长技术边界，人擅长业务边界。文档测试 + 语义推理的组合，把"个人经验和认知覆盖不了"这个瓶颈给解了。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 7: 质量量化 ====== -->
+  <div class="slide">
+    <span class="slide-badge">7 / 11</span>
+    <span class="tag tag-orange">深化</span>
+    <h2>测试本身的质量怎么衡量</h2>
+    <p>上面解了"怎么测"的问题。但光有测试不够——测试本身的质量也得量化，否则就是形式主义。</p>
+    <div class="steps" style="margin-top:0.8rem;">
+      <div class="step-card">
+        <span class="step-label waterfall">第一层</span>
+        <div class="step-body"><strong>验收标准</strong>——每个 spec 附带可执行的验证条件。没标准的 spec 就是给 Agent 发空白支票。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label waterfall">第二层</span>
+        <div class="step-body"><strong>覆盖度量</strong>——测试覆盖率、场景覆盖率。用数字说话，不用感觉说话。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">第三层</span>
+        <div class="step-body"><strong>质量趋势</strong>——追踪每个迭代的 bug 发现率、回归拦截率、测试通过率。看趋势，不看快照。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">第四层</span>
+        <div class="step-body"><strong>对抗性验证</strong>——QO 故意喂异常输入、边缘 case，确保测试套件真能拦住问题，而不是只测 happy path。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 8: 循环自驱动 ====== -->
+  <div class="slide">
+    <span class="slide-badge">8 / 11</span>
+    <span class="tag tag-section">自驱动</span>
+    <h2>循环自驱动：让规约库自己转起来</h2>
+    <p>规约、流程、测试都讲完了。但纠错不能靠人盯着，得让系统自己转。</p>
+    <div class="flow" style="margin-top:1rem;">
+      <div class="flow-item">结构化规约</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">Agent 执行</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">自动化测试</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item orange">偏差反馈</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">修正规约</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item accent">再次执行</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;margin-top:1rem;">
+      <div class="loop-card">
+        <h4>代码→规约反馈</h4>
+        <p>测试跑不过，偏差信息回填到规约。规约越来越精确，Agent 的产出质量同步提升。</p>
+      </div>
+      <div class="loop-card">
+        <h4>规约→知识沉淀</h4>
+        <p>每次修正的规约成为项目知识库的一部分。新任务开工前 Agent 先读"病历本"，避免重复犯错。规约库随着迭代越来越精确，坏模式被自动清洗。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 9: Worktree 隔离归档 ====== -->
+  <div class="slide">
+    <span class="slide-badge">9 / 11</span>
+    <span class="tag tag-red">挑战 5</span>
+    <h2>并行冲突 → Worktree 隔离归档</h2>
+    <div class="cols" style="margin-top:0.5rem;">
+      <div class="col-card red-card">
+        <h3 style="font-size:1rem;">问题</h3>
+        <p style="font-size:0.9rem;color:var(--text2);line-height:1.6;">多 Agent 同时改代码，互相覆盖，依赖冲突。传统分支管理扛不住 Agent 级别的并行密度。一个 Agent 改坏的东西会影响另一个。</p>
+      </div>
+      <div class="col-card green-card">
+        <h3 style="font-size:1rem;">解法</h3>
+        <p style="font-size:0.9rem;color:var(--text2);line-height:1.6;">Git worktree 为每个 feature 提供独立的物理工作目录。Agent A 改文件不影响 Agent B。完成后归档，出问题秒级回溯。</p>
+      </div>
+    </div>
+    <div class="flow" style="margin-top:1rem;">
+      <div class="flow-item">新建 worktree</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">Agent 在隔离环境开发</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">CI 验证通过</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">合并归档</div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p>并行开发从"小心翼翼地分支管理"变成"每个 Agent 各干各的，验证完再合"。这是多 Agent 并行的基建前提。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 10: 全景 ====== -->
+  <div class="slide">
+    <span class="slide-badge">10 / 11</span>
+    <span class="tag tag-section">全景</span>
+    <h2>一条路：spec → 测试 → 自驱动 → 并行</h2>
+    <div class="map-table" style="margin-top:0.5rem;">
+      <div class="map-row">
+        <div class="map-challenge">模糊决策</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">规约 + 实例化需求</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">规约膨胀 + 演进困难</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">瀑布+敏捷混合</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">审查击穿 + 认知爆炸</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">文档测试 + 语义推理 + 质量量化</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">系统退化</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">循环自驱动</div>
+      </div>
+      <div class="map-row">
+        <div class="map-challenge">并行冲突</div>
+        <span class="map-arrow">→</span>
+        <div class="map-solution">Worktree 隔离归档可回溯</div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:1.2rem;">
+      "工程永远是一件难受且充满对抗的事情。Harness 要做的是让对抗可量化、可追溯、可自驱。"
+    </div>
+  </div>
+
+  <!-- ====== Slide 11: 收尾 ====== -->
+  <div class="slide slide-end">
+    <span class="slide-badge">11 / 11</span>
+    <div class="end-cols">
+      <div class="end-left">
+        <p style="font-size:1.1rem;line-height:1.9;font-weight:500;">AI 拉平了写代码的门槛，会写代码不再是核心竞争力。程序员的价值要往软件工程方向走——定义问题、设计规约、编排流程、验收质量。从 Vibe Coding 到 Harness Engineering，背后就是软件工程思想的体现。</p>
+        <p style="margin-top:1.8rem;font-size:1.05rem;font-weight:600;color:var(--accent2);line-height:1.8;">当整套开发流程都由文档驱动，文档本身的质量谁来守？门禁又该怎么设？</p>
+      </div>
+      <div class="end-right">
+        <div class="qr-card">
+          <canvas id="qrCanvas" width="200" height="200"></canvas>
+          <p class="qr-url">agentszone.ai</p>
+          <p class="qr-label">扫码访问 AgentsZone 社区<br>获取 Harness Engineering Playbook</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+(function() {
+  var qr = qrcode(0, 'M');
+  qr.addData('https://www.agentszone.ai/');
+  qr.make();
+  var canvas = document.getElementById('qrCanvas');
+  var ctx = canvas.getContext('2d');
+  var count = qr.getModuleCount();
+  var size = 200;
+  var cell = size / count;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#1a1a30';
+  for (var r = 0; r < count; r++) {
+    for (var c = 0; c < count; c++) {
+      if (qr.isDark(r, c)) {
+        ctx.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>

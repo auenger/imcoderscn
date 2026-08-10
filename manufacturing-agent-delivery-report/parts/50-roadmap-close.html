@@ -1,0 +1,73 @@
+      <section class="section" id="roadmap">
+        <h2>建议实施路径</h2>
+        <div class="phase">
+          <div class="phase-name">边界确认</div>
+          <div><h3>确定数据、用户、指标和验收</h3><p class="muted">冻结 MES 数据清单、指标口径、角色范围、部署模式、模型来源、调用预算与非功能指标。形成正式范围基线。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">基础打通</div>
+          <div><h3>先完成数据服务与权限闭环</h3><p class="muted">建立 MES 聚合 API、身份映射、Agent 服务账号、工具白名单和审计链路。用确定性查询验证数据正确性。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">场景试点</div>
+          <div><h3>优先上线产能分析与数据分析</h3><p class="muted">这两个场景依赖较少、价值直观，可帮助校准数据口径。计划模拟先做建议，不直接写回 MES。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">预测扩展</div>
+          <div><h3>形成计划模拟与预测报告闭环</h3><p class="muted">积累反馈样本，建立基线模型、预测误差监控、人工确认和报告订阅机制。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">渠道增强</div>
+          <div><h3>按真实使用频率接入 IM</h3><p class="muted">在 Web 场景稳定后，再接入钉钉等渠道，先做报告推送与查询，最后评估审批和动作能力。</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="risks">
+        <h2>主要风险与控制建议</h2>
+        <div class="risk-grid">
+          <div class="risk-item"><h3>数据口径不一致</h3><p class="small">同一产能指标在 MES、报表和业务人员之间定义不同。先建立指标字典与样例数据验收。</p></div>
+          <div class="risk-item"><h3>项目范围持续扩张</h3><p class="small">客户把平台演示能力视为默认交付。用范围矩阵、版本许可和变更流程控制。</p></div>
+          <div class="risk-item"><h3>权限穿透与敏感泄露</h3><p class="small">Agent 使用高权限服务账号绕过用户权限。实施交集授权、字段过滤和权限感知缓存。</p></div>
+          <div class="risk-item"><h3>预测被误当生产指令</h3><p class="small">业务直接执行未经确认的建议。明确辅助决策定位，为高风险操作设置确认和审批。</p></div>
+          <div class="risk-item"><h3>IM 体验替代业务系统</h3><p class="small">复杂任务被塞入聊天窗口，导致结果不可读、无法钻取。IM 提供轻入口，Web 承载完整流程。</p></div>
+          <div class="risk-item"><h3>双技术栈增加维护成本</h3><p class="small">同时维护公司平台和开源基座。替代基座只做受控验证，通过架构评审后才能生产化。</p></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>建议管理层本次确认的事项</h2>
+        <div class="grid-2">
+          <div class="panel"><h3>产品与商业</h3><ul class="clean-list muted"><li>四类 Agent 是否定义为制造行业应用包</li><li>平台采用订阅、许可还是项目制授权</li><li>客户自定义与 IM 是否独立报价</li></ul></div>
+          <div class="panel"><h3>客户与用户</h3><ul class="clean-list muted"><li>本期仅限工厂内部员工是否成立</li><li>首批用户角色和工厂范围</li><li>是否存在外协或集团跨组织使用</li></ul></div>
+          <div class="panel"><h3>技术与安全</h3><ul class="clean-list muted"><li>部署在客户本地、专有云或混合环境</li><li>权限以 MES 为主还是统一身份平台为主</li><li>模型服务、数据出域和日志保留要求</li></ul></div>
+          <div class="panel"><h3>交付与验收</h3><ul class="clean-list muted"><li>数据正确率、时效和稳定性指标</li><li>预测场景的基线与容差</li><li>质保、持续调优和模型费用责任</li></ul></div>
+        </div>
+        <div class="callout" style="margin-top:16px">
+          <h3>建议立项结论</h3>
+          <p>同意以公司 Agent 平台为首选底座，启动制造行业应用包试点。第一阶段交付 Web 入口、MES 数据服务、双主体权限、四类 Agent 中的产能与数据分析能力；计划模拟和预测报告分阶段验收；IM Gateway、自定义 Agent 与替代基座验证列为可选工作包。</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>参考与说明</h2>
+        <p class="muted small">OpenClaw 与 Hermes 的判断仅用于架构边界分析，正式选型前需基于公司平台现状、客户安全要求和指定版本开展验证。</p>
+        <ul class="source-list">
+          <li><a href="https://docs.openclaw.ai/" target="_blank" rel="noreferrer">OpenClaw 官方文档</a>：将其定位为可自托管、可通过消息渠道交互的个人 AI 助手运行时。</li>
+          <li><a href="https://github.com/NousResearch/hermes-agent" target="_blank" rel="noreferrer">NousResearch Hermes Agent 官方仓库</a>：展示其 CLI、消息 Gateway、记忆、技能、定时任务与工具能力。</li>
+          <li>本报告中的交付建议属于项目边界设计，不替代客户现场调研、数据摸底、安全测评与合同法律审查。</li>
+        </ul>
+      </section>
+
+      <footer class="footer-note">生产制造 AI Agent 项目交付边界分析报告 | 内部汇报材料</footer>
+    </main>
+  </div>
+  <script>
+    document.querySelectorAll('a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function () {
+        document.querySelectorAll('.toc a').forEach(function (item) { item.removeAttribute('aria-current'); });
+        link.setAttribute('aria-current', 'true');
+      });
+    });
+  </script>
+</body>
+</html>

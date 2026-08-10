@@ -1,0 +1,640 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Feature Workflow — 基于 Claude Code 的智能开发工作流</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* Theme variables */
+[data-theme="dark"]{--bg:#0b0b14;--bg2:#0f0f1c;--surface:#161628;--surface2:#1c1c36;--surface3:#22223e;--border:rgba(255,255,255,.06);--border-strong:rgba(255,255,255,.12);--text:#e6e6f2;--text2:#9090ac;--text3:#606078;--accent:#7b6cf0;--accent2:#a8a0ff;--green:#00d4aa;--green-bg:rgba(0,212,170,.08);--green-border:rgba(0,212,170,.2);--red:#ff6b6b;--red-bg:rgba(255,107,107,.08);--red-border:rgba(255,107,107,.2);--orange:#f0b848;--orange-bg:rgba(240,184,72,.08);--orange-border:rgba(240,184,72,.2);--accent-bg:rgba(123,108,240,.08);--accent-border:rgba(123,108,240,.18);--code-bg:#111124;--code-border:rgba(123,108,240,.12);--code-text:#00d4aa;--shadow:0 2px 16px rgba(0,0,0,.4);--shadow-lg:0 8px 32px rgba(0,0,0,.5);--quote-bg:rgba(123,108,240,.06);--quote-border:var(--accent);--key-bg:linear-gradient(135deg,rgba(123,108,240,.1),rgba(0,212,170,.06));--key-border:rgba(123,108,240,.18);--toggle-bg:rgba(255,255,255,.08);--toggle-hover:rgba(255,255,255,.14);--progress-bg:linear-gradient(90deg,#7b6cf0,#00d4aa)}
+[data-theme="light"]{--bg:#f4f4fb;--bg2:#eaeaf4;--surface:#ffffff;--surface2:#f0f0fa;--surface3:#e6e6f2;--border:rgba(0,0,0,.07);--border-strong:rgba(0,0,0,.12);--text:#1a1a30;--text2:#5a5a78;--text3:#9898ac;--accent:#5b4cc4;--accent2:#7b6cf0;--green:#009a7c;--green-bg:rgba(0,154,124,.06);--green-border:rgba(0,154,124,.18);--red:#d44040;--red-bg:rgba(212,64,64,.06);--red-border:rgba(212,64,64,.18);--orange:#b88020;--orange-bg:rgba(184,128,32,.06);--orange-border:rgba(184,128,32,.18);--accent-bg:rgba(91,76,196,.06);--accent-border:rgba(91,76,196,.15);--code-bg:#1a1a30;--code-border:rgba(91,76,196,.12);--code-text:#00d4aa;--shadow:0 2px 12px rgba(0,0,0,.06);--shadow-lg:0 8px 24px rgba(0,0,0,.08);--quote-bg:rgba(91,76,196,.04);--quote-border:var(--accent);--key-bg:linear-gradient(135deg,rgba(91,76,196,.06),rgba(0,154,124,.04));--key-border:rgba(91,76,196,.12);--toggle-bg:rgba(0,0,0,.06);--toggle-hover:rgba(0,0,0,.1);--progress-bg:linear-gradient(90deg,#5b4cc4,#009a7c)}
+
+html,body{overflow:hidden;height:100vh;font-family:'Noto Sans SC',-apple-system,BlinkMacSystemFont,sans-serif;background:var(--bg);color:var(--text);line-height:1.7}
+
+/* Transitions */
+html,body,.slide,.progress,.slide-number,.nav-hint,.col-card,.tip,pre,.quote,.key-point,.flow-item,.tag,.theme-toggle,.loop-card,.step-card{transition:background .4s ease,color .4s ease,border-color .4s ease,box-shadow .4s ease,opacity .4s ease}
+
+/* Progress */
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--progress-bg);z-index:100;transition:width .4s cubic-bezier(.4,0,.2,1)}
+
+/* Slide number */
+.slide-number{position:fixed;top:16px;right:24px;font-size:.8rem;color:var(--text3);z-index:90;font-weight:500}
+
+/* Nav hint */
+.nav-hint{position:fixed;bottom:2.5vh;left:50%;transform:translateX(-50%);font-size:.78rem;color:var(--text3);z-index:90;opacity:.6}
+
+/* Nav arrows */
+.nav-arrow{position:fixed;top:50%;transform:translateY(-50%);width:48px;height:80px;opacity:0;cursor:pointer;z-index:90;display:flex;align-items:center;justify-content:center}
+.nav-arrow:hover{opacity:1!important}
+.nav-left{left:0;background:linear-gradient(90deg,var(--bg),transparent)}
+.nav-right{right:0;background:linear-gradient(270deg,var(--bg),transparent)}
+.nav-arrow.flash{opacity:.7}
+.nav-arrow svg{width:20px;height:20px;stroke:var(--text2);stroke-width:2;fill:none}
+
+/* Theme toggle */
+.theme-toggle{position:fixed;bottom:2.2vh;left:50%;transform:translateX(-50%);width:44px;height:44px;border-radius:50%;background:var(--toggle-bg);border:1px solid var(--border);cursor:pointer;z-index:100;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(8px)}
+.theme-toggle:hover{background:var(--toggle-hover)}
+.theme-toggle svg{width:18px;height:18px;stroke:var(--text2);stroke-width:2;fill:none;position:absolute}
+[data-theme="dark"] .icon-sun{display:none}
+[data-theme="light"] .icon-moon{display:none}
+[data-theme="dark"] .icon-moon{display:block}
+[data-theme="light"] .icon-sun{display:block}
+
+/* Slides container */
+.slides{position:relative;width:100%;height:100vh}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:6vh 8vw;opacity:0;pointer-events:none;transform:translateX(60px);transition:opacity .45s ease,transform .45s ease;overflow-y:auto;scrollbar-width:thin;scrollbar-color:var(--border-strong) transparent}
+.slide::-webkit-scrollbar{width:4px}
+.slide::-webkit-scrollbar-thumb{background:var(--border-strong);border-radius:4px}
+.slide.active{opacity:1;pointer-events:auto;transform:translateX(0)}
+.slide.exit-left{opacity:0;transform:translateX(-60px)}
+.slide>*,.slide>.slide-inner{max-width:860px;width:100%}
+.slide>.tag{width:auto}
+.slide>*+*{margin-top:1.2rem}
+
+/* Cover */
+.slide-cover{text-align:center;align-items:center;background:radial-gradient(ellipse at 50% 40%,var(--accent-bg),transparent 70%)}
+.slide-cover h1{background:var(--progress-bg);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;font-size:clamp(2rem,5vw,3.2rem);font-weight:900;line-height:1.2;letter-spacing:-.02em}
+.slide-cover .divider{width:60px;height:2px;margin:1.8rem auto;background:var(--progress-bg);border-radius:1px}
+.slide-cover .subtitle{font-size:clamp(.95rem,1.8vw,1.15rem);color:var(--text2);font-weight:400}
+
+/* End */
+.slide-end{text-align:center;align-items:center;background:radial-gradient(ellipse at 50% 60%,var(--green-bg),transparent 70%)}
+
+/* Tags */
+.tag{display:inline-block;padding:4px 16px;border-radius:20px;font-size:clamp(.7rem,1vw,.82rem);font-weight:500;margin-bottom:12px}
+.tag-lesson{background:var(--accent-bg);color:var(--accent);border:1px solid var(--accent-border)}
+.tag-section{background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)}
+.tag-red{background:var(--red-bg);color:var(--red);border:1px solid var(--red-border)}
+.tag-orange{background:var(--orange-bg);color:var(--orange);border:1px solid var(--orange-border)}
+
+/* Headings */
+h1{font-size:clamp(1.6rem,3.5vw,2.5rem);font-weight:900;line-height:1.2;letter-spacing:-.02em}
+h2{font-size:clamp(1.2rem,2.4vw,1.8rem);font-weight:700;line-height:1.3}
+h3{font-size:clamp(.9rem,1.4vw,1.15rem);font-weight:600;line-height:1.4}
+h4{font-size:clamp(.82rem,1.1vw,.95rem);font-weight:600}
+
+/* Key point */
+.key-point{background:var(--key-bg);border:1px solid var(--key-border);border-radius:12px;padding:16px 20px}
+.key-point p{font-size:clamp(.8rem,1.1vw,.92rem);line-height:1.7}
+
+/* Flow */
+.flow{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:10px}
+.flow-item{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:clamp(.72rem,.95vw,.85rem);font-weight:500;white-space:nowrap}
+.flow-item.green{background:var(--green-bg);border-color:var(--green-border);color:var(--green)}
+.flow-item.accent{background:var(--accent-bg);border-color:var(--accent-border);color:var(--accent)}
+.flow-item.red{background:var(--red-bg);border-color:var(--red-border);color:var(--red)}
+.flow-item.orange{background:var(--orange-bg);border-color:var(--orange-border);color:var(--orange)}
+.flow-arrow{color:var(--text3);font-size:1rem}
+
+/* Cols */
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.col-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px 20px;box-shadow:var(--shadow)}
+.col-card h3{margin-bottom:6px}
+.col-card p,.col-card li{font-size:clamp(.78rem,1vw,.88rem);color:var(--text2);line-height:1.6}
+.col-card ul{padding-left:16px}
+.green-card{border-left:3px solid var(--green)}
+.accent-card{border-left:3px solid var(--accent)}
+.red-card{border-left:3px solid var(--red)}
+.orange-card{border-left:3px solid var(--orange)}
+.wide-card{grid-column:span 2}
+
+/* Steps */
+.steps{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.step-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:flex;align-items:center;gap:14px}
+.step-label{display:inline-block;padding:3px 12px;border-radius:6px;font-size:.72rem;font-weight:600;white-space:nowrap}
+.step-label.waterfall{background:var(--accent-bg);color:var(--accent)}
+.step-label.agile{background:var(--green-bg);color:var(--green)}
+.step-body{font-size:clamp(.78rem,.95vw,.88rem);line-height:1.5}
+.step-body strong{color:var(--accent)}
+
+/* Icon grid */
+.icon-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.icon-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px 18px}
+.icon-card h4{margin-bottom:5px}
+.icon-card p{font-size:clamp(.75rem,.95vw,.85rem);color:var(--text2);line-height:1.55}
+
+/* Quote */
+.quote{background:var(--quote-bg);border-left:3px solid var(--quote-border);border-radius:0 8px 8px 0;padding:14px 20px;font-size:clamp(.8rem,1vw,.9rem);line-height:1.7;color:var(--text2)}
+.quote em{color:var(--accent2);font-weight:600;font-style:normal}
+
+/* Code */
+pre{background:var(--code-bg);border:1px solid var(--code-border);border-radius:10px;padding:18px 22px;overflow-x:auto;margin-top:10px}
+pre code{color:var(--code-text);font-family:'SF Mono','Fira Code','JetBrains Mono',monospace;font-size:clamp(.72rem,.9vw,.84rem);line-height:1.65}
+
+/* Data table */
+.data-table{width:100%;border-collapse:collapse;margin-top:10px;font-size:clamp(.72rem,.9vw,.85rem)}
+.data-table th{background:var(--accent-bg);color:var(--accent);font-weight:600;padding:8px 14px;text-align:left;border-bottom:2px solid var(--accent-border)}
+.data-table td{padding:8px 14px;border-bottom:1px solid var(--border);color:var(--text2)}
+.data-table tr:hover td{background:var(--surface2)}
+
+/* VS block */
+.vs-block{display:flex;gap:0;margin-top:12px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.vs-side{flex:1;padding:16px 20px}
+.vs-side h4{margin-bottom:6px;font-size:clamp(.85rem,1.1vw,.95rem)}
+.vs-side ul{padding-left:16px;font-size:clamp(.78rem,.95vw,.85rem);line-height:1.7;color:var(--text2)}
+.vs-divider{width:2px;background:var(--border)}
+.red-side{background:var(--red-bg)}.red-side h4{color:var(--red)}
+.green-side{background:var(--green-bg)}.green-side h4{color:var(--green)}
+
+/* Challenge */
+.challenge-list{display:flex;flex-direction:column;gap:8px;margin-top:10px}
+.challenge-item{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 18px;display:flex;align-items:flex-start;gap:12px}
+.challenge-num{background:var(--red);color:#fff;width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;margin-top:2px}
+.challenge-body strong{display:block;margin-bottom:2px;font-size:clamp(.82rem,1vw,.92rem)}
+.challenge-body p{font-size:clamp(.78rem,.95vw,.85rem);color:var(--text2);line-height:1.5}
+
+/* Pyramid */
+.pyramid{display:flex;flex-direction:column;align-items:center;gap:5px;margin-top:10px}
+.pyramid-row{display:flex;align-items:center;justify-content:center;gap:14px;border-radius:8px;padding:8px 18px;text-align:center}
+.pyramid-row .label{font-weight:700;font-size:clamp(.75rem,.9vw,.85rem)}
+.pyramid-row .desc{font-size:clamp(.7rem,.85vw,.8rem);color:var(--text2)}
+.pyramid-row.l0{width:40%;background:var(--accent-bg);border:1px solid var(--accent-border)}
+.pyramid-row.l1{width:60%;background:var(--accent-bg);border:1px solid var(--accent-border);opacity:.85}
+.pyramid-row.l2{width:80%;background:var(--accent-bg);border:1px solid var(--accent-border);opacity:.7}
+.pyramid-row.l3{width:100%;background:var(--accent-bg);border:1px solid var(--accent-border);opacity:.55}
+
+/* Tag inline */
+.tag-inline{display:inline-block;padding:2px 8px;border-radius:4px;font-size:.75rem;font-weight:600}
+.tag-inline.green{background:var(--green-bg);color:var(--green)}
+.tag-inline.accent{background:var(--accent-bg);color:var(--accent)}
+.tag-inline.orange{background:var(--orange-bg);color:var(--orange)}
+.tag-inline.red{background:var(--red-bg);color:var(--red)}
+
+p,li{font-size:clamp(.8rem,1vw,.9rem);line-height:1.7;color:var(--text2)}
+strong{color:var(--text)}
+
+/* Responsive */
+@media(max-width:768px){
+.slide{padding:4vh 5vw}
+.cols{grid-template-columns:1fr}
+.flow{flex-direction:column}
+.flow-arrow{transform:rotate(90deg)}
+.icon-grid{grid-template-columns:1fr}
+.vs-block{flex-direction:column}
+.vs-divider{width:100%;height:2px}
+.wide-card{grid-column:span 1}
+}
+@media(hover:none){.nav-hint{display:none}}
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+<div class="nav-arrow nav-left flash" id="navLeft">
+<svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</div>
+<div class="nav-arrow nav-right flash" id="navRight">
+<svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+</div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+<svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<div class="slides" id="slides">
+
+<!-- Slide 1: Cover -->
+<div class="slide slide-cover active">
+<span class="tag tag-lesson">Claude Code 工作流</span>
+<h1>Feature Workflow</h1>
+<div class="divider"></div>
+<p class="subtitle">Command → Agent → Skill 三层架构<br>让 AI 真正参与软件开发的全流程</p>
+<p style="margin-top:2rem;font-size:clamp(.75rem,.9vw,.85rem);color:var(--text3)">一个 Feature = 一个 Worktree = 一个独立开发环境</p>
+</div>
+
+<!-- Slide 2: What is Feature Workflow -->
+<div class="slide">
+<span class="tag tag-section">定位</span>
+<h2>Feature Workflow 是什么</h2>
+<p>一套基于 <strong>Claude Code</strong> 的完整功能开发工作流系统。通过 Command、Agent、Skill 三层架构，实现<strong>并行开发、状态追踪、自动化质量保障</strong>，让 AI 从"问答工具"变成"开发搭档"。</p>
+<div class="key-point" style="margin-top:16px">
+<p><strong>核心价值：</strong>AI 不再只是回答问题，而是按照结构化流程自主完成需求分析、代码实现、质量验证和归档，全程无需人类干预。</p>
+</div>
+<div class="icon-grid" style="margin-top:16px">
+<div class="icon-card">
+<h4>并行开发</h4>
+<p>多个 Feature 通过 git worktree 物理隔离，同时推进</p>
+</div>
+<div class="icon-card">
+<h4>状态管理</h4>
+<p>集中式 queue.yaml 统一追踪 active / pending / blocked / completed</p>
+</div>
+<div class="icon-card">
+<h4>质量门禁</h4>
+<p>6 维度文档审查 + Gherkin 验收标准 + Playwright 自动测试</p>
+</div>
+<div class="icon-card">
+<h4>知识积累</h4>
+<p>归档元数据 + 渐进式加载，历史经验自动赋能新需求</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 3: Architecture v3 -->
+<div class="slide">
+<span class="tag tag-lesson">架构</span>
+<h2>三层架构设计（v3）</h2>
+<p style="margin-bottom:6px">基于 Claude Code v2.1.x 的 <strong>Command + Agent + Skill</strong> 分层设计：</p>
+<pre><code>用户 → /dev-agent (Command, 主上下文)
+         │ ← 调度：读取队列、评估依赖、批量派发
+         │
+         └── Agent Tool → DevSubAgent (独立 200k 上下文)
+                              ├── Skill → /start-feature
+                              ├── Skill → /implement-feature --auto
+                              ├── Skill → /verify-feature --auto-fix
+                              └── Skill → /complete-feature --auto</code></pre>
+<div class="cols" style="margin-top:16px">
+<div class="col-card accent-card">
+<h3>Command 层</h3>
+<p>/dev-agent 作为入口，负责读取 queue.yaml、评估依赖关系、批量派发任务。运行在主上下文，掌控全局调度。</p>
+</div>
+<div class="col-card green-card">
+<h3>Agent 层</h3>
+<p>DevSubAgent 独占 200k 上下文，不污染主对话。通过 Skill Tool 调用预加载的 Skill，是"编排器"而非"实现者"。</p>
+</div>
+</div>
+<div class="key-point" style="margin-top:12px">
+<p><strong>关键设计：</strong>Skill 是原子能力单元，Agent 是编排器，Command 是入口和调度中心。每层职责清晰，不重复实现逻辑。</p>
+</div>
+</div>
+
+<!-- Slide 4: Core Philosophy -->
+<div class="slide">
+<span class="tag tag-section">理念</span>
+<h2>核心理念</h2>
+<div class="quote">
+一个 Feature = 一个 Worktree = 一个独立开发环境。每个需求在自己的 git 分支和 worktree 中完整闭环，互不干扰。
+</div>
+<div class="challenge-list" style="margin-top:16px">
+<div class="challenge-item">
+<div class="challenge-num">1</div>
+<div class="challenge-body">
+<strong>隔离性</strong>
+<p>每个 Feature 有独立的 worktree 目录、独立分支、独立上下文。并行开发不会互相污染代码。</p>
+</div>
+</div>
+<div class="challenge-item">
+<div class="challenge-num">2</div>
+<div class="challenge-body">
+<strong>文档驱动</strong>
+<p>每个 Feature 包含 spec.md（需求规范）、task.md（任务清单）、checklist.md（质量检查表）三份文档，AI 按文档执行。</p>
+</div>
+</div>
+<div class="challenge-item">
+<div class="challenge-num">3</div>
+<div class="challenge-body">
+<strong>全自动原则</strong>
+<p>DevSubAgent 全程无人值守：测试失败 → 自动修复 → 重跑；Rebase 冲突 → 智能分析 → 自动合并。多次重试失败才返回诊断报告。</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Slide 5: Lifecycle -->
+<div class="slide">
+<span class="tag tag-lesson">流程</span>
+<h2>Feature 完整生命周期</h2>
+<p style="margin-bottom:10px">从需求创建到归档完成，两种模式自由切换：</p>
+<div class="flow">
+<div class="flow-item accent">/new-feature</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item accent">/review-spec</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item green">/start-feature</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item green">/implement-feature</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item orange">/verify-feature</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item">/complete-feature</div>
+</div>
+<div class="vs-block" style="margin-top:20px">
+<div class="vs-side red-side">
+<h4>手动模式</h4>
+<ul>
+<li>逐步执行，每步可审查</li>
+<li>适合复杂需求、学习阶段</li>
+<li>可通过 /run-feature 一键执行</li>
+</ul>
+</div>
+<div class="vs-divider"></div>
+<div class="vs-side green-side">
+<h4>自动模式（/dev-agent）</h4>
+<ul>
+<li>全自动调度，批量并行</li>
+<li>读取队列 → 评估依赖 → 派发 SubAgent</li>
+<li>全程无人值守，失败自动重试</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- Slide 6: 15 Skills -->
+<div class="slide">
+<span class="tag tag-section">能力</span>
+<h2>15 个 Skill 体系</h2>
+<p>覆盖需求全生命周期的原子能力：</p>
+<table class="data-table">
+<thead><tr><th>类别</th><th>Skill</th><th>关键能力</th></tr></thead>
+<tbody>
+<tr><td rowspan="5" style="font-weight:600;color:var(--accent)">核心开发</td><td>/new-feature</td><td>对话确认 → 搜索归档 → 分析价值点 → 规模评估 → 文档生成</td></tr>
+<tr><td>/start-feature</td><td>依赖检查 → 上下文加载 → 创建分支 + worktree</td></tr>
+<tr><td>/implement-feature</td><td>读取 spec/task → worktree 中实现 → 进度更新</td></tr>
+<tr><td>/verify-feature</td><td>测试 → Gherkin 验证 → 证据保存 → auto-fix</td></tr>
+<tr><td>/complete-feature</td><td>commit → merge → tag → 归档 → 清理</td></tr>
+<tr><td rowspan="4" style="font-weight:600;color:var(--green)">规范管理</td><td>/review-spec</td><td>6 维度评分 + 问题报告 + --fix 自动修复</td></tr>
+<tr><td>/split-feature</td><td>按用户价值拆分大需求为子 Feature</td></tr>
+<tr><td>/enrich-feature</td><td>归档加载 → AI 充实三文件内容</td></tr>
+<tr><td>/query-archive</td><td>索引搜索 → SubAgent 深度加载</td></tr>
+<tr><td rowspan="4" style="font-weight:600;color:var(--orange)">状态/环境</td><td>/block-feature</td><td>阻塞需求，标记原因</td></tr>
+<tr><td>/unblock-feature</td><td>解除阻塞</td></tr>
+<tr><td>/cleanup-features</td><td>清理无效 worktree</td></tr>
+<tr><td>/feature-config</td><td>运行时修改配置</td></tr>
+<tr><td style="font-weight:600;color:var(--text3)">PM</td><td>/pm-agent</td><td>建立/更新项目上下文</td></tr>
+</tbody>
+</table>
+</div>
+
+<!-- Slide 7: Parallel Development -->
+<div class="slide">
+<span class="tag tag-lesson">并行</span>
+<h2>并行开发能力</h2>
+<p>基于 git worktree 的物理隔离，多个 Feature 同时推进，互不干扰。</p>
+<pre><code>/dev-agent → 批量调度
+  ├── DevSubAgent-1 (feat-auth)     ← worktree: project-feat-auth/
+  │     ├── /start-feature
+  │     ├── /implement-feature --auto
+  │     └── /verify-feature --auto-fix
+  ├── DevSubAgent-2 (feat-ui)       ← worktree: project-feat-ui/
+  │     ├── /start-feature
+  │     └── /implement-feature --auto
+  └── DevSubAgent-N ...</code></pre>
+<div class="cols" style="margin-top:16px">
+<div class="col-card green-card">
+<h3>隔离机制</h3>
+<ul>
+<li>每个 Feature 独立 worktree 目录</li>
+<li>独立 git 分支，代码完全隔离</li>
+<li>独立 200k 上下文，不互相干扰</li>
+<li>完成后 worktree 和分支自动清理</li>
+</ul>
+</div>
+<div class="col-card accent-card">
+<h3>调度策略</h3>
+<ul>
+<li>max_concurrent 控制并行上限</li>
+<li>自动评估 Feature 间依赖关系</li>
+<li>支持父子关系，子 Feature 按序执行</li>
+<li>run_in_background 批量派发</li>
+</ul>
+</div>
+</div>
+</div>
+
+<!-- Slide 8: Quality Assurance -->
+<div class="slide">
+<span class="tag tag-section">质量</span>
+<h2>自动化质量保障</h2>
+<div class="pyramid" style="margin-bottom:16px">
+<div class="pyramid-row l0"><span class="label">6 维度文档审查</span><span class="desc">开发前的质量门禁</span></div>
+<div class="pyramid-row l1"><span class="label">Gherkin 验收标准</span><span class="desc">Given-When-Then 结构化场景</span></div>
+<div class="pyramid-row l2"><span class="label">多类型验收</span><span class="desc">Backend 代码分析 / Frontend Playwright / Fullstack 混合</span></div>
+<div class="pyramid-row l3"><span class="label">证据保存</span><span class="desc">截图 + Trace + 验收报告，可回溯</span></div>
+</div>
+<div class="key-point">
+<p><strong>/review-spec 6 维度评分（100 分制）：</strong>清晰度、完整性、一致性、可行性、Gherkin 质量、风险评估。低于阈值自动 block，支持 --fix 自动修复。</p>
+</div>
+<div class="cols" style="margin-top:12px">
+<div class="col-card green-card">
+<h3>验收方法</h3>
+<p>自动检测 Feature 类型，前端用 Playwright MCP 执行浏览器测试，后端用 AI 代码分析验证 Gherkin 场景。</p>
+</div>
+<div class="col-card orange-card">
+<h3>自动修复</h3>
+<p>测试失败 → 自动修复代码 → 重跑测试（最多 2 次）。Lint 报错 → 修复 → 重跑。多次重试失败才返回 error + 详细诊断。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 9: State Management -->
+<div class="slide">
+<span class="tag tag-lesson">状态</span>
+<h2>状态管理</h2>
+<p>所有状态集中在 <strong>queue.yaml</strong>，是整个工作流的"大脑"：</p>
+<div class="flow" style="margin-bottom:16px">
+<div class="flow-item orange">pending</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item green">active</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item">completed</div>
+</div>
+<div style="margin-bottom:16px">
+<div class="flow">
+<div class="flow-item red">blocked</div>
+<span class="flow-arrow">↺</span>
+<div class="flow-item orange">pending</div>
+<span class="flow-arrow" style="font-size:.75rem">（/unblock-feature 解除）</span>
+</div>
+</div>
+<table class="data-table">
+<thead><tr><th>状态</th><th>触发条件</th><th>关键数据</th></tr></thead>
+<tbody>
+<tr><td><span class="tag-inline orange">pending</span></td><td>/new-feature 创建</td><td>priority, size(S/M/L), dependencies, parent/children</td></tr>
+<tr><td><span class="tag-inline green">active</span></td><td>/start-feature 启动</td><td>branch, worktree, started, dependencies</td></tr>
+<tr><td><span class="tag-inline red">blocked</span></td><td>/block-feature 阻塞</td><td>reason, dependencies</td></tr>
+<tr><td><span class="tag-inline accent">completed</span></td><td>/complete-feature 完成</td><td>completed_at, value_points, tag</td></tr>
+</tbody>
+</table>
+<div class="quote" style="margin-top:12px">
+queue.yaml 支持<em>父子关系</em>管理：大型需求拆分后，父 Feature 作为模块索引，子 Feature 按依赖顺序依次执行。
+</div>
+</div>
+
+<!-- Slide 10: Smart Splitting -->
+<div class="slide">
+<span class="tag tag-section">拆分</span>
+<h2>智能需求拆分</h2>
+<p>当需求识别到 <strong>3 个以上用户价值点</strong> 时，自动建议拆分。拆分原则是按<em>用户价值</em>而非技术层。</p>
+<div class="vs-block" style="margin-top:14px">
+<div class="vs-side green-side">
+<h4>正确：按用户价值</h4>
+<ul>
+<li>feat-auth-register → 用户能注册</li>
+<li>feat-auth-login → 用户能登录</li>
+<li>feat-auth-permission → 用户能管理权限</li>
+</ul>
+</div>
+<div class="vs-divider"></div>
+<div class="vs-side red-side">
+<h4>错误：按技术层</h4>
+<ul>
+<li>feat-auth-db → 数据库设计</li>
+<li>feat-auth-api → API 开发</li>
+<li>feat-auth-ui → 前端界面</li>
+</ul>
+</div>
+</div>
+<div class="steps" style="margin-top:16px">
+<div class="step-card">
+<span class="step-label waterfall">阶段 1</span>
+<div class="step-body"><strong>/split-feature</strong> — 分析 spec，按业务域拆分为子 Feature，原 Feature 转为模块索引，更新 queue.yaml</div>
+</div>
+<div class="step-card">
+<span class="step-label agile">阶段 2</span>
+<div class="step-body"><strong>/enrich-feature</strong> — 渐进式归档加载（Level 1 索引扫描 → Level 2 SubAgent 深度加载），充实三文件内容</div>
+</div>
+</div>
+<div class="key-point" style="margin-top:12px">
+<p><strong>拆分规则：</strong>每个子需求独立可交付价值，子需求间无循环依赖，数据库/实体按需创建。</p>
+</div>
+</div>
+
+<!-- Slide 11: Archive & Knowledge -->
+<div class="slide">
+<span class="tag tag-lesson">归档</span>
+<h2>归档与知识积累</h2>
+<p>完成的 Feature 不会消失——<strong>丰富的元数据</strong>被保存到 archive-log.yaml，成为团队的知识资产。</p>
+<div class="cols" style="margin-top:14px">
+<div class="col-card accent-card wide-card" style="grid-column:span 2">
+<h3>归档元数据</h3>
+<p style="display:flex;flex-wrap:wrap;gap:6px;margin-top:5px">
+<span class="tag-inline accent">keywords[]</span>
+<span class="tag-inline green">category</span>
+<span class="tag-inline orange">value_points</span>
+<span class="tag-inline accent">related_features[]</span>
+<span class="tag-inline green">stats (commits/files/+/−)</span>
+<span class="tag-inline orange">verification status</span>
+</p>
+</div>
+</div>
+<div class="steps" style="margin-top:14px">
+<div class="step-card">
+<span class="step-label waterfall">Level 1</span>
+<div class="step-body"><strong>索引层</strong> — /query-archive 读取 archive-log.yaml 索引，按关键词/分类/关联过滤，毫秒级响应</div>
+</div>
+<div class="step-card">
+<span class="step-label agile">Level 2</span>
+<div class="step-body"><strong>深度加载</strong> — SubAgent 按需加载完整归档内容，提取实现模式、历史教训、代码结构</div>
+</div>
+</div>
+<div class="quote" style="margin-top:12px">
+<em>自动关联机制</em>：/new-feature 自动搜索关联归档填充 Dependencies；/start-feature 自动加载依赖 Feature 的实现上下文。历史经验自动赋能新需求。
+</div>
+</div>
+
+<!-- Slide 12: End -->
+<div class="slide slide-end">
+<span class="tag tag-section">成果</span>
+<h2>实际落地</h2>
+<div class="icon-grid" style="margin-top:24px;max-width:700px;margin-left:auto;margin-right:auto">
+<div class="icon-card">
+<h4>8 个 Phase 全部完成</h4>
+<p>Skills + Workflows + Agents + 归档加载 + 拆分充实 + 文档审查</p>
+</div>
+<div class="icon-card">
+<h4>MVP 测试 100% 通过</h4>
+<p>完整流程覆盖：创建→拆分→审查→开发→验证→归档</p>
+</div>
+<div class="icon-card">
+<h4>Marketplace 分发</h4>
+<p>Plugin 系统 + zip 本地安装，2 Commands + 15 Skills + 8 Templates</p>
+</div>
+<div class="icon-card">
+<h4>3 个项目归档</h4>
+<p>mvp（5 子特性）、skill-system-v2（3 子特性）、mcp-integration，版本 v80</p>
+</div>
+</div>
+<div class="divider" style="margin-top:32px"></div>
+<p style="margin-top:20px;font-size:1.05rem;font-weight:500;color:var(--text2)">让 AI 真正参与开发，而不只是回答问题</p>
+</div>
+
+</div>
+
+<script>
+(function(){
+  const slides=document.querySelectorAll('.slide');
+  const total=slides.length;
+  let cur=0,animating=false;
+
+  const prog=document.getElementById('progress');
+  const num=document.getElementById('slideNum');
+  const navL=document.getElementById('navLeft');
+  const navR=document.getElementById('navRight');
+
+  function updateUI(){
+    prog.style.width=((cur+1)/total*100)+'%';
+    num.textContent=(cur+1)+' / '+total;
+  }
+
+  function go(idx,dir){
+    if(animating||idx<0||idx>=total||idx===cur)return;
+    animating=true;
+    const old=slides[cur],nw=slides[idx];
+    const exitX=dir>0?'-60px':'60px';
+    const enterX=dir>0?'60px':'-60px';
+    old.classList.remove('active');
+    nw.style.transition='none';
+    nw.style.transform='translateX('+enterX+')';
+    nw.classList.add('active');
+    void nw.offsetWidth;
+    nw.style.transition='';
+    nw.style.transform='';
+    old.style.transform='translateX('+exitX+')';
+    cur=idx;
+    updateUI();
+    setTimeout(()=>{
+      old.style.transform='';
+      animating=false;
+    },460);
+  }
+
+  function next(){go(cur+1,1)}
+  function prev(){go(cur-1,-1)}
+
+  document.addEventListener('keydown',e=>{
+    if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();next()}
+    else if(e.key==='ArrowLeft'){e.preventDefault();prev()}
+  });
+
+  let tx=0;
+  document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX});
+  document.addEventListener('touchend',e=>{
+    const dx=e.changedTouches[0].clientX-tx;
+    if(Math.abs(dx)>50){dx<0?next():prev()}
+  });
+
+  slides.forEach(s=>{
+    s.addEventListener('click',e=>{
+      const r=s.getBoundingClientRect();
+      const x=e.clientX-r.left,y=e.clientY-r.top;
+      if(y>r.height*.88)return;
+      if(x<r.width*.35)prev();
+      else if(x>r.width*.65)next();
+    });
+  });
+
+  navL.addEventListener('click',e=>{e.stopPropagation();prev()});
+  navR.addEventListener('click',e=>{e.stopPropagation();next()});
+
+  const toggle=document.getElementById('themeToggle');
+  const saved=localStorage.getItem('slide-theme');
+  if(saved)document.documentElement.setAttribute('data-theme',saved);
+  toggle.addEventListener('click',()=>{
+    const d=document.documentElement;
+    const t=d.getAttribute('data-theme')==='dark'?'light':'dark';
+    d.setAttribute('data-theme',t);
+    localStorage.setItem('slide-theme',t);
+  });
+
+  updateUI();
+})();
+</script>
+</body>
+</html>

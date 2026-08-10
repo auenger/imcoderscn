@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvoDev 论文信息验证报告 — ISSTA 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f4fb; --bg2: #eaeaf4; --surface: #ffffff; --surface2: #f0f0fa; --surface3: #e6e6f2;
+  --border: rgba(0,0,0,0.07); --border-strong: rgba(0,0,0,0.12);
+  --text: #1a1a30; --text2: #5a5a78; --text3: #9898ac;
+  --accent: #5b4cc4; --accent2: #7b6cf0;
+  --green: #009a7c; --green-bg: rgba(0,154,124,0.06); --green-border: rgba(0,154,124,0.18);
+  --red: #d44040; --red-bg: rgba(212,64,64,0.06); --red-border: rgba(212,64,64,0.18);
+  --orange: #b88020; --orange-bg: rgba(184,128,32,0.06); --orange-border: rgba(184,128,32,0.18);
+  --accent-bg: rgba(91,76,196,0.06); --accent-border: rgba(91,76,196,0.15);
+  --code-bg: #1a1a30; --code-border: rgba(91,76,196,0.12); --code-text: #00d4aa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06); --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --quote-bg: rgba(91,76,196,0.04); --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+  --key-border: rgba(91,76,196,0.12);
+  --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.slides-container { width: 1200px; margin: 0 auto; }
+.slide { min-height: 675px; padding: 48px 96px; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--border); position: relative; overflow: hidden; }
+.slide-content { max-width: 920px; width: 100%; }
+.slide-cover { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%); }
+.slide-cover h1 { font-size: 2.5rem; font-weight: 900; line-height: 1.35; background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.slide-cover .divider { width: 60px; height: 2px; margin: 1.8rem auto; background: var(--progress-bg); border-radius: 1px; }
+.slide-cover .subtitle { font-size: 1.1rem; color: var(--text2); margin-top: 0.5rem; }
+.slide-cover .meta { font-size: 0.85rem; color: var(--text3); margin-top: 1.5rem; }
+.slide-end { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%); }
+h2 { font-size: 1.7rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text); }
+h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.8rem; color: var(--text); }
+.tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; margin-bottom: 1rem; }
+.tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.key-point { background: var(--key-bg); border: 1px solid var(--key-border); border-radius: 12px; padding: 1.2rem 1.5rem; margin: 1rem 0; }
+.key-point p { font-size: 0.95rem; line-height: 1.7; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.col-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; }
+.col-card h3 { margin-bottom: 0.6rem; font-size: 1rem; }
+.col-card p, .col-card li { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+.col-card ul { padding-left: 1.2rem; }
+.green-card { border-color: var(--green-border); background: linear-gradient(135deg, var(--green-bg), var(--surface)); }
+.accent-card { border-color: var(--accent-border); background: linear-gradient(135deg, var(--accent-bg), var(--surface)); }
+.red-card { border-color: var(--red-border); background: linear-gradient(135deg, var(--red-bg), var(--surface)); }
+.orange-card { border-color: var(--orange-border); background: linear-gradient(135deg, var(--orange-bg), var(--surface)); }
+.flow { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0; flex-wrap: wrap; }
+.flow-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap; }
+.flow-item.green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.flow-item.accent { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+.flow-item.red { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+.flow-item.orange { background: var(--orange-bg); border-color: var(--orange-border); color: var(--orange); }
+.flow-arrow { color: var(--text3); font-size: 1.2rem; }
+.steps { margin: 1rem 0; }
+.step-card { display: flex; gap: 1rem; align-items: flex-start; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+.step-card:last-child { border-bottom: none; }
+.step-label { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.step-label.waterfall { background: var(--accent-bg); color: var(--accent); }
+.step-label.agile { background: var(--green-bg); color: var(--green); }
+.step-body { font-size: 0.9rem; color: var(--text2); }
+.step-body strong { color: var(--text); }
+.quote { background: var(--quote-bg); border-left: 3px solid var(--quote-border); padding: 1rem 1.4rem; margin: 1rem 0; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: var(--text2); }
+.quote em { color: var(--accent); font-weight: 600; font-style: normal; }
+pre { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1rem 0; overflow-x: auto; }
+pre code { color: var(--code-text); font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.6; }
+.data-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+.data-table th { background: var(--accent-bg); color: var(--accent); font-weight: 600; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--accent-border); }
+.data-table td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--text2); }
+.data-table tr:hover td { background: var(--surface2); }
+.icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.icon-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+.icon-card h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+.icon-card p { font-size: 0.85rem; color: var(--text2); }
+.loop-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; padding: 1rem 1.4rem; margin: 0.8rem 0; }
+.loop-card h4 { font-size: 0.95rem; color: var(--green); margin-bottom: 0.4rem; }
+.loop-card p { font-size: 0.88rem; color: var(--text2); }
+p { font-size: 0.92rem; color: var(--text2); line-height: 1.7; }
+ul.clean-list { list-style: none; padding: 0; }
+ul.clean-list li { padding: 0.3rem 0; font-size: 0.9rem; color: var(--text2); }
+ul.clean-list li::before { content: "•"; color: var(--accent); margin-right: 0.5rem; }
+.section-num { font-size: 4rem; font-weight: 900; background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; opacity: 0.15; position: absolute; top: 30px; right: 60px; }
+.badge { display: inline-block; padding: 3px 12px; border-radius: 6px; font-size: 0.75rem; font-weight: 600; margin-left: 0.5rem; vertical-align: middle; }
+.badge-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.badge-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.badge-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.timeline { margin: 1rem 0; position: relative; padding-left: 2rem; }
+.timeline::before { content: ''; position: absolute; left: 0.5rem; top: 0; bottom: 0; width: 2px; background: var(--accent-border); }
+.timeline-item { position: relative; padding: 0.5rem 0; }
+.timeline-item::before { content: ''; position: absolute; left: -1.65rem; top: 0.85rem; width: 10px; height: 10px; border-radius: 50%; background: var(--accent); border: 2px solid var(--surface); }
+.timeline-item.done::before { background: var(--green); }
+.timeline-item.pending::before { background: var(--orange); }
+.timeline-date { font-size: 0.8rem; color: var(--accent); font-weight: 600; }
+.timeline-text { font-size: 0.88rem; color: var(--text2); }
+</style>
+</head>
+<body>
+<div class="slides-container">
+
+<!-- Slide 1: Cover -->
+<div class="slide slide-cover">
+<div class="slide-content">
+<span class="tag tag-lesson">信息验证</span>
+<h1>EvoDev 论文信息验证报告<br>ISSTA 2026 接收声明核查</h1>
+<div class="divider"></div>
+<p class="subtitle">论文真实性 · 作者背景 · 会议接收 · 内容一致性 全面调查</p>
+<p class="meta">验证日期：2026-05-11 · 数据来源：arXiv / ISSTA 官方 / 作者主页 / Semantic Scholar</p>
+</div>
+</div>
+
+<!-- Slide 2: 待验证原文 + 总览 -->
+<div class="slide">
+<span class="section-num">01</span>
+<div class="slide-content">
+<span class="tag tag-section">验证对象</span>
+<h2>待验证原文</h2>
+<div class="quote">
+我们从经典软件工程中的特性驱动开发（FDD）方法中获得灵感，提出了一种特性驱动的迭代式端到端生成式软件开发框架 <em>EvoDev</em>。该框架引入了<em>特性地图（Feature Map）</em>作为演化式开发的核心组织结构，并利用特性依赖关系统筹开发任务规划以及上下文管理与传播……研究论文已被软件工程领域顶级国际会议 <em>ISSTA 2026</em> 接收。
+</div>
+<h3 style="margin-top:1.2rem;">验证结论总览</h3>
+<table class="data-table">
+<thead><tr><th>验证项</th><th>结果</th></tr></thead>
+<tbody>
+<tr><td>论文真实性</td><td><span class="badge badge-green">确认</span></td></tr>
+<tr><td>作者与机构</td><td><span class="badge badge-green">确认</span></td></tr>
+<tr><td>FDD 灵感 + Feature Map 概念</td><td><span class="badge badge-green">确认</span></td></tr>
+<tr><td>ISSTA 2026 会议真实性</td><td><span class="badge badge-green">确认</span></td></tr>
+<tr><td>"已被 ISSTA 2026 接收"</td><td><span class="badge badge-orange">合理但无法独立验证</span></td></tr>
+<tr><td>"软件工程领域顶级国际会议"</td><td><span class="badge badge-green">基本准确</span></td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- Slide 3: Paper Verification -->
+<div class="slide">
+<span class="section-num">02</span>
+<div class="slide-content">
+<span class="tag tag-section">论文验证</span>
+<h2>论文真实性 <span class="badge badge-green">确认</span></h2>
+<div class="cols">
+<div class="col-card accent-card">
+<h3>论文基本信息</h3>
+<ul class="clean-list">
+<li><strong>标题</strong>：EvoDev: An Iterative Feature-Driven Framework for End-to-End Software Development with LLM-based Agents</li>
+<li><strong>arXiv ID</strong>：2511.02399</li>
+<li><strong>发布时间</strong>：2025年11月（预印本）</li>
+<li><strong>引用情况</strong>：已有引用记录</li>
+<li><strong>关键词</strong>：Large Language Model, End-to-End Software Development, Feature-Driven Development</li>
+</ul>
+</div>
+<div class="col-card green-card">
+<h3>作者信息</h3>
+<ul class="clean-list">
+<li><strong>第一作者</strong>：Junwei Liu（刘俊伟）</li>
+<li><strong>机构</strong>：复旦大学计算机学院</li>
+<li><strong>研究组</strong>：CodeWisdom Group</li>
+<li><strong>导师</strong>：彭鑫（Xin Peng）、娄一翎（Yiling Lou）</li>
+<li><strong>学历</strong>：2022年本科毕业于复旦大学软件工程</li>
+<li><strong>研究方向</strong>：SE + AI，特别是 LLM for SE</li>
+</ul>
+</div>
+</div>
+<div class="key-point">
+<p><strong>论文真实可靠。</strong>arXiv 上有完整的 HTML 和 PDF 版本，作者背景可在其个人主页 (to-d.github.io) 交叉验证。Junwei Liu 此前已有 ICSE 2024、ASE 2023 等顶会发表记录。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 4: Paper Content -->
+<div class="slide">
+<span class="section-num">03</span>
+<div class="slide-content">
+<span class="tag tag-section">内容验证</span>
+<h2>论文核心内容 <span class="badge badge-green">与描述一致</span></h2>
+<div class="icon-grid">
+<div class="icon-card" style="border-left:3px solid var(--accent);">
+<h4>FDD 灵感来源</h4>
+<p>论文第 2.2 节详细引用 FDD 方法论 (Goyal, 2007)，论述为何 FDD 适合适配到多智能体工作流。描述中"从经典FDD方法中获得灵感"<strong>准确</strong>。</p>
+</div>
+<div class="icon-card" style="border-left:3px solid var(--green);">
+<h4>Feature Map 概念</h4>
+<p>核心创新：Feature Map 是一个 DAG，显式建模特性依赖。每个节点包含 Business / Design / Implementation 三层上下文。描述中"引入特性地图"<strong>准确</strong>。</p>
+</div>
+<div class="icon-card" style="border-left:3px solid var(--orange);">
+<h4>框架三阶段</h4>
+<p>① Overall Design Construction → ② Feature Map Generation → ③ Iterative Features Development。与FDD五阶段一一对应。描述中"迭代式端到端"<strong>准确</strong>。</p>
+</div>
+<div class="icon-card" style="border-left:3px solid var(--red);">
+<h4>实验结果</h4>
+<p>在 Android 开发任务上超越最佳基线 Claude Code <strong>56.8%</strong>。单智能体提升 16.0%–76.6%。构建 APPDev 数据集（15个应用），耗费约 500 人时 + 1500 美元。</p>
+</div>
+</div>
+<div class="quote">
+论文确实将 EvoDev 的 Feature Map 方法与 Claude Code 的线性 to-do 列表策略进行了对比："In contrast to the widely adopted linear planning strategies that merely produce a to-do list, our feature map captures the complex dependencies using a graph structure." — 描述中"不再将开发过程组织为线性的to-do列表"<strong>准确</strong>。
+</div>
+</div>
+</div>
+
+<!-- Slide 5: ISSTA 2026 Conference -->
+<div class="slide">
+<span class="section-num">04</span>
+<div class="slide-content">
+<span class="tag tag-section">会议验证</span>
+<h2>ISSTA 2026 会议真实性 <span class="badge badge-green">确认</span></h2>
+<div class="cols">
+<div class="col-card accent-card">
+<h3>会议基本信息</h3>
+<ul class="clean-list">
+<li><strong>全称</strong>：ACM SIGSOFT International Symposium on Software Testing and Analysis</li>
+<li><strong>届次</strong>：第35届</li>
+<li><strong>时间</strong>：2026年10月3-9日</li>
+<li><strong>地点</strong>：美国加州奥克兰</li>
+<li><strong>联合举办</strong>：SPLASH 2026</li>
+<li><strong>投稿数</strong>：705篇</li>
+<li><strong>接收数</strong>：218篇（~31%）</li>
+<li><strong>PC Chairs</strong>：Marcel Böhme (MPI), Cindy Rubio-González (UC Davis)</li>
+</ul>
+</div>
+<div class="col-card green-card">
+<h3>"顶级国际会议"措辞</h3>
+<p>ISSTA 是 ACM SIGSOFT 下属的<strong>软件测试与分析</strong>领域顶级会议。</p>
+<p style="margin-top:0.5rem;">严格来说更侧重测试与分析子领域，而非整个软件工程领域。但在学术宣传中将 ISSTA 称为"软件工程领域顶级会议"是<strong>常见做法</strong>。</p>
+<p style="margin-top:0.5rem;">准确度评级：<strong>基本准确</strong></p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Slide 6: Timeline -->
+<div class="slide">
+<span class="section-num">05</span>
+<div class="slide-content">
+<span class="tag tag-orange">关键分析</span>
+<h2>ISSTA 2026 接收验证 <span class="badge badge-orange">无法独立验证</span></h2>
+<h3>重要时间线</h3>
+<div class="timeline">
+<div class="timeline-item done">
+<div class="timeline-date">2025-11-04</div>
+<div class="timeline-text">论文发布到 arXiv（2511.02399）</div>
+</div>
+<div class="timeline-item done">
+<div class="timeline-date">2026-01-29</div>
+<div class="timeline-text">ISSTA 2026 论文投稿截止</div>
+</div>
+<div class="timeline-item done">
+<div class="timeline-date">2026-03-24~26</div>
+<div class="timeline-text">作者回复期（Author Response）</div>
+</div>
+<div class="timeline-item done">
+<div class="timeline-date">2026-04-16</div>
+<div class="timeline-text"><strong>初始通知发出（Accept / Major Revision / Reject）</strong></div>
+</div>
+<div class="timeline-item pending">
+<div class="timeline-date">2026-05-21</div>
+<div class="timeline-text">大修提交截止</div>
+</div>
+<div class="timeline-item pending">
+<div class="timeline-date">2026-06-25</div>
+<div class="timeline-text"><strong>最终通知</strong></div>
+</div>
+<div class="timeline-item pending">
+<div class="timeline-date">2026-07-23</div>
+<div class="timeline-text">Camera Ready</div>
+</div>
+<div class="timeline-item pending">
+<div class="timeline-date">2026-10-03</div>
+<div class="timeline-text">会议开幕（Oakland, CA）</div>
+</div>
+</div>
+<div class="key-point">
+<p><strong>今天是 2026-05-11：</strong>初始通知已于 4月16日发出（距今约3周），作者应已获知结果。但<strong>最终通知要到 6月25日</strong>，官方未公开已接受论文列表。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 7: Evidence Analysis -->
+<div class="slide">
+<span class="section-num">06</span>
+<div class="slide-content">
+<span class="tag tag-orange">证据分析</span>
+<h2>支持与无法确认的理由</h2>
+<div class="cols">
+<div class="col-card green-card">
+<h3>支持"已接收"的证据</h3>
+<ul>
+<li>初始通知已于 4月16日发出，作者应已获知结果</li>
+<li>论文采用 ACM acmart 文档类格式，符合 ISSTA 投稿要求</li>
+<li>arXiv 发布时间（2025-11）早于投稿截止（2026-01-29），时间线吻合</li>
+<li>搜索引擎摘要显示作者主页提及 "ISSTA 2026"</li>
+<li>论文投稿量 705篇，接受率 31%，规模合理</li>
+</ul>
+</div>
+<div class="col-card red-card">
+<h3>无法确认的原因</h3>
+<ul>
+<li><strong>ISSTA 官方页面未公开已接受论文列表</strong>（仍显示 Call for Papers）</li>
+<li><strong>作者个人主页</strong>（to-d.github.io）最后更新于 2024-11，未提及 EvoDev 或 ISSTA 2026</li>
+<li><strong>arXiv ACM 元数据仍为占位符</strong>：
+<div style="margin-top:0.3rem;"><code style="font-size:0.75rem;background:var(--surface3);padding:2px 6px;border-radius:4px;">conference: Make sure to enter the correct conference title...</code></div></li>
+<li>最终通知要到 <strong>2026-06-25</strong>，论文可能处于 Accept 或 Major Revision 状态</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Slide 8: ACM Metadata -->
+<div class="slide">
+<span class="section-num">07</span>
+<div class="slide-content">
+<span class="tag tag-lesson">关键线索</span>
+<h2>arXiv 版本 ACM 元数据分析</h2>
+<p>论文 arXiv 版本中包含以下 ACM 版权和元数据标记：</p>
+<pre><code>††copyright: acmlicensed
+††journalyear: 2018
+††doi: XXXXXXX.XXXXXXX
+††conference: Make sure to enter the correct
+  conference title from your rights confirmation email;
+  June 03–05, 2018; Woodstock, NY
+††isbn: 978-1-4503-XXXX-X/2018/06
+††ccs: Software and its engineering</code></pre>
+<div class="cols" style="margin-top:1rem;">
+<div class="col-card orange-card">
+<h3>解读</h3>
+<ul>
+<li><code>acmlicensed</code>：使用 ACM 版权模板，说明准备投往 ACM 会议</li>
+<li><code>XXXXXXX</code> 占位符：DOI 和 ISBN 未填写，说明 <strong>Camera Ready 尚未完成</strong></li>
+<li><code>2018; Woodstock, NY</code>：这是 <strong>ACM 模板默认值</strong>，不是实际会议信息</li>
+<li>作者收到接收通知后，需在 Camera Ready 阶段更新这些字段</li>
+</ul>
+</div>
+<div class="col-card">
+<h3>推断</h3>
+<p>论文处于以下状态之一：</p>
+<ul>
+<li><strong>场景 A</strong>：收到 Accept → 正在准备 Camera Ready → 尚未更新元数据</li>
+<li><strong>场景 B</strong>：收到 Major Revision → 正在准备大修版本 → arXiv 版本未更新</li>
+</ul>
+<p style="margin-top:0.5rem;">两种场景都说明<strong>论文至少通过了初始审稿</strong>（未被直接 Reject）。</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Slide 9: Data Sources -->
+<div class="slide">
+<span class="section-num">08</span>
+<div class="slide-content">
+<span class="tag tag-section">数据来源</span>
+<h2>验证数据来源</h2>
+<table class="data-table">
+<thead><tr><th>来源</th><th>URL</th><th>用途</th></tr></thead>
+<tbody>
+<tr><td>arXiv 论文</td><td>arxiv.org/abs/2511.02399</td><td>论文全文验证</td></tr>
+<tr><td>arXiv HTML 版</td><td>arxiv.org/html/2511.02399v2</td><td>全文内容交叉验证</td></tr>
+<tr><td>ISSTA 2026 官方</td><td>conf.researchr.org/.../issta-2026</td><td>会议真实性 + 时间线</td></tr>
+<tr><td>HotCRP 提交系统</td><td>issta2026.hotcrp.com</td><td>投稿/接收数量统计</td></tr>
+<tr><td>Junwei Liu 主页</td><td>to-d.github.io</td><td>作者背景验证</td></tr>
+<tr><td>Semantic Scholar</td><td>semanticscholar.org</td><td>引用和关联论文</td></tr>
+<tr><td>ResearchGate</td><td>researchgate.net</td><td>PDF 版本验证</td></tr>
+</tbody>
+</table>
+<h3 style="margin-top:1.5rem;">交叉验证链</h3>
+<div class="flow">
+<div class="flow-item accent">arXiv 论文</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item accent">作者主页</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item accent">ISSTA 官方</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item accent">HotCRP 统计</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item green">结论</div>
+</div>
+<div class="key-point">
+<p><strong>多源交叉验证</strong>：论文内容、作者背景、会议信息三个维度独立验证后互相对照，确保验证结果的可靠性。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 10: Conclusion -->
+<div class="slide slide-end">
+<div class="slide-content">
+<span class="tag tag-section">结论</span>
+<h2>验证总结</h2>
+<div class="cols">
+<div class="col-card green-card" style="text-align:center;">
+<h3>确认无误</h3>
+<p>论文真实存在<br>作者背景真实<br>内容描述准确<br>ISSTA 2026 会议真实<br>FDD + Feature Map 概念一致</p>
+</div>
+<div class="col-card orange-card" style="text-align:center;">
+<h3>合理但未验证</h3>
+<p>"已被 ISSTA 2026 接收"<br><br>时间线合理（初始通知已发出）<br>官方未公开论文列表<br>arXiv 元数据尚未更新<br>最终通知 2026-06-25</p>
+</div>
+</div>
+<div class="key-point" style="text-align:center; margin-top:1.2rem;">
+<p style="font-size:1.05rem;"><strong>如果该消息来源于论文作者本人或其所在机构的官方渠道，则可信度较高。</strong></p>
+</div>
+<p style="text-align:center; margin-top:1rem; color:var(--text3); font-size:0.85rem;">EvoDev (arXiv:2511.02399) · ISSTA 2026 · 验证日期 2026-05-11</p>
+</div>
+</div>
+
+</div>
+</body>
+</html>

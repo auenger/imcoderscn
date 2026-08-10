@@ -1,0 +1,917 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDD 驱动 AI Coding 工作流</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+/* ═══ 重置 & 变量 ═══ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --ink:#0d1b3d;--ink-2:#1a2754;--ink-3:#4a578a;
+  --accent:#4f3cc9;--accent-2:#7a5af5;--accent-3:#b388ff;
+  --warm:#ff8da1;--gold:#f5b942;--good:#2d8068;--bad:#c4596a;
+  --line:rgba(13,27,61,0.12);
+  --paper:rgba(255,255,255,0.78);--paper-strong:rgba(255,255,255,0.92);
+}
+body{font-family:'Inter','Noto Sans SC',-apple-system,"SF Pro Display",sans-serif;font-feature-settings:"ss01","cv11","tnum";background:#1c1c2e;padding:40px 0}
+
+/* ═══ 画布 & 极光背景 ═══ */
+.slide{width:1280px;height:720px;margin:30px auto;position:relative;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,0.45);background:
+  radial-gradient(ellipse 60% 50% at 22% 30%,rgba(155,175,255,0.95) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 40% at 52% 25%,rgba(255,195,220,0.85) 0%,transparent 55%),
+  radial-gradient(ellipse 45% 35% at 78% 22%,rgba(255,235,180,0.85) 0%,transparent 50%),
+  radial-gradient(ellipse 55% 50% at 88% 78%,rgba(195,165,255,0.92) 0%,transparent 60%),
+  radial-gradient(ellipse 50% 45% at 12% 82%,rgba(140,170,255,0.85) 0%,transparent 60%),
+  linear-gradient(135deg,#b8c5ff 0%,#f0d4e8 35%,#fff0c8 60%,#d4b8ff 100%)}
+
+/* ═══ 框架元素 ═══ */
+.mark-tl{position:absolute;top:30px;left:36px;width:32px;height:32px;border:2px solid #2a1c70;border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:20}
+.mark-tr{position:absolute;top:32px;right:40px;z-index:20;display:flex;align-items:baseline;gap:1px;color:var(--ink-3);font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:0.5px}
+.mark-tr .sap{font-size:10px;font-weight:700;letter-spacing:0.5px}
+.mark-tr .d{font-size:18px;font-weight:800}
+.mark-tr .br{font-size:16px;font-weight:600}
+.mark-tr .com{font-size:18px;font-weight:800}
+.chapter-bar{position:absolute;top:30px;left:88px;right:132px;height:36px;display:flex;align-items:center;gap:14px;z-index:15}
+.chapter-bar .ch-title{font-size:22px;font-weight:800;color:var(--ink);letter-spacing:-0.5px}
+.chapter-bar .ch-line{flex:1;height:1px;margin-left:16px;background:linear-gradient(90deg,rgba(79,60,201,0.35) 0%,rgba(79,60,201,0.05) 70%,transparent)}
+.chapter-bar .ch-tag{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);background:rgba(79,60,201,0.08);padding:4px 12px;border-radius:6px}
+
+/* ═══ 内容区 ═══ */
+.content{position:absolute;top:86px;left:60px;right:60px;bottom:60px;display:flex;flex-direction:column}
+h1{color:var(--ink);font-size:54px;font-weight:800;line-height:1.05;letter-spacing:-1.5px;margin-bottom:10px}
+h2{color:var(--ink-3);font-size:21px;font-weight:400;line-height:1.4;letter-spacing:-0.2px;margin-bottom:20px}
+h1.sm{font-size:38px;letter-spacing:-1px}
+h1.md{font-size:44px;letter-spacing:-1.2px}
+
+/* ═══ 玻璃拟态 ═══ */
+.glass{background:var(--paper);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(13,27,61,0.08)}
+.paper-strong{background:var(--paper-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);box-shadow:0 8px 28px rgba(13,27,61,0.08)}
+
+/* ═══ Layout C: .one 卡片系统 ═══ */
+.s3-tier-label{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.t-num{width:28px;height:28px;border-radius:8px;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:800;color:white}
+.t-name{font-size:14px;font-weight:800;color:var(--ink)}
+.t-tag{font-size:12px;font-weight:600;color:var(--ink-3);font-style:italic}
+.t-tag::before{content:'— ';color:var(--ink-3)}
+.s3-tier{display:grid;gap:10px;margin-top:10px}
+.s3-tier.g5{grid-template-columns:repeat(5,1fr)}
+.s3-tier.g4{grid-template-columns:repeat(4,1fr)}
+.s3-tier.g3{grid-template-columns:repeat(3,1fr)}
+.s3-tier.g2{grid-template-columns:1fr 1fr}
+
+.one{background:var(--paper-strong);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border:1px solid rgba(255,255,255,0.7);border-radius:14px;padding:13px 14px 12px;display:flex;flex-direction:column;position:relative}
+.one::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-3));border-radius:14px 14px 0 0}
+.one-tag{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;letter-spacing:1.4px;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.one-icon{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,rgba(79,60,201,0.1),rgba(179,136,255,0.15));display:flex;align-items:center;justify-content:center;color:var(--accent)}
+.one-title{font-size:16.5px;font-weight:800;color:var(--ink);letter-spacing:-0.4px;margin-bottom:4px}
+.one-desc{font-size:12px;font-weight:400;color:var(--ink-3);line-height:1.5;flex:1}
+.one-desc strong{color:var(--ink-2);font-weight:600}
+.one-vs{font-size:10.5px;color:var(--ink-3);margin-top:6px}
+.one-vs::before{content:'✗ ';color:var(--bad)}
+
+/* warm 色顶条 */
+.s3-tier.warm .one::before{background:linear-gradient(90deg,var(--warm),var(--accent-3))}
+/* good 色顶条 */
+.s3-tier.good .one::before{background:linear-gradient(90deg,var(--good),#3aab8a)}
+/* bad 色顶条 */
+.s3-tier.bad .one::before{background:linear-gradient(90deg,var(--bad),#d46070)}
+/* gold 色顶条 */
+.s3-tier.gold .one::before{background:linear-gradient(90deg,var(--gold),#e8a020)}
+
+/* ═══ Layout A: 序号点 + Pull Quote ═══ */
+.s1-grid{flex:1;display:grid;grid-template-columns:0.95fr 1.1fr;gap:30px;margin-top:12px}
+.s1-point{display:flex;gap:12px;align-items:flex-start;margin-bottom:10px}
+.s1-point-num{width:38px;height:38px;border-radius:10px;flex-shrink:0;background:linear-gradient(135deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:15px;font-weight:800;color:white}
+.s1-point-body h4{font-size:18px;font-weight:800;color:var(--ink);margin-bottom:2px;letter-spacing:-0.4px}
+.s1-point-body p{font-size:14px;color:var(--ink-3);line-height:1.5}
+.s1-pull{margin-top:auto;padding:20px 24px;border-radius:14px;background:linear-gradient(135deg,var(--ink) 0%,var(--accent) 100%);position:relative}
+.s1-pull p{font-size:19px;font-weight:700;color:white;line-height:1.4}
+.s1-pull::before{content:'"';position:absolute;top:-10px;right:18px;font-size:90px;color:rgba(255,255,255,0.1);font-family:Georgia,serif}
+
+/* 暗色代码卡 */
+.code-card{background:rgba(13,27,61,0.9);border-radius:14px;padding:14px 16px;margin-top:auto;position:relative;overflow:hidden}
+.code-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--accent-3));border-radius:14px 14px 0 0}
+.code-card code{font-family:'JetBrains Mono',monospace;font-size:11px;color:#00d4aa;line-height:1.7;white-space:pre}
+
+/* ═══ Layout F: 居中舞台 ═══ */
+.demo-stage{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:22px}
+.demo-pill{padding:8px 18px;border-radius:999px;background:rgba(79,60,201,0.08);border:1px solid rgba(79,60,201,0.22);font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:700;letter-spacing:2.5px;color:var(--accent);display:flex;align-items:center;gap:8px}
+.demo-pill .dot{width:9px;height:9px;border-radius:50%;background:var(--good);animation:livePulse 1.6s ease-in-out infinite}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 4px rgba(45,128,104,0.18)}50%{box-shadow:0 0 0 8px rgba(45,128,104,0.06)}}
+.demo-headline{font-size:96px;font-weight:900;letter-spacing:-3px;line-height:0.95;color:var(--ink)}
+.demo-headline .accent-word{background:linear-gradient(135deg,var(--accent),var(--accent-3));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.demo-sub{font-size:22px;font-weight:500;color:var(--ink-2);max-width:780px;line-height:1.4}
+.demo-divider{width:60px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--accent),var(--accent-3))}
+.demo-meta{font-size:13px;color:var(--ink-3);opacity:0.7;line-height:1.6}
+
+/* ═══ 渐变文字 ═══ */
+.gradient-text{background:linear-gradient(135deg,var(--accent),var(--accent-3));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.warm-gradient{background:linear-gradient(135deg,#ffd4a8,#ffb8d4);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+
+/* ═══ Platform Strip (虚线标签栏) ═══ */
+.platform-strip{display:flex;gap:6px;padding:8px 12px;background:rgba(79,60,201,0.08);border:1px dashed rgba(79,60,201,0.3);border-radius:10px;margin-top:8px}
+.ps-item{font-size:10.5px;font-weight:700;padding:3px 9px;background:rgba(255,255,255,0.85);border-radius:6px;color:var(--ink)}
+
+/* ═══ 对比行 ═══ */
+.compare-row{display:grid;grid-template-columns:1fr 22px 1fr;gap:8px;align-items:center;margin-bottom:6px}
+.cell{padding:5px 10px;border-radius:6px;font-size:11px}
+.cell.l{background:rgba(255,255,255,0.07);color:rgba(255,255,255,0.78);text-decoration:line-through;text-decoration-color:rgba(255,150,150,0.55)}
+.cell.r{background:rgba(110,231,183,0.18);border:1px solid rgba(110,231,183,0.4);color:white;font-weight:700}
+
+/* ═══ VS 两栏对比 ═══ */
+.vs-wrap{display:grid;grid-template-columns:1fr 1fr;gap:0;border-radius:14px;overflow:hidden;margin-top:10px}
+.vs-side{padding:14px 16px}
+.vs-left{background:rgba(196,89,106,0.08);border-right:1px solid var(--line)}
+.vs-left h4{font-size:14px;font-weight:800;color:var(--bad);margin-bottom:6px}
+.vs-left ul{list-style:none;padding:0}
+.vs-left ul li{font-size:12px;color:var(--ink-3);line-height:1.6;padding:2px 0}
+.vs-left ul li::before{content:'• ';color:var(--bad)}
+.vs-right{background:rgba(45,128,104,0.08)}
+.vs-right h4{font-size:14px;font-weight:800;color:var(--good);margin-bottom:6px}
+.vs-right ul{list-style:none;padding:0}
+.vs-right ul li{font-size:12px;color:var(--ink-3);line-height:1.6;padding:2px 0}
+.vs-right ul li::before{content:'• ';color:var(--good)}
+
+/* ═══ 打印 ═══ */
+@media print{body{background:white;padding:0}.slide{box-shadow:none;margin:0;page-break-after:always}}
+</style>
+</head>
+<body>
+
+<!-- SVG 图标库 -->
+<svg width="0" height="0" style="position:absolute"><defs>
+  <symbol id="i-platform" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M3 7l9-4 9 4-9 4-9-4zM3 12l9 4 9-4M3 17l9 4 9-4"/></symbol>
+  <symbol id="i-id" viewBox="0 0 24 24"><circle cx="12" cy="8" r="5" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M3 21v-2a7 7 0 0 1 7-7h4a7 7 0 0 1 7 7v2"/></symbol>
+  <symbol id="i-model" viewBox="0 0 24 24"><polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-tools" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+  <symbol id="i-cloud" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z"/></symbol>
+  <symbol id="i-network" viewBox="0 0 24 24"><circle cx="12" cy="5" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="5" cy="19" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="19" cy="19" r="3" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M12 8v3M8.5 16L10 12M15.5 16l-1.5-4"/></symbol>
+  <symbol id="i-bolt" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></symbol>
+  <symbol id="i-wrench" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z"/></symbol>
+  <symbol id="i-doc" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="1.8"/></symbol>
+  <symbol id="i-ui" viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M8 21h8M12 17v4"/></symbol>
+  <symbol id="i-skill" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></symbol>
+  <symbol id="i-memory" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" fill="none" stroke="currentColor" stroke-width="1.8"/><path fill="none" stroke="currentColor" stroke-width="1.8" d="M6 2v4M10 2v4M14 2v4M18 2v4M6 18v4M10 18v4M14 18v4M18 18v4"/></symbol>
+</defs></svg>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 01 · COVER (Layout F)        ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="demo-stage">
+    <div class="demo-pill"><span class="dot"></span>FEATURE-DRIVEN DEVELOPMENT</div>
+    <div class="demo-headline">FDD 驱动 <span class="accent-word">AI Coding</span> 工作流</div>
+    <div class="demo-divider"></div>
+    <div class="demo-sub">从理论框架到工程实践</div>
+    <div class="demo-meta">分享人：杨正武 · 2026-05</div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 02 · AGENDA (Layout C)       ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">00</span><span class="ch-title">议程</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">今天聊什么</h1>
+    <h2>四个部分，从方法论到工程实践</h2>
+    <div class="s3-tier g2">
+      <div class="one">
+        <div class="one-tag">PART 01</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+        <div class="one-title">FDD 方法论回顾</div>
+        <div class="one-desc">特性驱动开发的经典五阶段</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">PART 02</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-model"/></svg></div>
+        <div class="one-title">三大 AI 编程框架对比</div>
+        <div class="one-desc">OpenSpec / BMad / Superpowers</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">PART 03</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
+        <div class="one-title">Feature-Workflow 的 FDD 驱动</div>
+        <div class="one-desc">理论映证与工程实践</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">PART 04</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-shield"/></svg></div>
+        <div class="one-title">Feature-Workflow 实践</div>
+        <div class="one-desc">55 个特性归档的工程经验</div>
+      </div>
+    </div>
+    <div class="s1-pull" style="margin-top:16px;">
+      <p>以特性为最小交付单元，按依赖关系迭代开发</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 03 · WHAT IS FDD (Layout A)  ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">01</span><span class="ch-title">方法论</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">Feature-Driven Development</h1>
+    <h2>以特性为最小交付单元，按依赖关系迭代开发</h2>
+    <div class="s1-grid">
+      <div class="s1-pull">
+        <p>不按时间盒，不按任务列表，而是按业务价值切割交付。</p>
+      </div>
+      <div style="display:flex;flex-direction:column;">
+        <div class="s1-point"><div class="s1-point-num">1</div><div class="s1-point-body"><h4>Build Overall Model</h4><p>全局建模，建立团队共识</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">2</div><div class="s1-point-body"><h4>Build Features List</h4><p>列出所有待交付特性</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">3</div><div class="s1-point-body"><h4>Plan by Feature</h4><p>按依赖关系排序开发顺序</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">4</div><div class="s1-point-body"><h4>Design by Feature</h4><p>逐个特性进行技术设计</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">5</div><div class="s1-point-body"><h4>Build by Feature</h4><p>逐个特性实现、测试、交付</p></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 04 · VERTICAL SLICING        ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">01</span><span class="ch-title">关键转变</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">从水平切片到垂直切片</h1>
+    <h2>交付方式决定团队组织方式</h2>
+    <div class="s3-tier-label"><span class="t-num">VS</span><span class="t-name">对比</span></div>
+    <div class="vs-wrap" style="flex:1;">
+      <div class="vs-left">
+        <h4>水平切片（传统）</h4>
+        <ul>
+          <li>数据库层 → 业务逻辑层 → API 接口层 → UI 展示层</li>
+          <li>按技术层分工，完成后才看到完整功能</li>
+          <li>前端组 / 后端组 / DBA 组</li>
+        </ul>
+      </div>
+      <div class="vs-right">
+        <h4>垂直切片（FDD）</h4>
+        <ul>
+          <li>特性 A：用户登录（DB→逻辑→API→UI）</li>
+          <li>特性 B：订单查询（DB→逻辑→API→UI）</li>
+          <li>特性 C：支付流程（DB→逻辑→API→UI）</li>
+          <li>每个特性横跨所有层，独立可交付</li>
+        </ul>
+      </div>
+    </div>
+    <div class="s1-pull" style="margin-top:12px;">
+      <p>FDD 的"特性"天然就是垂直切片 — 一个对用户有价值的小功能，必须横跨所有技术层。</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 05 · TEAM CHANGE             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">01</span><span class="ch-title">团队演进</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">垂直切片驱动团队组织变化</h1>
+    <h2>FDD 保证垂直切片，AI Agent 天然是"全栈"的</h2>
+    <div class="s3-tier-label"><span class="t-num">01</span><span class="t-name">FDD 保证机制</span></div>
+    <div class="s3-tier g2">
+      <div class="one">
+        <div class="one-tag">GRANULARITY</div>
+        <div class="one-title">颗粒度控制</div>
+        <div class="one-desc">按用户价值点拆分，3+ 价值点时建议拆为子特性</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">CONTEXT</div>
+        <div class="one-title">Context 窗口设计</div>
+        <div class="one-desc">每个特性控制在单个 Agent 的 context 承载范围内</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">MODEL FIRST</div>
+        <div class="one-title">先建模后切分</div>
+        <div class="one-desc">Build Overall Model 提供共同骨架，避免碎片化</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">DELIVER</div>
+        <div class="one-title">按特性交付</div>
+        <div class="one-desc">Design & Build by Feature 确保每块都端到端跑通</div>
+      </div>
+    </div>
+    <div class="s1-pull" style="margin-top:auto;">
+      <p>垂直切片 + FDD + AI Agent = 开发组织方式的根本转变</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 06 · THREE FRAMEWORKS        ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">02</span><span class="ch-title">框架对比</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">三大 AI 编程框架概览</h1>
+    <h2>从临时对话到系统化工作流</h2>
+    <div class="s3-tier-label"><span class="t-num">01</span><span class="t-name">三大框架</span></div>
+    <div class="s3-tier g3">
+      <div class="one">
+        <div class="one-tag">OPENSPEC</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-doc"/></svg></div>
+        <div class="one-title">OpenSpec</div>
+        <div class="one-desc"><strong>规范管理</strong> · 轻量灵活<br>流动至上 · 低学习曲线<br>适合个人到企业</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">BMAD METHOD</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-network"/></svg></div>
+        <div class="one-title">BMad Method</div>
+        <div class="one-desc"><strong>敏捷流程</strong> · 企业级结构化<br>规模至上 · 12+ 专业代理<br>适合中大型团队</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">SUPERPOWERS</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
+        <div class="one-title">Superpowers</div>
+        <div class="one-desc"><strong>代码质量</strong> · 强制性系统化<br>质量至上 · TDD 核心<br>适合个人到小型团队</div>
+      </div>
+    </div>
+    <div class="s3-tier-label" style="margin-top:14px;"><span class="t-num">02</span><span class="t-name">共同趋势与借鉴</span></div>
+    <div class="s3-tier g2">
+      <div class="one warm">
+        <div class="one-title">共同趋势</div>
+        <div class="one-desc">从临时对话 → 系统化工作流 · 从单一 Agent → 多代理协作</div>
+      </div>
+      <div class="one good">
+        <div class="one-title">互相借鉴方向</div>
+        <div class="one-desc">OpenSpec 规范先行 · BMad 多角色分工 · Superpowers TDD 流程</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 07 · OPENSPEC                ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">03</span><span class="ch-title">OpenSpec</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">规范驱动开发（SDD）</h1>
+    <div class="s1-grid">
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="s1-pull">
+          <p>流动而非僵化，迭代而非瀑布，简单而非复杂。</p>
+        </div>
+        <div class="code-card">
+          <code>/opsx:propose "add-dark-mode"
+→ proposal.md / specs/
+→ design.md / tasks.md
+
+/opsx:apply  → 逐任务实施
+/opsx:archive → 移至归档</code>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;">
+        <div class="s1-point"><div class="s1-point-num">1</div><div class="s1-point-body"><h4>轻量 & 工具无关</h4><p>支持 20+ AI 编码助手</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">2</div><div class="s1-point-body"><h4>构建前共识</h4><p>减少不可预测性</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">3</div><div class="s1-point-body"><h4>适配遗留系统</h4><p>渐进改进，非仅限新项目</p></div></div>
+        <div class="platform-strip" style="margin-top:auto;">
+          <span class="ps-item">propose</span>
+          <span class="ps-item">apply</span>
+          <span class="ps-item">archive</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 08 · BMAD METHOD             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">04</span><span class="ch-title">BMad Method</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">敏捷 AI 驱动开发</h1>
+    <h2>"Build More Architect Dreams" — 规模自适应</h2>
+    <div class="s3-tier g2" style="flex:1;">
+      <div class="one">
+        <div class="one-tag">CORE</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-network"/></svg></div>
+        <div class="one-title">核心特性</div>
+        <div class="one-desc">
+          <strong>12+ 专业代理</strong>：PM、架构师、开发者、UX、Scrum Master<br>
+          <strong>规模自适应</strong>：根据复杂度自动调整规划深度<br>
+          <strong>Party Mode</strong>：多代理协作讨论<br>
+          <strong>完整生命周期</strong>：头脑风暴 → 部署
+        </div>
+      </div>
+      <div class="one">
+        <div class="one-tag">MODULES</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-platform"/></svg></div>
+        <div class="one-title">模块生态</div>
+        <div class="one-desc">
+          <strong>BMM</strong>：核心框架，34+ 工作流<br>
+          <strong>BMB</strong>：自定义代理和工作流构建器<br>
+          <strong>TEA</strong>：基于风险的测试策略<br>
+          <strong>BMGD</strong>：游戏开发工作流<br>
+          <strong>CIS</strong>：创新、头脑风暴、设计思维
+        </div>
+      </div>
+    </div>
+    <div class="s1-pull">
+      <p>企业级敏捷框架，适合多角色协作的大型项目和专业领域</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 09 · SUPERPOWERS             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">05</span><span class="ch-title">Superpowers</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">代理技能框架</h1>
+    <h2>测试驱动、系统化、证据优于声明</h2>
+    <div class="platform-strip" style="margin-bottom:12px;">
+      <span class="ps-item">brainstorming</span>
+      <span class="ps-item">worktrees</span>
+      <span class="ps-item">plans</span>
+      <span class="ps-item">subagent</span>
+      <span class="ps-item" style="background:rgba(45,128,104,0.15);color:var(--good);">TDD</span>
+      <span class="ps-item">review</span>
+      <span class="ps-item" style="background:rgba(245,185,66,0.15);color:#b88020;">finish</span>
+    </div>
+    <div class="s3-tier g2" style="flex:1;">
+      <div class="one">
+        <div class="one-tag">FLOW</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
+        <div class="one-title">7 步流程</div>
+        <div class="one-desc">
+          苏格拉底式设计完善 · Git worktree 隔离工作区 · 2-5 分钟小任务拆分 · 子代理 + 两阶段审查 · RED-GREEN-REFACTOR 循环 · 按计划代码审查 · 验证 + 合并/PR
+        </div>
+      </div>
+      <div class="one">
+        <div class="one-tag">CORE</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-shield"/></svg></div>
+        <div class="one-title">核心理念</div>
+        <div class="one-desc">
+          <strong>强制性流程</strong>：不是建议，是要求<br>
+          <strong>自动触发</strong>：代理自动检查技能<br>
+          <strong>TDD 核心</strong>：测试先行，删除无测试代码<br>
+          <strong>子代理架构</strong>：并行深度审查<br>
+          适合极端重视代码质量、TDD 实践的团队
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 10 · PHILOSOPHIES            ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">06</span><span class="ch-title">设计哲学</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">规范 vs 规模 vs 质量</h1>
+    <div class="s3-tier-label"><span class="t-num">01</span><span class="t-name">三大框架</span></div>
+    <div class="s3-tier g3">
+      <div class="one">
+        <div class="one-tag">OPENSPEC</div>
+        <div class="one-title">流动至上</div>
+        <div class="one-desc">规范先于代码 · 迭代优于瀑布 · 适合遗留系统改造</div>
+        <div class="one-vs">propose → apply → archive</div>
+      </div>
+      <div class="one warm">
+        <div class="one-tag">BMAD METHOD</div>
+        <div class="one-title">规模至上</div>
+        <div class="one-desc">自适应智能 · 12+ 代理协作 · 覆盖完整生命周期</div>
+        <div class="one-vs">brainstorm → plan → architect → dev</div>
+      </div>
+      <div class="one good">
+        <div class="one-tag">SUPERPOWERS</div>
+        <div class="one-title">质量至上</div>
+        <div class="one-desc">TDD 强制执行 · 系统化调试 · 子代理审查机制</div>
+        <div class="one-vs">brainstorm → worktree → plan → TDD</div>
+      </div>
+    </div>
+    <div class="s3-tier-label"><span class="t-num">02</span><span class="t-name">Feature-Workflow</span><span class="t-tag">FDD 驱动</span></div>
+    <div class="s3-tier g1">
+      <div class="one">
+        <div class="one-tag">FEATURE-WORKFLOW</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+        <div class="one-title">特性为核心组织单元 · 依赖建模 + 上下文传播 · 物理隔离 + 归档积累</div>
+        <div class="one-desc">init → new → spec → impl → verify → archive</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 11 · FW INTRODUCTION         ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">07</span><span class="ch-title">实践</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">Feature-Workflow 登场</h1>
+    <div class="s1-grid" style="flex:1;">
+      <div style="display:flex;flex-direction:column;">
+        <div class="s1-pull">
+          <p>以 FDD 为理论驱动的 AI Coding 工作流插件，借鉴三大框架的优秀实践。</p>
+        </div>
+        <div class="s1-point" style="margin-top:16px;"><div class="s1-point-num">?</div><div class="s1-point-body"><h4>核心问题</h4><p>EvoDev 论文提出的 FDD + Feature Map 理论框架，在工程实践中是否可行？55 个特性归档能否构成实证？</p></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="s3-tier-label"><span class="t-num">01</span><span class="t-name">借鉴三大框架</span></div>
+        <div class="one">
+          <div class="one-tag">OPENSPEC</div>
+          <div class="one-title">规范先行，构建前共识</div>
+        </div>
+        <div class="one warm">
+          <div class="one-tag">BMAD</div>
+          <div class="one-title">多角色分工，规模自适应</div>
+        </div>
+        <div class="one good">
+          <div class="one-tag">SUPERPOWERS</div>
+          <div class="one-title">TDD 流程，worktree 隔离</div>
+        </div>
+        <div class="s3-tier-label"><span class="t-num">02</span><span class="t-name">FW 的 FDD 特性</span></div>
+        <div class="one">
+          <div class="one-title">特性核心 · DAG 依赖 · 物理隔离 · 55 归档</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 12 · EVODEV PAPER            ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">08</span><span class="ch-title">论文介绍</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">EvoDev：FDD 的学术形式化</h1>
+    <h2>引入 Feature Map（特性地图）作为 DAG 结构，显式建模特性依赖关系</h2>
+    <div class="s3-tier g2" style="flex:1;">
+      <div class="one">
+        <div class="one-tag">PAPER STAGES</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-doc"/></svg></div>
+        <div class="one-title">论文三阶段</div>
+        <div class="one-desc">
+          <strong>Overall Design</strong> → <strong>Feature Map</strong> → <strong>Iterative Dev</strong><br><br>
+          灵感来源：经典 FDD 方法论<br>
+          arXiv:2511.02399
+        </div>
+      </div>
+      <div class="one good">
+        <div class="one-tag">INNOVATIONS</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-model"/></svg></div>
+        <div class="one-title">四项创新</div>
+        <div class="one-desc">
+          <strong>Feature Map</strong> 作为 DAG 建模依赖<br>
+          <strong>三层上下文</strong>：Business / Design / Implementation<br>
+          <strong>依赖关系</strong>驱动的上下文传播<br>
+          <strong>超越 Claude Code 56.8%</strong>（Android 任务）
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 13 · FDD MAPPING             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">09</span><span class="ch-title">FDD 映射</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">FDD 五阶段 → Feature-Workflow</h1>
+    <div class="s1-grid" style="flex:1;">
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div class="s1-point"><div class="s1-point-num">1</div><div class="s1-point-body"><h4>Build Overall Model</h4><p>EvoDev: Overall Design<br>FW: /init-project + project-context.md</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">2</div><div class="s1-point-body"><h4>Build Features List</h4><p>EvoDev: Feature Map Gen<br>FW: /new-feature + /split-feature</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">3</div><div class="s1-point-body"><h4>Plan by Feature</h4><p>EvoDev: Feature Map Gen<br>FW: queue.yaml 依赖排序</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">4</div><div class="s1-point-body"><h4>Design by Feature</h4><p>EvoDev: Iterative Dev<br>FW: spec.md 技术方案 + task.md</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">5</div><div class="s1-point-body"><h4>Build by Feature</h4><p>EvoDev: Iterative Dev<br>FW: /implement-feature + /verify-feature</p></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;">
+        <div class="s1-pull">
+          <p>先全局设计 → 再特性分解 → 按依赖迭代开发。FDD 每个阶段对应 Feature-Workflow 中的具体 skill 或文件。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 14 · FEATURE MAP             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">10</span><span class="ch-title">Feature Map</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">Feature Map 结构对比</h1>
+    <div class="s3-tier g2">
+      <div class="one">
+        <div class="one-tag">EVODEV</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-model"/></svg></div>
+        <div class="one-title">单一 DAG</div>
+        <div class="one-desc">每节点含三层上下文，信息沿依赖边传播</div>
+      </div>
+      <div class="one good">
+        <div class="one-tag">FW</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+        <div class="one-title">三文件组合等价</div>
+        <div class="one-desc">queue.yaml（动态 DAG 边）+ archive-log.yaml + spec.md</div>
+      </div>
+    </div>
+    <div class="s3-tier-label" style="margin-top:12px;"><span class="t-num">DAG</span><span class="t-name">实际归档中的依赖结构</span></div>
+    <div class="code-card" style="flex:1;">
+      <code>feat-redesign-system (设计令牌基础)
+  └→ feat-redesign-layout (全局布局)
+       ├→ feat-redesign-timeline    (Timeline)
+       ├→ feat-redesign-knowledge-map (知识图谱)
+       └→ feat-redesign-explorer    (浏览器)
+
+feat-p3-governance-engine (治理引擎)
+  └→ feat-p3-board-ecosystem (生态集成)
+       depends: [governance-engine, board-redesign]</code>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 15 · 3-LAYER CONTEXT         ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">11</span><span class="ch-title">上下文传播</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">三层上下文对比</h1>
+    <h2>信息沿依赖边自动传播</h2>
+    <div class="s3-tier g2">
+      <div class="one">
+        <div class="one-tag">EVODEV</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-doc"/></svg></div>
+        <div class="one-title">EvoDev 论文</div>
+        <div class="one-desc">
+          <strong>Business-layer</strong>：功能范围 + 接口定义<br>
+          <strong>Design-layer</strong>：UI 组件 + 数据实体<br>
+          <strong>Implementation-layer</strong>：代码变更记录<br>
+          信息沿依赖边自动传播
+        </div>
+      </div>
+      <div class="one good">
+        <div class="one-tag">FW SPEC.MD</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-skill"/></svg></div>
+        <div class="one-title">Feature-Workflow</div>
+        <div class="one-desc">
+          <strong>Description</strong> + User Value + Gherkin<br>
+          <strong>Technical Solution</strong> + Context Analysis<br>
+          <strong>Reference Code</strong> + Related Features + Archive Patterns<br>
+          /start-feature 加载前置特性摘要
+        </div>
+      </div>
+    </div>
+    <div class="s1-pull" style="margin-top:auto;">
+      <p>feat-redesign-layout：前置 feat-redesign-system（Bento Grid 设计令牌）· 已完成 feat-p2-board-scaffold（layout.tsx 需重写）</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 16 · MULTI-AGENT             ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">12</span><span class="ch-title">多智能体</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">多智能体协作对比</h1>
+    <div class="vs-wrap">
+      <div class="vs-left">
+        <h4>EvoDev: 6 个固定 Agent</h4>
+        <ul>
+          <li>Business Analyst → Architect</li>
+          <li>Feature Extractor → Planner</li>
+          <li>Chief Programmer → Programmer</li>
+          <li>顺序执行特性集</li>
+        </ul>
+      </div>
+      <div class="vs-right">
+        <h4>FW: 1 SubAgent + 15 Skills</h4>
+        <ul>
+          <li>/dev-agent 调度层</li>
+          <li>DevSubAgent 独立 200k context</li>
+          <li>15 个原子 skill 可组合</li>
+          <li>物理隔离（worktree）+ 并行</li>
+        </ul>
+      </div>
+    </div>
+    <div class="s3-tier g4" style="margin-top:12px;flex:1;">
+      <div class="one good">
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-shield"/></svg></div>
+        <div class="one-title">物理隔离</div>
+        <div class="one-desc">独立 git worktree + 独立文件系统</div>
+      </div>
+      <div class="one">
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
+        <div class="one-title">并行开发</div>
+        <div class="one-desc">max_concurrent 控制并发</div>
+      </div>
+      <div class="one warm">
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-wrench"/></svg></div>
+        <div class="one-title">容错恢复</div>
+        <div class="one-desc">超时保护 + 自动重试</div>
+      </div>
+      <div class="one bad">
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-tools"/></svg></div>
+        <div class="one-title">Skill 可组合</div>
+        <div class="one-desc">15 个原子 skill 链式调用</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 17 · CONCLUSION              ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">13</span><span class="ch-title">总结</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">FDD 驱动 AI Coding 的实践思考</h1>
+    <div class="s1-pull" style="margin-bottom:14px;text-align:center;">
+      <p>FDD 方法论为 AI Coding 工作流提供了成熟的理论框架<br>Feature-Workflow 是其在工程中的一次完整实践</p>
+    </div>
+    <div class="s3-tier g2" style="flex:1;">
+      <div class="one">
+        <div class="one-tag">THEORY</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-model"/></svg></div>
+        <div class="one-title">理论启发</div>
+        <div class="one-desc">FDD 五阶段 + Feature Map DAG + 三层上下文</div>
+      </div>
+      <div class="one good">
+        <div class="one-tag">PRACTICE</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-layers"/></svg></div>
+        <div class="one-title">工程实践</div>
+        <div class="one-desc">55 个特性归档 · worktree 隔离 · 插件化分发</div>
+      </div>
+      <div class="one warm">
+        <div class="one-tag">LEARNING</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-network"/></svg></div>
+        <div class="one-title">互相借鉴</div>
+        <div class="one-desc">OpenSpec 规范先行 / BMad 角色分工 / Superpowers TDD</div>
+      </div>
+      <div class="one">
+        <div class="one-tag">EVOLUTION</div>
+        <div class="one-icon"><svg width="18" height="18"><use href="#i-bolt"/></svg></div>
+        <div class="one-title">持续演进</div>
+        <div class="one-desc">工作流框架在理论和实践中不断迭代优化</div>
+      </div>
+    </div>
+    <div class="s1-pull" style="margin-top:auto;">
+      <p>AI Coding 工作流还处于早期，各家框架互相借鉴、共同演进</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 18 · APPENDIX A              ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">A1</span><span class="ch-title">附录</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">FDD 五阶段详解</h1>
+    <div class="s1-grid" style="flex:1;">
+      <div style="display:flex;flex-direction:column;">
+        <div class="s1-point"><div class="s1-point-num">1</div><div class="s1-point-body"><h4>Develop Overall Object Model</h4><p>开发人员和领域专家协作，建立系统整体架构模型</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">2</div><div class="s1-point-body"><h4>Build Feature List</h4><p>特性 = &lt;动作&gt; &lt;结果&gt; &lt;对象&gt;，如"验证 用户的 密码"</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">3</div><div class="s1-point-body"><h4>Plan By Feature</h4><p>按优先级、复杂度和依赖关系制定开发计划</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">4</div><div class="s1-point-body"><h4>Design By Feature</h4><p>设计评审、时序图、类定义</p></div></div>
+        <div class="s1-point"><div class="s1-point-num">5</div><div class="s1-point-body"><h4>Build By Feature</h4><p>编码、单元测试、代码评审，通过后集成到主干</p></div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;">
+        <div class="s1-pull">
+          <p>八大最佳实践</p>
+        </div>
+        <div class="s3-tier g2" style="margin-top:12px;flex:1;">
+          <div class="one"><div class="one-title">领域对象建模</div></div>
+          <div class="one"><div class="one-title">按特性开发</div></div>
+          <div class="one"><div class="one-title">类负责人制</div></div>
+          <div class="one"><div class="one-title">特性小组</div></div>
+          <div class="one"><div class="one-title">代码评审</div></div>
+          <div class="one"><div class="one-title">定期集成</div></div>
+          <div class="one"><div class="one-title">配置管理</div></div>
+          <div class="one"><div class="one-title">报告进度</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 19 · APPENDIX B              ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="chapter-bar"><span class="ch-tag">A2</span><span class="ch-title">附录</span><span class="ch-line"></span></div>
+  <div class="content">
+    <h1 class="sm">FDD vs Scrum</h1>
+    <div class="vs-wrap" style="flex:1;">
+      <div class="vs-left">
+        <h4>FDD（特性驱动）</h4>
+        <ul>
+          <li><strong>关注点</strong>：工程实践、架构和代码质量</li>
+          <li><strong>迭代单位</strong>：特性（Features）</li>
+          <li><strong>代码归属</strong>：明确的类负责人制</li>
+          <li><strong>适用场景</strong>：中大型项目，对架构要求较高</li>
+          <li><strong>设计方式</strong>：先建模再按特性切分</li>
+          <li><strong>进度可视</strong>：特性完成进度（看板）</li>
+        </ul>
+      </div>
+      <div class="vs-right">
+        <h4>Scrum（迭代驱动）</h4>
+        <ul>
+          <li><strong>关注点</strong>：过程管理、团队协作和交付节奏</li>
+          <li><strong>迭代单位</strong>：冲刺（Sprints）</li>
+          <li><strong>代码归属</strong>：团队共同拥有代码</li>
+          <li><strong>适用场景</strong>：各种规模，强调快速反馈</li>
+          <li><strong>设计方式</strong>：按冲刺批量处理</li>
+          <li><strong>进度可视</strong>：Burndown 图</li>
+        </ul>
+      </div>
+    </div>
+    <div class="s1-pull" style="margin-top:12px;">
+      <p>FDD 关注怎么写好代码，Scrum 关注怎么管理过程。两者可以互补 — 用 Scrum 管节奏，用 FDD 管工程质量。</p>
+    </div>
+  </div>
+</div>
+
+
+<!-- ╔══════════════════════════════════════╗ -->
+<!-- ║  SLIDE 20 · END (Layout F)          ║ -->
+<!-- ╚══════════════════════════════════════╝ -->
+<div class="slide">
+  <div class="mark-tl"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#2a1c70" stroke-width="2.5" stroke-linecap="round"><path d="M9 6l-4 6 4 6M15 6l4 6-4 6"/></svg></div>
+  <div class="mark-tr"><span class="sap">FDD</span> <span class="d">·</span> <span class="com">AI Coding</span></div>
+  <div class="demo-stage">
+    <div class="demo-pill"><span class="dot"></span>THANK YOU</div>
+    <div class="demo-headline" style="font-size:64px;">FDD 驱动 <span class="accent-word">AI Coding</span> 工作流</div>
+    <div class="demo-divider"></div>
+    <div class="demo-sub">从理论框架到工程实践</div>
+    <div class="demo-meta">分享人：杨正武 · 2026-05<br>基于 EvoDev (arXiv:2511.02399) · Feature-Workflow Plugin · 55 个特性归档</div>
+  </div>
+</div>
+
+</body>
+</html>

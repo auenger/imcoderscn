@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>生产制造 AI Agent 项目交付边界分析报告</title>
+  <style>
+    :root {
+      --bg: #f4f7f9;
+      --paper: #fbfcfd;
+      --surface: #ffffff;
+      --ink: #17212b;
+      --muted: #5c6874;
+      --line: #dce3e8;
+      --accent: #087a68;
+      --accent-soft: #e4f4f0;
+      --accent-deep: #075e51;
+      --warn: #9a5b08;
+      --warn-soft: #fff4dc;
+      --risk: #a33d34;
+      --risk-soft: #fff0ee;
+      --radius: 14px;
+      --shadow: 0 18px 55px rgba(31, 57, 67, .09);
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--bg);
+      font-family: "SF Pro Display", "PingFang SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.72;
+    }
+    a { color: inherit; }
+    button { font: inherit; }
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(251, 252, 253, .95);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+    .topbar-inner {
+      max-width: 1180px;
+      min-height: 66px;
+      margin: auto;
+      padding: 0 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 720; }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      border-radius: 10px;
+      color: #f7fffd;
+      background: var(--accent);
+      font-size: 14px;
+      letter-spacing: .04em;
+    }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .btn {
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      padding: 9px 14px;
+      color: var(--ink);
+      background: var(--surface);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: transform .2s ease, border-color .2s ease;
+    }
+    .btn:hover { border-color: var(--accent); }
+    .btn:active { transform: translateY(1px); }
+    .layout {
+      width: min(1180px, calc(100% - 40px));
+      margin: 34px auto 72px;
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr);
+      gap: 28px;
+      align-items: start;
+    }
+    .toc {
+      position: sticky;
+      top: 96px;
+      padding: 18px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: rgba(255,255,255,.86);
+    }
+    .toc-title { margin: 0 0 10px; color: var(--muted); font-size: 12px; font-weight: 700; }
+    .toc a {
+      display: block;
+      padding: 7px 9px;
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      text-decoration: none;
+    }
+    .toc a:hover { color: var(--accent-deep); background: var(--accent-soft); }
+    main { min-width: 0; }
+    .hero {
+      min-height: 500px;
+      padding: 54px;
+      display: grid;
+      grid-template-columns: 1.35fr .8fr;
+      gap: 42px;
+      align-items: center;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+    .eyebrow { margin: 0 0 14px; color: var(--accent-deep); font-size: 13px; font-weight: 760; letter-spacing: .08em; }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 760px; margin-bottom: 22px; font-size: clamp(38px, 5vw, 62px); line-height: 1.08; letter-spacing: -.045em; }
+    h2 { margin-bottom: 16px; font-size: clamp(27px, 3.3vw, 40px); line-height: 1.18; letter-spacing: -.025em; }
+    h3 { margin-bottom: 8px; font-size: 18px; line-height: 1.35; }
+    .lede { max-width: 660px; margin-bottom: 24px; color: var(--muted); font-size: 18px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 10px 18px; color: var(--muted); font-size: 13px; }
+    .hero-visual { display: grid; gap: 10px; }
+    .hero-node {
+      padding: 16px 18px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--surface);
+    }
+    .hero-node strong { display: block; margin-bottom: 2px; font-size: 15px; }
+    .hero-node span { color: var(--muted); font-size: 12px; }
+    .hero-node.primary { margin-left: -18px; color: var(--accent-deep); border-color: #afd8cf; background: var(--accent-soft); }
+    .flow-line { width: 1px; height: 12px; margin-left: 28px; background: #aebbc3; }
+    .section {
+      margin-top: 28px;
+      padding: 40px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+    .section-intro { max-width: 760px; color: var(--muted); }
+    .callout { padding: 22px 24px; border-left: 4px solid var(--accent); border-radius: 0 12px 12px 0; background: var(--accent-soft); }
+    .callout p:last-child { margin-bottom: 0; }
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .grid-asym { display: grid; grid-template-columns: 1.25fr .75fr; gap: 16px; }
+    .panel { padding: 22px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .panel p:last-child { margin-bottom: 0; }
+    .metric { color: var(--accent-deep); font-size: 28px; font-weight: 780; line-height: 1.2; }
+    .muted { color: var(--muted); }
+    .small { font-size: 13px; }
+    .tag { display: inline-flex; padding: 4px 9px; border-radius: 7px; font-size: 12px; font-weight: 720; }
+    .tag.must { color: var(--accent-deep); background: var(--accent-soft); }
+    .tag.option { color: var(--warn); background: var(--warn-soft); }
+    .tag.out { color: var(--risk); background: var(--risk-soft); }
+    .decision { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--line); }
+    .decision strong { color: var(--accent-deep); }
+    .scope-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .scope-table th, .scope-table td { padding: 13px 12px; text-align: left; vertical-align: top; border-bottom: 1px solid var(--line); }
+    .scope-table th { color: var(--muted); font-size: 12px; font-weight: 760; background: var(--paper); }
+    .scope-table tr:last-child td { border-bottom: 0; }
+    .architecture { display: grid; grid-template-columns: 1fr 34px 1fr 34px 1fr; align-items: stretch; gap: 8px; }
+    .arch-box { padding: 20px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .arch-box.core { color: var(--accent-deep); border-color: #afd8cf; background: var(--accent-soft); }
+    .arch-arrow { display: grid; place-items: center; color: var(--accent); font-weight: 800; }
+    .clean-list { margin: 10px 0 0; padding-left: 19px; }
+    .clean-list li { margin-bottom: 7px; }
+    .phase { display: grid; grid-template-columns: 100px minmax(0, 1fr); gap: 18px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .phase:last-child { border-bottom: 0; }
+    .phase-name { color: var(--accent-deep); font-weight: 780; }
+    .risk-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .risk-item { padding: 18px; border: 1px solid #ecd2cf; border-radius: 12px; background: var(--risk-soft); }
+    .footer-note { margin-top: 28px; padding: 28px 36px; color: var(--muted); font-size: 12px; text-align: center; }
+    .source-list { padding-left: 20px; color: var(--muted); font-size: 13px; }
+    .source-list a { color: var(--accent-deep); text-underline-offset: 3px; }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; width: min(100% - 24px, 760px); }
+      .toc { position: static; display: none; }
+      .hero { min-height: auto; padding: 34px 26px; grid-template-columns: 1fr; }
+      .hero-visual { margin-top: 4px; }
+      .section { padding: 28px 22px; }
+      .grid-2, .grid-asym, .risk-grid { grid-template-columns: 1fr; }
+      .architecture { grid-template-columns: 1fr; }
+      .arch-arrow { min-height: 24px; transform: rotate(90deg); }
+    }
+    @media (max-width: 560px) {
+      .topbar-inner { padding: 0 14px; }
+      .brand span:last-child { display: none; }
+      .layout { margin-top: 16px; }
+      h1 { font-size: 38px; }
+      .section { padding: 24px 18px; }
+      .scope-table { display: block; overflow-x: auto; white-space: nowrap; }
+      .phase { grid-template-columns: 1fr; gap: 5px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition: none !important; }
+    }
+    @media print {
+      body { background: #fff; font-size: 11pt; }
+      .topbar, .toc { display: none !important; }
+      .layout { width: 100%; margin: 0; display: block; }
+      .hero, .section { box-shadow: none; break-inside: avoid; }
+      .section { margin-top: 14px; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand"><span class="brand-mark">AI</span><span>生产制造 Agent 交付边界</span></div>
+      <div class="top-actions"><button class="btn" type="button" onclick="window.print()">打印报告</button></div>
+    </div>
+  </header>
+  <div class="layout">
+    <aside class="toc" aria-label="报告目录">
+      <p class="toc-title">报告目录</p>
+      <a href="#summary">管理摘要</a>
+      <a href="#principles">边界原则</a>
+      <a href="#scope">交付范围</a>
+      <a href="#questions">六项问题</a>
+      <a href="#architecture">推荐架构</a>
+      <a href="#delivery-defense">实施方交付防守</a>
+      <a href="#roadmap">实施路径</a>
+      <a href="#risks">风险与决策</a>
+    </aside>
+    <main>

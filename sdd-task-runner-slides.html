@@ -1,0 +1,1023 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SDD Task Runner — 极简自动化任务执行框架</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+[data-theme="dark"] {
+  --bg: #0b0b14;
+  --bg2: #0f0f1c;
+  --surface: #161628;
+  --surface2: #1c1c36;
+  --surface3: #22223e;
+  --border: rgba(255,255,255,0.06);
+  --border-strong: rgba(255,255,255,0.12);
+  --text: #e6e6f2;
+  --text2: #9090ac;
+  --text3: #606078;
+  --accent: #7b6cf0;
+  --accent2: #a8a0ff;
+  --green: #00d4aa;
+  --green-bg: rgba(0,212,170,0.08);
+  --green-border: rgba(0,212,170,0.2);
+  --red: #ff6b6b;
+  --red-bg: rgba(255,107,107,0.08);
+  --red-border: rgba(255,107,107,0.2);
+  --orange: #f0b848;
+  --orange-bg: rgba(240,184,72,0.08);
+  --orange-border: rgba(240,184,72,0.2);
+  --accent-bg: rgba(123,108,240,0.08);
+  --accent-border: rgba(123,108,240,0.18);
+  --code-bg: #111124;
+  --code-border: rgba(123,108,240,0.12);
+  --code-text: #00d4aa;
+  --shadow: 0 2px 16px rgba(0,0,0,0.4);
+  --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+  --quote-bg: rgba(123,108,240,0.06);
+  --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+  --key-border: rgba(123,108,240,0.18);
+  --toggle-bg: rgba(255,255,255,0.08);
+  --toggle-hover: rgba(255,255,255,0.14);
+  --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+}
+
+[data-theme="light"] {
+  --bg: #f4f4fb;
+  --bg2: #eaeaf4;
+  --surface: #ffffff;
+  --surface2: #f0f0fa;
+  --surface3: #e6e6f2;
+  --border: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.12);
+  --text: #1a1a30;
+  --text2: #5a5a78;
+  --text3: #9898ac;
+  --accent: #5b4cc4;
+  --accent2: #7b6cf0;
+  --green: #009a7c;
+  --green-bg: rgba(0,154,124,0.06);
+  --green-border: rgba(0,154,124,0.18);
+  --red: #d44040;
+  --red-bg: rgba(212,64,64,0.06);
+  --red-border: rgba(212,64,64,0.18);
+  --orange: #b88020;
+  --orange-bg: rgba(184,128,32,0.06);
+  --orange-border: rgba(184,128,32,0.18);
+  --accent-bg: rgba(91,76,196,0.06);
+  --accent-border: rgba(91,76,196,0.15);
+  --code-bg: #1a1a30;
+  --code-border: rgba(91,76,196,0.12);
+  --code-text: #00d4aa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --quote-bg: rgba(91,76,196,0.04);
+  --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+  --key-border: rgba(91,76,196,0.12);
+  --toggle-bg: rgba(0,0,0,0.06);
+  --toggle-hover: rgba(0,0,0,0.1);
+  --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+}
+
+html, body {
+  margin: 0; padding: 0;
+  overflow: hidden; height: 100vh;
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+html, body, .slide, .progress, .slide-number, .nav-hint,
+.col-card, .tip, pre, .quote, .key-point, .flow-item, .tag,
+.theme-toggle, .step-card, .loop-card, .nav-dot, .nav-dots,
+.challenge-item, .icon-card, .vs-side {
+  transition: background 0.4s ease, color 0.4s ease,
+              border-color 0.4s ease, box-shadow 0.4s ease,
+              opacity 0.4s ease;
+}
+
+.progress {
+  position: fixed; top: 0; left: 0; height: 3px; z-index: 100;
+  background: var(--progress-bg);
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-number {
+  position: fixed; top: 12px; right: 20px; z-index: 100;
+  font-size: 0.8rem; color: var(--text3); font-weight: 500;
+}
+
+.nav-hint {
+  position: fixed; bottom: 56px; left: 50%; transform: translateX(-50%);
+  font-size: 0.7rem; color: var(--text3); z-index: 100;
+  opacity: 0.5; pointer-events: none;
+}
+
+.nav-arrow {
+  position: fixed; top: 50%; transform: translateY(-50%);
+  width: 48px; height: 80px; cursor: pointer;
+  opacity: 0; z-index: 90; display: flex; align-items: center; justify-content: center;
+  transition: opacity 0.3s;
+}
+.nav-arrow:hover { opacity: 1 !important; }
+.nav-arrow svg { width: 24px; height: 24px; stroke: var(--text2); stroke-width: 2; fill: none; }
+.nav-left { left: 0; background: linear-gradient(90deg, var(--bg), transparent); }
+.nav-right { right: 0; background: linear-gradient(270deg, var(--bg), transparent); }
+.nav-arrow.flash { opacity: 0.7; }
+
+.theme-toggle {
+  position: fixed; bottom: 8px; right: 16px; transform: none;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--toggle-bg); backdrop-filter: blur(8px);
+  border: 1px solid var(--border); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 100; opacity: 0.5; transition: opacity 0.3s;
+}
+.theme-toggle:hover { opacity: 0.9; }
+.theme-toggle svg { width: 18px; height: 18px; stroke: var(--text2); stroke-width: 2; fill: none; }
+[data-theme="dark"] .icon-sun { display: block; }
+[data-theme="dark"] .icon-moon { display: none; }
+[data-theme="light"] .icon-sun { display: none; }
+[data-theme="light"] .icon-moon { display: block; }
+
+.slides { position: relative; width: 100%; height: 100vh; }
+
+.slide {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  justify-content: center; align-items: center;
+  padding: 6vh 8vw;
+  opacity: 0; transform: translateX(0);
+  pointer-events: none;
+  overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent;
+}
+.slide::-webkit-scrollbar { width: 4px; }
+.slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+.slide.active {
+  opacity: 1; transform: translateX(0);
+  pointer-events: auto;
+  transition: opacity 0.45s ease, transform 0.45s ease;
+}
+
+.slide > * { max-width: 860px; width: 100%; }
+.slide > .tag { width: auto; }
+
+/* Tags */
+.tag {
+  display: inline-block; font-size: clamp(0.65rem, 1vw, 0.75rem);
+  font-weight: 600; padding: 4px 14px; border-radius: 20px;
+  margin-bottom: 1.2rem; letter-spacing: 0.02em;
+}
+.tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+.slide h2 {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 700; margin-bottom: 1.5rem; line-height: 1.3;
+}
+
+.slide h3 {
+  font-size: clamp(1rem, 2vw, 1.2rem);
+  font-weight: 600; margin-bottom: 0.8rem;
+}
+
+.slide p, .slide li {
+  font-size: clamp(0.8rem, 1.5vw, 1rem);
+  color: var(--text2); line-height: 1.8;
+}
+
+.slide ul { padding-left: 1.5rem; margin-bottom: 1rem; }
+.slide li { margin-bottom: 0.3rem; }
+
+/* Cover */
+.slide-cover {
+  text-align: center; align-items: center;
+  background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+}
+.slide-cover h1 {
+  font-size: clamp(2rem, 5vw, 3rem);
+  font-weight: 900; line-height: 1.35;
+  background: var(--progress-bg);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; margin-bottom: 0.5rem;
+}
+.slide-cover .subtitle {
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: var(--text2); margin-top: 0.5rem;
+}
+.slide-cover .divider {
+  width: 60px; height: 2px; margin: 1.8rem auto;
+  background: var(--progress-bg); border-radius: 1px;
+}
+.slide-cover .meta {
+  font-size: clamp(0.75rem, 1.2vw, 0.85rem);
+  color: var(--text3);
+}
+
+/* End */
+.slide-end {
+  text-align: center; align-items: center;
+  background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%);
+}
+.slide-end h2 {
+  font-size: clamp(1.8rem, 4vw, 2.2rem);
+  background: var(--progress-bg);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Components */
+.key-point {
+  background: var(--key-bg); border: 1px solid var(--key-border);
+  border-radius: 12px; padding: 1.2rem 1.5rem; margin: 1rem 0;
+}
+.key-point p { color: var(--text); }
+
+.flow {
+  display: flex; align-items: center; gap: clamp(6px, 1vw, 12px);
+  margin: 1.2rem 0; flex-wrap: wrap;
+}
+.flow-item {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: clamp(6px, 1vw, 10px) clamp(10px, 1.5vw, 18px);
+  font-size: clamp(0.75rem, 1.3vw, 0.9rem); font-weight: 500;
+  box-shadow: var(--shadow); white-space: nowrap;
+}
+.flow-item.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+.flow-item.red { border-color: var(--red-border); background: var(--red-bg); color: var(--red); }
+.flow-item.orange { border-color: var(--orange-border); background: var(--orange-bg); color: var(--orange); }
+.flow-item.accent { border-color: var(--accent-border); background: var(--accent-bg); color: var(--accent); }
+.flow-arrow { color: var(--text3); font-size: 1.2rem; font-weight: 300; }
+
+.cols {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(10px, 1.5vw, 16px); margin: 1rem 0;
+}
+.col-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 1.5vw, 1.4rem);
+  box-shadow: var(--shadow);
+}
+.col-card h3 { margin-bottom: 0.6rem; }
+.col-card.green-card { border-color: var(--green-border); }
+.col-card.green-card h3 { color: var(--green); }
+.col-card.red-card { border-color: var(--red-border); }
+.col-card.red-card h3 { color: var(--red); }
+.col-card.orange-card { border-color: var(--orange-border); }
+.col-card.orange-card h3 { color: var(--orange); }
+.col-card.accent-card { border-color: var(--accent-border); }
+.col-card.accent-card h3 { color: var(--accent); }
+
+.steps {
+  display: flex; flex-direction: column; gap: clamp(6px, 1vw, 10px);
+  margin: 1rem 0;
+}
+.step-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: clamp(8px, 1vw, 12px) clamp(10px, 1.5vw, 16px);
+  box-shadow: var(--shadow);
+}
+.step-label {
+  display: inline-block; font-size: 0.7rem; font-weight: 600;
+  padding: 3px 10px; border-radius: 6px; white-space: nowrap; margin-top: 2px;
+}
+.step-label.waterfall { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.step-label.agile { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.step-body { font-size: clamp(0.8rem, 1.3vw, 0.9rem); color: var(--text2); line-height: 1.6; }
+
+.challenge-list {
+  display: flex; flex-direction: column; gap: clamp(6px, 1vw, 10px);
+  margin: 1rem 0;
+}
+.challenge-item {
+  display: flex; align-items: flex-start; gap: 14px;
+  background: var(--red-bg); border: 1px solid var(--red-border);
+  border-radius: 10px; padding: clamp(10px, 1.5vw, 14px) clamp(12px, 1.5vw, 16px);
+}
+.challenge-num {
+  width: 28px; height: 28px; background: var(--red); color: white;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 700; flex-shrink: 0;
+}
+.challenge-body p { margin-top: 2px; }
+
+.quote {
+  background: var(--quote-bg); border-left: 3px solid var(--quote-border);
+  border-radius: 0 10px 10px 0; padding: 1rem 1.4rem;
+  margin: 1rem 0; font-style: italic; color: var(--text2);
+}
+.quote em { font-style: normal; color: var(--accent); font-weight: 600; }
+
+pre {
+  background: var(--code-bg); border: 1px solid var(--code-border);
+  border-radius: 10px; padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 1.5vw, 1.4rem);
+  margin: 1rem 0; overflow-x: auto;
+}
+pre code {
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: clamp(0.7rem, 1.2vw, 0.85rem);
+  color: var(--code-text); line-height: 1.7;
+}
+
+.data-table {
+  width: 100%; border-collapse: collapse; margin: 1rem 0;
+  font-size: clamp(0.75rem, 1.3vw, 0.9rem);
+}
+.data-table th {
+  background: var(--accent-bg); color: var(--accent); font-weight: 600;
+  padding: clamp(6px, 1vw, 10px) clamp(8px, 1.2vw, 14px);
+  text-align: left; border-bottom: 2px solid var(--accent-border);
+}
+.data-table td {
+  padding: clamp(6px, 1vw, 10px) clamp(8px, 1.2vw, 14px);
+  border-bottom: 1px solid var(--border); color: var(--text2);
+}
+.data-table tr:hover td { background: var(--surface2); }
+
+.icon-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: clamp(8px, 1.2vw, 14px); margin: 1rem 0;
+}
+.icon-card {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 1.3vw, 1.3rem);
+  box-shadow: var(--shadow);
+}
+.icon-card h4 {
+  font-size: clamp(0.8rem, 1.3vw, 0.95rem);
+  font-weight: 600; margin-bottom: 0.4rem; color: var(--text);
+}
+.icon-card p {
+  font-size: clamp(0.7rem, 1.1vw, 0.85rem); color: var(--text2);
+}
+
+.vs-block {
+  display: flex; gap: 0; margin: 1rem 0;
+  border-radius: 12px; overflow: hidden; border: 1px solid var(--border);
+}
+.vs-side { flex: 1; padding: clamp(0.8rem, 1.5vw, 1.2rem) clamp(1rem, 1.5vw, 1.4rem); }
+.vs-side h4 { font-size: clamp(0.85rem, 1.3vw, 1rem); margin-bottom: 0.6rem; }
+.vs-side ul { padding-left: 1.2rem; margin: 0; }
+.vs-side li { font-size: clamp(0.7rem, 1.1vw, 0.85rem); margin-bottom: 0.3rem; }
+.red-side { background: var(--red-bg); }
+.red-side h4 { color: var(--red); }
+.green-side { background: var(--green-bg); }
+.green-side h4 { color: var(--green); }
+.vs-divider { width: 1px; background: var(--border-strong); }
+
+.loop-card {
+  background: var(--surface); border-left: 3px solid var(--green);
+  border-radius: 0 10px 10px 0; padding: 1rem 1.4rem;
+  margin: 0.8rem 0; box-shadow: var(--shadow);
+}
+.loop-card h4 { color: var(--green); margin-bottom: 0.4rem; }
+
+/* Nav Bar */
+.nav-bar {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 90; padding: 8px 0 10px; pointer-events: none;
+}
+.nav-dots {
+  display: flex; align-items: center; position: relative;
+  background: var(--toggle-bg); backdrop-filter: blur(16px);
+  border: 1px solid var(--border); border-radius: 24px;
+  padding: 8px 18px; gap: 6px; pointer-events: auto;
+  transition: background 0.25s, transform 0.25s;
+}
+.nav-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text3); border: none; cursor: pointer;
+  transition: all 0.25s ease; position: relative;
+  opacity: 0.4; flex-shrink: 0; outline: none;
+}
+.nav-dot:hover { opacity: 0.9; transform: scale(1.3); }
+.nav-dot.active {
+  background: var(--accent); opacity: 1; width: 24px; border-radius: 4px;
+  box-shadow: 0 0 8px var(--accent);
+}
+.nav-dot .dot-tip {
+  position: absolute; bottom: calc(100% + 10px); left: 50%;
+  transform: translateX(-50%);
+  background: var(--surface2); border: 1px solid var(--border-strong);
+  padding: 4px 10px; border-radius: 6px;
+  font-size: 0.7rem; color: var(--text2);
+  white-space: nowrap; pointer-events: none;
+  opacity: 0; transition: opacity 0.2s;
+  box-shadow: var(--shadow);
+}
+.nav-dot:hover .dot-tip { opacity: 1; }
+.nav-dots.dragging { background: var(--border-strong); transform: scaleY(1.25); }
+.nav-dots.dragging .nav-dot { opacity: 0.7; }
+.nav-dots.dragging .nav-dot.active { opacity: 1; width: 28px; box-shadow: 0 0 12px var(--accent); }
+.nav-dots.dragging .nav-dot .dot-tip { opacity: 0 !important; }
+.drag-label {
+  position: absolute; bottom: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  background: var(--accent); color: white;
+  padding: 5px 14px; border-radius: 8px;
+  font-size: 0.8rem; font-weight: 600;
+  pointer-events: none; opacity: 0; transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.nav-dots.dragging .drag-label { opacity: 1; }
+
+/* Responsive */
+@media (max-width: 768px) {
+  .slide { padding: 4vh 5vw; }
+  .cols { grid-template-columns: 1fr; }
+  .flow { flex-direction: column; }
+  .flow-arrow { transform: rotate(90deg); }
+  .icon-grid { grid-template-columns: 1fr; }
+  .vs-block { flex-direction: column; }
+  .nav-dots { padding: 6px 12px; gap: 4px; }
+  .nav-dot { width: 6px; height: 6px; }
+  .nav-dot.active { width: 18px; }
+}
+@media (hover: none) { .nav-hint { display: none; } }
+</style>
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+<div class="nav-arrow nav-left flash" id="navLeft">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</div>
+<div class="nav-arrow nav-right flash" id="navRight">
+  <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+</div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+</button>
+
+<div class="slides" id="slides">
+
+<!-- Slide 1: Cover -->
+<div class="slide slide-cover active">
+  <h1>SDD Task Runner</h1>
+  <p class="subtitle">Spec-Driven Development — 极简自动化任务执行框架</p>
+  <div class="divider"></div>
+  <p class="meta">从 30 个组件到 4 个组件的工程简化之路</p>
+</div>
+
+<!-- Slide 2: Problem -->
+<div class="slide">
+  <span class="tag tag-red">问题</span>
+  <h2>旧系统：过度工程的代价</h2>
+  <div class="challenge-list">
+    <div class="challenge-item">
+      <div class="challenge-num">1</div>
+      <div class="challenge-body">
+        <strong>组件爆炸</strong>
+        <p>8 模板 + 16 skills + 4 commands + 2 hooks = 30 个组件，维护成本远超实际收益</p>
+      </div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num">2</div>
+      <div class="challenge-body">
+        <strong>流程过重</strong>
+        <p>每个 feature 要走 branch → worktree → tag → archive 完整生命周期，对简单任务是大炮打蚊子</p>
+      </div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num">3</div>
+      <div class="challenge-body">
+        <strong>认知负担</strong>
+        <p>16 个 skill 命令需要记忆，新人上手成本高，调试链路长</p>
+      </div>
+    </div>
+  </div>
+  <div class="quote">
+    核心矛盾：我们需要的是<em>自动化执行</em>，而不是<em>自动化管理的管理系统</em>。
+  </div>
+</div>
+
+<!-- Slide 3: Core Idea -->
+<div class="slide">
+  <span class="tag tag-section">核心思想</span>
+  <h2>SDD — Spec-Driven Development</h2>
+  <div class="cols">
+    <div class="col-card accent-card">
+      <h3>传统思路</h3>
+      <p>定义流程 → 创建模板 → 配置 hook → 管理状态 → 调度执行 → 归档清理</p>
+      <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text3)">大量精力花在"管理"本身</p>
+    </div>
+    <div class="col-card green-card">
+      <h3>SDD 思路</h3>
+      <p>写清楚要做什么（spec）→ 让 Agent 去做 → 检查结果</p>
+      <p style="margin-top:0.5rem;font-size:0.85rem;color:var(--text3)">精力花在"做事"本身</p>
+    </div>
+  </div>
+  <div class="key-point">
+    <p><strong>一个 spec = 一个任务：</strong>每个任务只需要一个 markdown 文件，包含目标、要求、参考文件和验收标准。调度器读完 spec 就直接派 SubAgent 干活。</p>
+  </div>
+</div>
+
+<!-- Slide 4: Architecture -->
+<div class="slide">
+  <span class="tag tag-section">架构</span>
+  <h2>四个组件，替代三十个</h2>
+  <div class="flow" style="justify-content:center; margin: 2rem 0;">
+    <div class="flow-item accent">queue.yaml</div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-item accent">specs/</div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-item green">/new-task</div>
+    <span class="flow-arrow">+</span>
+    <div class="flow-item green">/run-tasks</div>
+  </div>
+  <table class="data-table">
+    <thead>
+      <tr><th>文件</th><th>职责</th><th>类比</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><code>sdd-tasks/queue.yaml</code></td><td>任务队列 — 唯一状态文件</td><td>数据库的 todo 表</td></tr>
+      <tr><td><code>sdd-tasks/specs/</code></td><td>存放各任务的 spec 文件</td><td>需求文档文件夹</td></tr>
+      <tr><td><code>.claude/commands/new-task.md</code></td><td>/new-task — 创建任务 + spec</td><td>录入工单</td></tr>
+      <tr><td><code>.claude/commands/run-tasks.md</code></td><td>/run-tasks — 调度器，自动串行执行</td><td>工单派发系统</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Slide 5: File Structure -->
+<div class="slide">
+  <span class="tag tag-lesson">文件结构</span>
+  <h2>实际项目中的样子</h2>
+  <div class="cols">
+    <div class="col-card">
+      <h3>目录结构</h3>
+      <pre><code>project/
+├── sdd-tasks/
+│   ├── queue.yaml          # 唯一状态文件
+│   └── specs/
+│       ├── 001-init-db.md
+│       ├── 002-seed-data.md
+│       └── 003-search-api.md
+└── .claude/
+    └── commands/
+        ├── new-task.md     # /new-task
+        └── run-tasks.md    # /run-tasks</code></pre>
+    </div>
+    <div class="col-card">
+      <h3>queue.yaml 内容</h3>
+      <pre><code># SDD Task Queue
+# status: pending | running | done | failed
+
+meta:
+  created: "2026-05-18"
+
+tasks:
+  - id: 001-init-db
+    spec: specs/001-init-db.md
+    status: pending
+    depends_on: []
+
+  - id: 002-seed-data
+    spec: specs/002-seed-data.md
+    status: pending
+    depends_on: [001-init-db]
+
+  - id: 003-search-api
+    spec: specs/003-search-api.md
+    status: pending
+    depends_on: [001-init-db]</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 6: Spec -->
+<div class="slide">
+  <span class="tag tag-lesson">Spec 文件</span>
+  <h2>一个 markdown 就是一个任务</h2>
+  <div class="cols">
+    <div class="col-card" style="grid-column: span 2;">
+      <h3>spec 模板结构</h3>
+      <pre><code># Task: 初始化数据库
+
+## 目标
+创建 SQLite 数据库 schema，包含职位、公司、搜索记录三张表
+
+## 具体要求
+- 使用 SQLAlchemy ORM 定义模型
+- 支持 migration 机制
+- 表结构参考 docs/db-design.md
+
+## 参考文件
+- src/models/ （现有模型目录）
+- docs/db-design.md （表结构设计文档）
+
+## 验收标准
+- [ ] 三张表创建成功，字段和类型匹配设计文档
+- [ ] migration 可重复执行不报错
+- [ ] 有基本的索引设置</code></pre>
+    </div>
+  </div>
+  <div class="key-point">
+    <p><strong>设计原则：</strong>spec 只关心"做什么"，不关心"怎么做"。执行细节由 SubAgent 根据项目现有代码模式自行决定。</p>
+  </div>
+</div>
+
+<!-- Slide 7: /new-task -->
+<div class="slide">
+  <span class="tag tag-section" style="background:var(--green-bg);color:var(--green);border:1px solid var(--green-border)">创建任务</span>
+  <h2>/new-task — 从想法到工单</h2>
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-label agile">Step 1</span>
+      <div class="step-body"><strong>生成 ID</strong> — 读取 queue.yaml，找最大编号 + 1，格式 NNN-kebab-case</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">Step 2</span>
+      <div class="step-body"><strong>收集信息</strong> — 交互模式询问目标、要求、参考文件、验收标准；或用 <code>--desc</code> 直接传入</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">Step 3</span>
+      <div class="step-body"><strong>写 spec</strong> — 创建 <code>sdd-tasks/specs/{id}-{slug}.md</code></div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">Step 4</span>
+      <div class="step-body"><strong>入队列</strong> — 追加条目到 queue.yaml，设置 status: pending 和 depends_on</div>
+    </div>
+  </div>
+  <pre><code>/new-task 初始化数据库                        # 交互收集需求
+/new-task 写入种子数据 --depends 001          # 指定依赖
+/new-task 搜索API --desc "实现全文检索接口"   # 直接带描述</code></pre>
+</div>
+
+<!-- Slide 8: /run-tasks -->
+<div class="slide">
+  <span class="tag tag-orange">调度执行</span>
+  <h2>/run-tasks — 自动串行执行器</h2>
+  <div class="flow" style="margin-bottom: 1.5rem;">
+    <div class="flow-item">SCAN</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-item">PICK</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-item green">MARK RUNNING</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-item accent">LAUNCH SUBAGENT</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-item">COLLECT</div>
+    <span class="flow-arrow">→</span>
+    <div class="flow-item orange">LOOP</div>
+  </div>
+  <div class="cols">
+    <div class="col-card green-card">
+      <h3>AUTO-LOOP 规则</h3>
+      <ul>
+        <li>有 pending 且依赖满足 → 立即执行下一个</li>
+        <li>不询问用户"是否继续"</li>
+        <li>只有三种停止条件：全部完成 / 任务失败 / 死锁</li>
+      </ul>
+    </div>
+    <div class="col-card accent-card">
+      <h3>依赖检查</h3>
+      <ul>
+        <li>depends_on 全部 done → 可执行</li>
+        <li>有 pending/running → 本轮跳过</li>
+        <li>有 failed → 不可执行（除非 --continue）</li>
+        <li>检测循环依赖 → 报告死锁</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 9: SubAgent -->
+<div class="slide">
+  <span class="tag tag-section">执行引擎</span>
+  <h2>SubAgent — 自主任务执行者</h2>
+  <div class="loop-card">
+    <h4>SubAgent 接收的指令</h4>
+    <p>读取 spec 全文作为 prompt → 先看参考文件 → 遵循项目现有代码模式 → 只改 spec 要求的部分 → 返回结构化 JSON 结果</p>
+  </div>
+  <div class="cols">
+    <div class="col-card green-card">
+      <h3>成功返回</h3>
+      <pre><code>{
+  "task_id": "003-search-api",
+  "status": "success",
+  "files_modified": [
+    "src/routes/search.py",
+    "src/services/search.py"
+  ],
+  "summary": "实现全文检索 API",
+  "warnings": []
+}</code></pre>
+    </div>
+    <div class="col-card red-card">
+      <h3>失败返回</h3>
+      <pre><code>{
+  "task_id": "004-pagination",
+  "status": "error",
+  "error": "缺少依赖包",
+  "partial_files": ["src/routes/search.py"],
+  "suggestion": "安装 cursor-pagination 包"
+}</code></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 10: Comparison -->
+<div class="slide">
+  <span class="tag tag-lesson">对比</span>
+  <h2>新旧系统：从 30 到 4</h2>
+  <div class="vs-block">
+    <div class="vs-side red-side">
+      <h4>旧系统（Feature Workflow）</h4>
+      <ul>
+        <li>8 个模板文件</li>
+        <li>16 个 skill 命令</li>
+        <li>4 个 slash command</li>
+        <li>2 个 hook 脚本</li>
+        <li>支持并行、分支、归档</li>
+        <li>完整的 git 生命周期管理</li>
+      </ul>
+    </div>
+    <div class="vs-divider"></div>
+    <div class="vs-side green-side">
+      <h4>新系统（SDD Task Runner）</h4>
+      <ul>
+        <li>1 个 queue.yaml</li>
+        <li>1 个 specs 目录</li>
+        <li>2 个 slash command</li>
+        <li>2 个 hook 脚本（保证执行完整性）</li>
+        <li>1 个 queue 模板</li>
+        <li>纯串行、依赖感知</li>
+        <li>spec 即文档，无额外流程</li>
+      </ul>
+    </div>
+  </div>
+  <div class="key-point">
+    <p><strong>不是替代，而是分层：</strong>旧系统适合大型 feature（多天、多人协作），新系统适合中小型任务（单日可完成、明确的 spec）。两者可以共存于同一项目。</p>
+  </div>
+</div>
+
+<!-- Slide 11: Workflow Demo -->
+<div class="slide">
+  <span class="tag tag-section">实战</span>
+  <h2>典型工作流演示</h2>
+  <pre><code># Step 1: 创建任务链
+/new-task 初始化数据库
+  → 创建 001-init-db spec
+
+/new-task 写入种子数据 --depends 001
+  → 创建 002-seed-data spec（依赖 001）
+
+/new-task 搜索API --depends 001
+  → 创建 003-search-api spec（依赖 001）
+
+/new-task 分页功能 --depends 003
+  → 创建 004-pagination spec（依赖 003）
+
+# Step 2: 预览执行计划
+/run-tasks --dry-run
+
+  SDD Task Execution Plan:
+    1. [pending] 001-init-db       → (no deps)
+    2. [pending] 002-seed-data     → depends: 001 ✓
+    3. [pending] 003-search-api    → depends: 001 ✓
+    4. [pending] 004-pagination    → depends: 003 ✓
+  Total: 4 tasks, all dependencies satisfied
+
+# Step 3: 执行
+/run-tasks
+  → 001 → SubAgent 执行 → ✅ done
+  → 002 → SubAgent 执行 → ✅ done
+  → 003 → SubAgent 执行 → ✅ done
+  → 004 → SubAgent 执行 → ✅ done
+  → 完成: 4 done, 0 failed</code></pre>
+</div>
+
+<!-- Slide 12: Philosophy -->
+<div class="slide">
+  <span class="tag tag-lesson">设计哲学</span>
+  <h2>简化的三个原则</h2>
+  <div class="icon-grid">
+    <div class="icon-card">
+      <h4>1. Spec 即唯一约定</h4>
+      <p>不需要模板、配置、hook。一个 markdown 文件定义了任务的所有信息。Agent 读得懂，人也能 review。</p>
+    </div>
+    <div class="icon-card">
+      <h4>2. 状态集中到单文件</h4>
+      <p>queue.yaml 是唯一的状态源。没有 worktree、branch、tag 的状态散落。想看进度？看这一个文件就够了。</p>
+    </div>
+    <div class="icon-card">
+      <h4>3. 方便扩充和定制</h4>
+      <p>想加功能？改 command 文件。想加验证步骤？在 spec 里写验收标准。框架不挡路，你加什么它就执行什么。</p>
+    </div>
+    <div class="icon-card">
+      <h4>4. 失败也要可读</h4>
+      <p>SubAgent 返回结构化 JSON：成功有文件列表和摘要，失败有错误描述和修复建议。不是黑盒。</p>
+    </div>
+  </div>
+</div>
+
+<!-- Slide 13: End -->
+<div class="slide slide-end">
+  <span class="tag tag-section">总结</span>
+  <h2>SDD Task Runner</h2>
+  <p style="margin: 1.5rem 0; font-size: 1.1rem; color: var(--text2);">1 个队列 + 1 个 specs 目录 + 2 个命令</p>
+  <div class="key-point" style="text-align:center;">
+    <p>写清楚要做什么，让 Agent 去做，检查结果。<br>就这么简单。</p>
+  </div>
+</div>
+
+</div>
+
+<div class="nav-bar" id="navBar"></div>
+
+<script>
+(function() {
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length;
+  var current = 0;
+  var isAnimating = false;
+  var touchStartX = -1;
+
+  // Theme
+  var saved = localStorage.getItem('slide-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+  document.getElementById('themeToggle').addEventListener('click', function() {
+    var current = document.documentElement.getAttribute('data-theme');
+    var next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('slide-theme', next);
+  });
+
+  // Nav dots
+  var navBar = document.getElementById('navBar');
+  var dotsContainer = document.createElement('div');
+  dotsContainer.className = 'nav-dots';
+  var dots = [];
+  var slideLabels = [];
+  var dotPositions = [];
+
+  slides.forEach(function(slide, i) {
+    var h2 = slide.querySelector('h2');
+    var tag = slide.querySelector('.tag');
+    var label = h2 ? h2.textContent.trim() : (tag ? tag.textContent.trim() : '');
+    if (label.length > 16) label = label.substring(0, 14) + '…';
+    slideLabels.push(label);
+    var dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.innerHTML = '<span class="dot-tip">' + (i + 1) + (label ? '. ' + label : '') + '</span>';
+    dotsContainer.appendChild(dot);
+    dots.push(dot);
+  });
+
+  var dragLabel = document.createElement('div');
+  dragLabel.className = 'drag-label';
+  dotsContainer.appendChild(dragLabel);
+  navBar.appendChild(dotsContainer);
+
+  function updateUI() {
+    var progress = document.getElementById('progress');
+    var slideNum = document.getElementById('slideNum');
+    progress.style.width = ((current + 1) / total * 100) + '%';
+    slideNum.textContent = (current + 1) + ' / ' + total;
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+  }
+
+  function updateSlide(newIdx, direction) {
+    if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+    isAnimating = true;
+    var oldSlide = slides[current];
+    var newSlide = slides[newIdx];
+    var exitX = direction === 'next' ? '-60px' : '60px';
+    var enterX = direction === 'next' ? '60px' : '-60px';
+
+    oldSlide.classList.remove('active');
+    newSlide.style.transition = 'none';
+    newSlide.style.transform = 'translateX(' + enterX + ')';
+    newSlide.classList.add('active');
+    void newSlide.offsetWidth;
+    newSlide.style.transition = '';
+    newSlide.style.transform = '';
+    oldSlide.style.transform = 'translateX(' + exitX + ')';
+
+    current = newIdx;
+    updateUI();
+    setTimeout(function() {
+      oldSlide.style.transform = '';
+      isAnimating = false;
+    }, 460);
+  }
+
+  // Drag support
+  var isDragging = false;
+  function getIdxFromX(clientX) {
+    var closest = 0, minDist = Infinity;
+    dotPositions.forEach(function(cx, i) {
+      var d = Math.abs(clientX - cx);
+      if (d < minDist) { minDist = d; closest = i; }
+    });
+    return closest;
+  }
+  function jumpTo(idx) {
+    if (idx === current || idx < 0 || idx >= total) return;
+    isAnimating = false;
+    slides[current].classList.remove('active');
+    slides[current].style.transform = '';
+    slides[idx].style.transition = 'none';
+    slides[idx].style.transform = '';
+    slides[idx].classList.add('active');
+    void slides[idx].offsetWidth;
+    slides[idx].style.transition = '';
+    current = idx;
+    updateUI();
+  }
+  function updateDragLabel() {
+    dragLabel.textContent = (current + 1) + ' / ' + total + (slideLabels[current] ? '  ' + slideLabels[current] : '');
+  }
+
+  dotsContainer.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    isDragging = true;
+    dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+    dotsContainer.classList.add('dragging');
+    var idx = getIdxFromX(e.clientX);
+    if (idx !== current) jumpTo(idx);
+    updateDragLabel();
+  });
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    var idx = getIdxFromX(e.clientX);
+    if (idx !== current) jumpTo(idx);
+    updateDragLabel();
+  });
+  document.addEventListener('mouseup', function() {
+    if (!isDragging) return;
+    isDragging = false;
+    dotsContainer.classList.remove('dragging');
+  });
+  dotsContainer.addEventListener('touchstart', function(e) {
+    isDragging = true;
+    dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+    dotsContainer.classList.add('dragging');
+    var idx = getIdxFromX(e.touches[0].clientX);
+    if (idx !== current) jumpTo(idx);
+    updateDragLabel();
+  }, { passive: true });
+  dotsContainer.addEventListener('touchmove', function(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+    var idx = getIdxFromX(e.touches[0].clientX);
+    if (idx !== current) jumpTo(idx);
+    updateDragLabel();
+  }, { passive: false });
+  dotsContainer.addEventListener('touchend', function() {
+    isDragging = false;
+    dotsContainer.classList.remove('dragging');
+  });
+
+  // Keyboard
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); updateSlide(current + 1, 'next'); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); updateSlide(current - 1, 'prev'); }
+  });
+
+  // Touch swipe
+  document.addEventListener('touchstart', function(e) {
+    if (e.target.closest('.nav-bar')) { touchStartX = -1; return; }
+    touchStartX = e.touches[0].clientX;
+  });
+  document.addEventListener('touchend', function(e) {
+    if (touchStartX === -1) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) {
+      updateSlide(current + (dx < 0 ? 1 : -1), dx < 0 ? 'next' : 'prev');
+    }
+    touchStartX = -1;
+  });
+
+  // Click
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.theme-toggle') || e.target.closest('.nav-bar')) return;
+    var w = window.innerWidth;
+    var x = e.clientX;
+    if (x < w * 0.35) updateSlide(current - 1, 'prev');
+    else if (x > w * 0.65) updateSlide(current + 1, 'next');
+  });
+
+  // Init
+  updateUI();
+  setTimeout(function() {
+    document.getElementById('navLeft').classList.remove('flash');
+    document.getElementById('navRight').classList.remove('flash');
+  }, 1500);
+})();
+</script>
+</body>
+</html>

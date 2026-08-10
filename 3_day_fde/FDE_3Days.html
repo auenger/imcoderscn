@@ -1,0 +1,675 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="三天全封闭式 FDE 前沿部署工程师训练营课程设计，覆盖需求挖掘、AI Demo 生成、全栈开发部署与项目路演。">
+  <title>三天 FDE 前沿部署工程师训练营课程设计</title>
+  <script>
+    (() => {
+      const preferredTheme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      let savedTheme = null;
+      try { savedTheme = localStorage.getItem('fde-theme'); } catch (error) { /* 本地文件可能禁用存储 */ }
+      document.documentElement.dataset.theme = savedTheme || preferredTheme;
+    })();
+  </script>
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f4f7f9;
+      --surface: #ffffff;
+      --surface-2: #eaf0f3;
+      --ink: #14252d;
+      --muted: #58707a;
+      --line: #cbd8de;
+      --accent: #b7442c;
+      --accent-deep: #8f2f1d;
+      --accent-soft: #f5e3de;
+      --safe: #245b4a;
+      --warning: #7a5414;
+      --radius: 14px;
+      --shadow: 0 18px 50px rgba(28, 55, 67, .09);
+      --max: 1180px;
+    }
+
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background: var(--paper);
+      font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+      line-height: 1.65;
+      -webkit-font-smoothing: antialiased;
+    }
+    button, input { font: inherit; }
+    a { color: inherit; }
+    :focus-visible { outline: 3px solid rgba(183, 68, 44, .35); outline-offset: 3px; }
+    .container { width: min(calc(100% - 40px), var(--max)); margin: 0 auto; }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      border-bottom: 1px solid rgba(203, 216, 222, .85);
+      background: rgba(244, 247, 249, .94);
+      backdrop-filter: blur(14px);
+    }
+    .topbar-inner {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; }
+    .brand-mark {
+      width: 34px;
+      height: 34px;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--accent);
+      border-radius: 10px;
+      font-size: 13px;
+      letter-spacing: -.02em;
+    }
+    nav { display: flex; align-items: center; gap: 20px; font-size: 14px; color: var(--muted); }
+    nav a { text-decoration: none; white-space: nowrap; }
+    nav a:hover { color: var(--accent-deep); }
+    .nav-actions { display: flex; align-items: center; gap: 8px; }
+    .print-btn, .theme-btn {
+      width: 40px;
+      height: 40px;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--ink);
+      border-radius: 9px;
+      padding: 0;
+      cursor: pointer;
+      font-size: 21px;
+      line-height: 1;
+    }
+    .print-btn { color: var(--surface); background: var(--ink); }
+    .theme-btn { color: var(--ink); background: var(--surface); }
+    .theme-icon-light, .theme-icon-dark { display: none; }
+    html[data-theme="light"] .theme-icon-dark { display: block; }
+    html[data-theme="dark"] .theme-icon-light { display: block; }
+    .print-btn:active, .theme-btn:active { transform: translateY(1px); }
+
+    .hero { padding: 72px 0 54px; }
+    .hero-grid { display: grid; grid-template-columns: 1.4fr .6fr; gap: 64px; align-items: end; }
+    .kicker {
+      display: inline-block;
+      margin-bottom: 18px;
+      color: var(--accent-deep);
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: .08em;
+    }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { margin-bottom: 20px; font-size: clamp(38px, 5.2vw, 64px); line-height: 1.04; letter-spacing: -.06em; white-space: nowrap; }
+    h1 span { color: var(--accent); }
+    .hero-copy { max-width: 720px; color: var(--muted); font-size: 19px; }
+    .hero-note {
+      border-left: 4px solid var(--accent);
+      padding: 4px 0 4px 20px;
+      color: var(--muted);
+    }
+    .hero-note strong { display: block; margin-bottom: 6px; color: var(--ink); font-size: 22px; }
+
+    .metric-strip {
+      display: grid;
+      grid-template-columns: 1.35fr repeat(3, 1fr);
+      background: var(--ink);
+      color: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .metric { min-height: 126px; padding: 24px; border-right: 1px solid rgba(255,255,255,.15); }
+    .metric:last-child { border-right: 0; }
+    .metric strong { display: block; margin-bottom: 6px; font-size: 34px; line-height: 1.1; }
+    .metric span { color: #bdd0d7; font-size: 14px; }
+    .metric.lead { display: flex; flex-direction: column; justify-content: space-between; background: var(--accent); }
+    .metric.lead strong { font-size: 20px; }
+    .metric.lead span { color: #ffe9e3; }
+
+    main section { padding: 76px 0; }
+    .section-head { max-width: 790px; margin-bottom: 36px; }
+    .section-head h2 { margin-bottom: 12px; font-size: clamp(30px, 4vw, 48px); line-height: 1.18; letter-spacing: -.035em; }
+    .section-head p { color: var(--muted); font-size: 17px; }
+    .section-head.compact { margin-bottom: 22px; }
+
+    .principles { display: grid; grid-template-columns: 1.3fr .7fr; gap: 22px; }
+    .principle-main, .principle-side { border-radius: var(--radius); }
+    .principle-main {
+      padding: 34px;
+      color: white;
+      background: var(--safe);
+    }
+    .principle-main h3 { font-size: 30px; line-height: 1.25; }
+    .principle-main p { max-width: 680px; color: #d6e9e2; }
+    .principle-side { display: grid; gap: 14px; }
+    .principle-box { padding: 22px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .principle-box strong { display: block; margin-bottom: 5px; }
+    .principle-box span { color: var(--muted); font-size: 14px; }
+    .pathline { margin-top: 28px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: rgba(255,255,255,.18); }
+    .pathline div { padding: 18px 14px; background: rgba(255,255,255,.06); }
+    .pathline b { display: block; margin-bottom: 5px; font-size: 23px; }
+    .pathline small { color: #d6e9e2; }
+
+    .audience-layout { display: grid; grid-template-columns: .72fr 1.28fr; gap: 30px; align-items: start; }
+    .audience-brief { position: sticky; top: 96px; padding: 28px; border-radius: var(--radius); background: var(--accent-soft); }
+    .audience-brief h3 { margin-bottom: 10px; font-size: 25px; }
+    .audience-brief p { color: #6f4034; }
+    .role-list { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .role-row { display: grid; grid-template-columns: 140px 1fr; gap: 24px; padding: 22px 0; border-bottom: 1px solid var(--line); }
+    .role-row strong { color: var(--accent-deep); }
+    .role-row p { margin-bottom: 0; color: var(--muted); }
+
+    .outcomes { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .outcome { padding: 26px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .outcome:nth-child(1) { grid-row: span 2; background: var(--ink); color: white; }
+    .outcome:nth-child(1) p { color: #bfd0d7; }
+    .outcome h3 { margin-bottom: 8px; font-size: 20px; }
+    .outcome p { margin-bottom: 0; color: var(--muted); }
+    .outcome code { display: inline-block; margin-top: 18px; color: #ffd5cb; font-size: 13px; }
+
+    .agenda-shell { border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); overflow: hidden; box-shadow: var(--shadow); }
+    .day-tabs { display: flex; border-bottom: 1px solid var(--line); background: var(--surface-2); }
+    .day-tab { flex: 1; border: 0; border-right: 1px solid var(--line); padding: 18px 16px; color: var(--muted); background: transparent; cursor: pointer; font-weight: 700; }
+    .day-tab:last-child { border-right: 0; }
+    .day-tab[aria-selected="true"] { color: white; background: var(--accent); }
+    .day-panel { display: none; padding: 30px; }
+    .day-panel.active { display: block; }
+    .day-intro { display: grid; grid-template-columns: 1fr 260px; gap: 30px; margin-bottom: 26px; }
+    .day-intro h3 { margin-bottom: 8px; font-size: 28px; }
+    .day-intro p { color: var(--muted); }
+    .day-output { padding: 18px; border-radius: var(--radius); background: var(--accent-soft); }
+    .day-output strong { display: block; margin-bottom: 5px; color: var(--accent-deep); }
+    .day-output span { font-size: 14px; color: #6f4034; }
+    .schedule { border-top: 1px solid var(--line); }
+    .session {
+      display: grid;
+      grid-template-columns: 130px 160px 1fr 120px;
+      gap: 18px;
+      padding: 20px 0;
+      border-bottom: 1px solid var(--line);
+      align-items: start;
+    }
+    .session-time { font-variant-numeric: tabular-nums; font-weight: 800; }
+    .session-type { color: var(--muted); font-size: 14px; }
+    .session-main strong { display: block; margin-bottom: 5px; font-size: 17px; }
+    .session-main p { margin-bottom: 7px; color: var(--muted); font-size: 14px; }
+    .session-main small { color: var(--safe); }
+    .mode { justify-self: end; padding: 5px 9px; border-radius: 8px; background: var(--surface-2); color: var(--ink); font-size: 12px; white-space: nowrap; }
+    .mode.practice { color: white; background: var(--safe); }
+    .mode.mixed { color: white; background: var(--accent); }
+    .break-row { padding: 9px 0; text-align: center; color: var(--muted); background: var(--paper); font-size: 12px; }
+
+    .case-grid { display: grid; grid-template-columns: 1.2fr .8fr .8fr; gap: 18px; }
+    .case { min-height: 210px; padding: 25px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line); }
+    .case:first-child { grid-row: span 2; color: white; background: var(--ink); }
+    .case:first-child p { color: #bfd0d7; }
+    .case h3 { margin-bottom: 8px; }
+    .case p { color: var(--muted); font-size: 14px; }
+    .case dl { margin: 20px 0 0; }
+    .case dt { margin-top: 12px; font-weight: 800; }
+    .case dd { margin: 2px 0 0; color: inherit; opacity: .78; font-size: 14px; }
+
+    .toolchain { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; }
+    .tool-step { position: relative; min-height: 170px; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .tool-step:not(:last-child)::after { content: ">"; position: absolute; right: -10px; top: 67px; z-index: 2; color: var(--accent); font-weight: 900; }
+    .tool-step strong { display: block; margin-bottom: 9px; color: var(--accent-deep); }
+    .tool-step p { color: var(--muted); font-size: 13px; }
+
+    .assessment-wrap { display: grid; grid-template-columns: 1.12fr .88fr; gap: 28px; }
+    .rubric { overflow: hidden; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .rubric-row { display: grid; grid-template-columns: 1fr 90px; gap: 20px; padding: 18px 22px; border-bottom: 1px solid var(--line); }
+    .rubric-row:last-child { border-bottom: 0; }
+    .rubric-row strong { display: block; }
+    .rubric-row span { color: var(--muted); font-size: 13px; }
+    .rubric-row b { align-self: center; justify-self: end; color: var(--accent); font-size: 24px; }
+    .gate { padding: 28px; border-radius: var(--radius); color: white; background: var(--safe); }
+    .gate h3 { font-size: 28px; }
+    .gate ul { padding-left: 20px; color: #d6e9e2; }
+    .gate .score { display: inline-block; margin: 8px 0 16px; font-size: 52px; font-weight: 900; line-height: 1; }
+
+    .deliverables { display: grid; grid-template-columns: repeat(2, 1fr); gap: 18px; }
+    .deliverable { padding: 24px; border-radius: var(--radius); border: 1px solid var(--line); background: var(--surface); }
+    .deliverable:nth-child(3) { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; gap: 30px; background: var(--accent-soft); border-color: #e5b9ad; }
+    .deliverable h3 { margin-bottom: 8px; }
+    .deliverable ul { margin-bottom: 0; padding-left: 20px; color: var(--muted); }
+
+    .ops-grid { display: grid; grid-template-columns: minmax(0, 760px); gap: 24px; }
+    .ops-card { padding: 26px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+    .ops-card h3 { margin-bottom: 12px; }
+    .ops-card ol, .ops-card ul { margin-bottom: 0; padding-left: 20px; color: var(--muted); }
+    .ops-card li + li { margin-top: 8px; }
+    details { border-top: 1px solid var(--line); padding: 14px 0; }
+    details:last-child { border-bottom: 1px solid var(--line); }
+    summary { cursor: pointer; font-weight: 800; }
+    details p { margin: 8px 0 0; color: var(--muted); }
+
+    footer { padding: 40px 0 60px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+    .footer-inner { display: flex; justify-content: space-between; gap: 24px; }
+
+    html[data-theme="dark"] {
+      color-scheme: dark;
+        --paper: #111a1f;
+        --surface: #18242a;
+        --surface-2: #213138;
+        --ink: #edf3f5;
+        --muted: #afc0c7;
+        --line: #34474f;
+        --accent: #d66850;
+        --accent-deep: #f2947e;
+        --accent-soft: #382822;
+        --safe: #2f6555;
+        --warning: #d9a84a;
+    }
+    html[data-theme="dark"] .topbar { background: rgba(17, 26, 31, .94); }
+    html[data-theme="dark"] .print-btn { color: #17252c; background: #edf3f5; border-color: #edf3f5; }
+    html[data-theme="dark"] .metric-strip,
+    html[data-theme="dark"] .outcome:nth-child(1),
+    html[data-theme="dark"] .case:first-child { background: #0d1519; }
+    html[data-theme="dark"] .audience-brief p,
+    html[data-theme="dark"] .day-output span { color: #e1afa2; }
+
+    @media (max-width: 900px) {
+      nav a { display: none; }
+      .hero-grid, .principles, .audience-layout, .assessment-wrap, .ops-grid { grid-template-columns: 1fr; }
+      .hero-note, .audience-brief { position: static; }
+      .metric-strip { grid-template-columns: repeat(2, 1fr); }
+      .metric:nth-child(2) { border-right: 0; }
+      .metric { border-bottom: 1px solid rgba(255,255,255,.15); }
+      .case-grid { grid-template-columns: repeat(2, 1fr); }
+      .case:first-child { grid-row: auto; grid-column: 1 / -1; }
+      .toolchain { grid-template-columns: repeat(2, 1fr); }
+      .tool-step:not(:last-child)::after { display: none; }
+    }
+
+    @media (max-width: 680px) {
+      .container { width: min(calc(100% - 28px), var(--max)); }
+      .hero { padding: 44px 0 36px; }
+      h1 { font-size: clamp(22px, 7.2vw, 42px); }
+      main section { padding: 54px 0; }
+      .metric-strip, .outcomes, .case-grid, .toolchain, .deliverables { grid-template-columns: 1fr; }
+      .metric { border-right: 0; }
+      .outcome:nth-child(1) { grid-row: auto; }
+      .day-tabs { overflow-x: auto; }
+      .day-tab { min-width: 190px; }
+      .day-panel { padding: 20px 16px; }
+      .day-intro { grid-template-columns: 1fr; }
+      .session { grid-template-columns: 1fr; gap: 5px; }
+      .mode { justify-self: start; }
+      .role-row { grid-template-columns: 1fr; gap: 4px; }
+      .deliverable:nth-child(3) { grid-column: auto; grid-template-columns: 1fr; }
+      .footer-inner { display: block; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+
+    @media print {
+      :root { --paper: #fff; --surface: #fff; --surface-2: #f2f5f6; --ink: #15252d; --muted: #52656e; --line: #c9d2d6; }
+      body { font-size: 10pt; background: white; }
+      .topbar, .print-btn, .theme-btn { display: none !important; }
+      .container { width: 100%; max-width: none; }
+      .hero { padding: 20mm 0 10mm; }
+      h1 { font-size: 34pt; }
+      main section { padding: 10mm 0; break-inside: avoid; }
+      .day-tabs { display: none; }
+      .day-panel { display: block !important; padding: 8mm 0; page-break-before: always; }
+      .agenda-shell { border: 0; box-shadow: none; overflow: visible; }
+      .session { grid-template-columns: 26mm 30mm 1fr 24mm; padding: 4mm 0; }
+      .metric-strip, .principle-main, .gate, .outcome:nth-child(1), .case:first-child { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+      details > * { display: block; }
+      a { text-decoration: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar-inner">
+      <div class="brand"><span class="brand-mark">FDE</span><span>前沿部署工程师训练营</span></div>
+      <nav aria-label="页面导航">
+        <a href="#architecture">课程架构</a>
+        <a href="#agenda">三天日程</a>
+        <a href="#assessment">考核认证</a>
+        <a href="#delivery">交付资产</a>
+        <div class="nav-actions">
+          <button class="theme-btn" id="theme-toggle" type="button" aria-pressed="false" aria-label="切换到暗色主题" title="切换主题">
+            <span class="theme-icon-light" aria-hidden="true">☼</span>
+            <span class="theme-icon-dark" aria-hidden="true">☾</span>
+          </button>
+          <button class="print-btn" type="button" aria-label="打印课程方案" title="打印课程方案" onclick="window.print()">
+            <span aria-hidden="true">⎙</span>
+          </button>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="hero">
+      <div class="container hero-grid">
+        <div>
+          <span class="kicker">3 天全封闭线下实战课程</span>
+          <h1>从客户问题到<span>可部署成果</span></h1>
+          <p class="hero-copy">为政企售前、解决方案与集成交付骨干设计。三天完成需求定义、AI Demo、全栈部署和方案路演。</p>
+        </div>
+        <div class="hero-note">
+          <strong>课程北极星</strong>
+          不以“学会一个工具”为终点，以“交付一个能演示、能部署、能解释价值的行业方案”为终点。
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="metric-strip" aria-label="课程关键指标">
+        <div class="metric lead"><strong>道、法、术、器</strong><span>统一 FDE 的角色认知、工作方法、技术实践与资产沉淀</span></div>
+        <div class="metric"><strong>3:7</strong><span>理论输入与实战训练</span></div>
+        <div class="metric"><strong>30-40</strong><span>每期建议参训人数</span></div>
+        <div class="metric"><strong>2-3 人</strong><span>Mini 项目小组</span></div>
+      </div>
+    </div>
+
+    <section id="architecture">
+      <div class="container">
+        <div class="section-head">
+          <h2>课程设计总纲</h2>
+          <p>把原有“道、法、术、器”方法论与培训需求中的三大模块对齐，形成一条连续的项目交付链。</p>
+        </div>
+        <div class="principles">
+          <article class="principle-main">
+            <h3>一案到底，三天递进</h3>
+            <p>每组选择一个政企行业场景。问题、数据、原型、代码、部署与路演全部围绕同一项目推进，避免课堂知识与交付现场脱节。</p>
+            <div class="pathline">
+              <div><b>道</b><small>FDE 角色与业务结果</small></div>
+              <div><b>法</b><small>需求挖掘与交付边界</small></div>
+              <div><b>术</b><small>AI Demo 与全栈实现</small></div>
+              <div><b>器</b><small>部署、路演与资产复用</small></div>
+            </div>
+          </article>
+          <div class="principle-side">
+            <div class="principle-box"><strong>真实场景驱动</strong><span>围绕 XX 移动政企行业项目，不做脱离业务的工具拼盘。</span></div>
+            <div class="principle-box"><strong>双轨分层教学</strong><span>零代码学员使用模板跑通流程，有代码基础学员完成扩展任务。</span></div>
+            <div class="principle-box"><strong>评审前置</strong><span>每半天都有检查点，第三天不再临时拼 Demo 和方案。</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container audience-layout">
+        <aside class="audience-brief">
+          <h3>参训者画像</h3>
+          <p>省、市公司政企线条售前、解决方案、项目集成交付人员。优先选拔 AI 金种子、重点项目负责人和一线交付骨干。</p>
+          <strong>建议前置能力</strong>
+          <p>具备基础计算机知识；可理解接口、数据表和部署概念；愿意转型 AI+DICT 复合岗位。</p>
+        </aside>
+        <div class="role-list">
+          <div class="role-row"><strong>Customer Owner</strong><p>扮演客户业务负责人，定义业务结果、预算边界与最终 Go/No-Go 决策。</p></div>
+          <div class="role-row"><strong>FDE / Delta</strong><p>负责需求澄清、Demo 生成、数据与工具接入、现场调试及交付推进。</p></div>
+          <div class="role-row"><strong>Solution / Dev</strong><p>负责技术架构、接口、代码、容器化、测试与部署，确保方案真正可运行。</p></div>
+          <div class="role-row"><strong>Risk / Echo</strong><p>负责安全、合规、权限、成本和失败模式审查。每组必须有人承担该角色。</p></div>
+          <div class="role-row"><strong>协作机制</strong><p>2-3 人 Mini 小组可一人兼任两个角色，但 Owner 与 Risk 不建议由同一人兼任。</p></div>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head compact">
+          <h2>结课时，学员必须能做到</h2>
+        </div>
+        <div class="outcomes">
+          <article class="outcome">
+            <h3>从“客户想做 AI”走到可验收方案</h3>
+            <p>识别真实业务结果、重画流程、判断 Agent 边界、核实数据与权限、设置人工接管点，并定义试点成功标准。</p>
+            <code>问题假设 → 需求证据 → 原型验证 → 部署验收</code>
+          </article>
+          <article class="outcome"><h3>需求挖掘</h3><p>完成客户访谈、Use Case Scoping、流程 Before/After、Data Source Register 与 PRD。</p></article>
+          <article class="outcome"><h3>Demo 生成</h3><p>使用 AI 编程工具生成可交互 Demo，完成提示词、Agent Role Card、工具调用与 Evals。</p></article>
+          <article class="outcome"><h3>全栈部署</h3><p>完成前后端联调、数据库与 API 接入、Docker 容器化、日志监控与现场验收。</p></article>
+          <article class="outcome"><h3>方案表达</h3><p>用业务结果而非功能列表完成 10 分钟路演，回答价值、成本、风险与推广路径。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="agenda">
+      <div class="container">
+        <div class="section-head">
+          <h2>三天详细课程日程</h2>
+          <p>每天含 15 分钟晨会、两次小组站会、教练巡回指导和 19:00-20:30 开放麦。全程学习时间 1,620 分钟，其中实战与评审约 70%。</p>
+        </div>
+        <div class="agenda-shell">
+          <div class="day-tabs" role="tablist" aria-label="选择课程天数">
+            <button class="day-tab" id="tab-day1" role="tab" aria-selected="true" aria-controls="day1">第一天：道与法</button>
+            <button class="day-tab" id="tab-day2" role="tab" aria-selected="false" aria-controls="day2">第二天：术</button>
+            <button class="day-tab" id="tab-day3" role="tab" aria-selected="false" aria-controls="day3">第三天：器</button>
+          </div>
+
+          <article class="day-panel active" id="day1" role="tabpanel" aria-labelledby="tab-day1">
+            <div class="day-intro">
+              <div><h3>第一天：找到值得做的问题</h3><p>主题为 FDE 世界观与需求挖掘。先把客户语言转成业务结果，再把结果转成可以验证的 AI Use Case。</p></div>
+              <div class="day-output"><strong>当日产出</strong><span>访谈纪要、Scoping 一页纸、流程图、数据源登记册、PRD 初稿、3 分钟需求汇报</span></div>
+            </div>
+            <div class="schedule">
+              <div class="session"><div class="session-time">08:45-09:00</div><div class="session-type">开营晨会</div><div class="session-main"><strong>组队、角色与成功标准</strong><p>讲师介绍、规则说明、基线测评；完成 2-3 人组队和角色卡。</p><small>检查点：每组 Owner、FDE、Dev/Risk 职责清楚。</small></div><span class="mode mixed">讲授+行动</span></div>
+              <div class="session"><div class="session-time">09:00-09:45</div><div class="session-type">道：角色觉醒</div><div class="session-main"><strong>FDE 不是什么，FDE 要对什么负责</strong><p>区分售前、咨询、实施和 FDE；用 Operational Outcome 校准交付责任。</p><small>练习：把“做一个智能助手”改写成业务结果。</small></div><span class="mode mixed">讲授+练习</span></div>
+              <div class="session"><div class="session-time">09:45-10:30</div><div class="session-type">案例导入</div><div class="session-main"><strong>真实政企项目 Case Brief</strong><p>客户组织、业务流程、数据现状、项目约束、采购逻辑与关键冲突。</p><small>交付件：Stakeholder Map 与五个关键问题。</small></div><span class="mode practice">角色扮演</span></div>
+              <div class="break-row">课间休息 15 分钟</div>
+              <div class="session"><div class="session-time">10:45-12:00</div><div class="session-type">法：需求挖掘</div><div class="session-main"><strong>客户访谈与八要素 Scoping</strong><p>业务结果、流程、数据源、业务对象、AI 动作、人工审批、成功指标、部署约束。</p><small>交付件：Scoping 一页纸 v0.5。</small></div><span class="mode practice">模拟访谈</span></div>
+              <div class="session"><div class="session-time">13:30-14:15</div><div class="session-type">方法输入</div><div class="session-main"><strong>Operational Ontology 五元法</strong><p>Objects、Actions、States、Permissions、Events；对象可查询，动作可执行，状态可观察，权限可审计。</p><small>分层任务：基础组填模板，进阶组补充数据主键和事件定义。</small></div><span class="mode mixed">讲授+拆解</span></div>
+              <div class="session"><div class="session-time">14:15-15:15</div><div class="session-type">项目工坊</div><div class="session-main"><strong>流程 Before/After 与 Data/Permission Map</strong><p>找出 AI 嵌入点、人工接管点、数据 Owner、访问方式、敏感等级和审计要求。</p><small>交付件：流程图与 Data Source Register v1.0。</small></div><span class="mode practice">小组实操</span></div>
+              <div class="break-row">课间休息 15 分钟</div>
+              <div class="session"><div class="session-time">15:30-16:00</div><div class="session-type">设计法则</div><div class="session-main"><strong>Workflow、Agent、Function、App 四象限</strong><p>判断确定性流程、不确定任务、原子工具和人机界面，防止所有需求都做成 Agent。</p><small>练习：对本组流程中的每个节点分类。</small></div><span class="mode mixed">讲授+判断</span></div>
+              <div class="session"><div class="session-time">16:00-17:15</div><div class="session-type">PRD 冲刺</div><div class="session-main"><strong>从一页纸到可开发 PRD</strong><p>用户故事、主流程、异常流程、验收标准、非目标、风险与 48 小时 Demo 边界。</p><small>交付件：PRD v1.0 与 Demo Backlog。</small></div><span class="mode practice">小组实操</span></div>
+              <div class="session"><div class="session-time">17:15-17:45</div><div class="session-type">日终 Gate</div><div class="session-main"><strong>需求评审：做对问题了吗</strong><p>每组 3 分钟汇报，教练按 Value、Feasibility、Risk 给出 Keep/Fix/Risk。</p><small>通过标准：Owner 清楚、指标可验收、数据可获得、边界可解释。</small></div><span class="mode practice">评审</span></div>
+              <div class="session"><div class="session-time">19:00-20:30</div><div class="session-type">晚间开放麦</div><div class="session-main"><strong>需求诊所与工具环境预热</strong><p>集中修复 PRD；完成 AI 编程工具、Git、运行时与 Docker 环境检查。</p><small>优秀组分享：如何追问出客户真正愿意为之负责的指标。</small></div><span class="mode practice">答疑+配置</span></div>
+            </div>
+          </article>
+
+          <article class="day-panel" id="day2" role="tabpanel" aria-labelledby="tab-day2">
+            <div class="day-intro">
+              <div><h3>第二天：把纸面方案变成可运行 Demo</h3><p>主题为 AI 编程、Agent 工作流与全栈联调。目标不是生成最多代码，而是稳定跑通最短业务闭环。</p></div>
+              <div class="day-output"><strong>当日产出</strong><span>Agent Role Card、提示词、可交互 Demo、前后端代码、Eval Dataset、Dockerfile、演示脚本</span></div>
+            </div>
+            <div class="schedule">
+              <div class="session"><div class="session-time">08:45-09:00</div><div class="session-type">晨会</div><div class="session-main"><strong>需求缺陷复盘与今日 Build 目标</strong><p>各组确认一个主流程、一个异常流程和当日完成定义。</p><small>技术贴士：把任务拆成可验证的小提交。</small></div><span class="mode practice">站会</span></div>
+              <div class="session"><div class="session-time">09:00-09:45</div><div class="session-type">术：AI 编程</div><div class="session-main"><strong>从 PRD 到代码任务树</strong><p>上下文准备、仓库扫描、计划生成、提示词结构、代码审查与版本回退。</p><small>演示：同一需求的低质量提示词与工程化提示词对比。</small></div><span class="mode mixed">讲授+演示</span></div>
+              <div class="session"><div class="session-time">09:45-10:30</div><div class="session-type">Agent 设计</div><div class="session-main"><strong>Role Card、Tools 与 HITL</strong><p>任务边界、工具白名单、禁止事项、审批时限、超时升级和失败留痕。</p><small>交付件：Agent Role Card 与 Workflow Diagram。</small></div><span class="mode mixed">拆解+练习</span></div>
+              <div class="break-row">课间休息 15 分钟</div>
+              <div class="session"><div class="session-time">10:45-12:00</div><div class="session-type">Build Sprint 1</div><div class="session-main"><strong>前端体验与 Mock 数据主流程</strong><p>生成页面骨架、关键交互、数据模型和 Mock API，先让客户看见业务流程。</p><small>Gate：主流程可点击，页面能解释业务结果，不允许只展示静态截图。</small></div><span class="mode practice">结对编程</span></div>
+              <div class="session"><div class="session-time">13:30-14:00</div><div class="session-type">全栈输入</div><div class="session-main"><strong>最小可部署架构</strong><p>前端、后端、数据库、模型服务、鉴权、日志与配置的职责边界。</p><small>基础组使用参考脚手架，进阶组自行选择技术栈并说明理由。</small></div><span class="mode">讲授</span></div>
+              <div class="session"><div class="session-time">14:00-15:15</div><div class="session-type">Build Sprint 2</div><div class="session-main"><strong>API、数据与模型调用联调</strong><p>把 Mock 替换为真实或脱敏数据，加入结构化输出、超时、重试与错误提示。</p><small>交付件：至少一个真实 API 闭环和可追踪请求日志。</small></div><span class="mode practice">小组实操</span></div>
+              <div class="break-row">课间休息 15 分钟</div>
+              <div class="session"><div class="session-time">15:30-16:00</div><div class="session-type">质量输入</div><div class="session-main"><strong>Evals 与安全基线</strong><p>边界数据集、Pass/Fail Rubric、提示注入、敏感信息、幻觉、权限越界与成本测试。</p><small>上线不是“能跑”，而是对关键失败模式有证据。</small></div><span class="mode mixed">讲授+演示</span></div>
+              <div class="session"><div class="session-time">16:00-17:15</div><div class="session-type">Build Sprint 3</div><div class="session-main"><strong>20 条 Eval Dataset 与异常流程</strong><p>每组建立正常、边界、对抗、降级四类用例，执行测试并修复前三项高风险问题。</p><small>交付件：评测表、结果截图、失败日志和修复记录。</small></div><span class="mode practice">测试实操</span></div>
+              <div class="session"><div class="session-time">17:15-17:45</div><div class="session-type">日终 Gate</div><div class="session-main"><strong>技术 Review：跑得通，也接得住</strong><p>代码走查、功能验收、HITL 检查与次日部署风险排查。</p><small>通过标准：主流程、异常流程、人工接管、日志证据均可演示。</small></div><span class="mode practice">评审</span></div>
+              <div class="session"><div class="session-time">19:00-20:30</div><div class="session-type">晚间开放麦</div><div class="session-main"><strong>Bug Bash 与 Demo 彩排</strong><p>教练分台处理环境、前端、后端和模型问题；每组完成一次 5 分钟彩排。</p><small>冻结范围：20:30 后不再新增核心功能。</small></div><span class="mode practice">调试+彩排</span></div>
+            </div>
+          </article>
+
+          <article class="day-panel" id="day3" role="tabpanel" aria-labelledby="tab-day3">
+            <div class="day-intro">
+              <div><h3>第三天：让 Demo 成为可交付资产</h3><p>主题为 Docker 部署、可观测性、解决方案包装和项目路演。用现场验收完成从 Demo 到 Pilot 的最后一公里。</p></div>
+              <div class="day-output"><strong>最终产出</strong><span>部署包、操作手册、监控计划、方案 PPT、报价框架、Outcome Ledger、Pilot Proposal、路演视频</span></div>
+            </div>
+            <div class="schedule">
+              <div class="session"><div class="session-time">08:45-09:00</div><div class="session-type">晨会</div><div class="session-main"><strong>发布清单与角色分工</strong><p>明确发布负责人、验收人、演示人和答辩人，完成环境风险确认。</p><small>技术贴士：先锁版本，再部署。</small></div><span class="mode practice">站会</span></div>
+              <div class="session"><div class="session-time">09:00-09:40</div><div class="session-type">器：部署方法</div><div class="session-main"><strong>Docker 化、配置与发布策略</strong><p>镜像、环境变量、健康检查、数据卷、端口、安全配置、回滚与离线部署。</p><small>演示：从空环境到服务健康检查通过。</small></div><span class="mode mixed">讲授+演示</span></div>
+              <div class="session"><div class="session-time">09:40-10:30</div><div class="session-type">部署实操</div><div class="session-main"><strong>完成容器化与一键启动</strong><p>编写 Dockerfile、compose 文件和 README，处理依赖、跨域、端口与持久化问题。</p><small>交付件：部署脚本、配置样例和回滚说明。</small></div><span class="mode practice">小组实操</span></div>
+              <div class="break-row">课间休息 15 分钟</div>
+              <div class="session"><div class="session-time">10:45-12:00</div><div class="session-type">验收演练</div><div class="session-main"><strong>陌生环境部署与可观测性</strong><p>与其他小组交换部署包，从 README 独立启动；检查日志、指标、错误定位和数据清理。</p><small>Gate：交换组在 20 分钟内成功运行，关键故障可定位。</small></div><span class="mode practice">交叉验收</span></div>
+              <div class="session"><div class="session-time">13:30-14:00</div><div class="session-type">方案输入</div><div class="session-main"><strong>从功能演示到业务路演</strong><p>业务结果、Before/After、架构、Demo、Evals、成本、风险与 2-4 周 Pilot。</p><small>报价只讲口径，不在课堂虚构采购数字。</small></div><span class="mode">讲授</span></div>
+              <div class="session"><div class="session-time">14:00-15:00</div><div class="session-type">资产工坊</div><div class="session-main"><strong>方案 PPT、报价框架与 Outcome Ledger</strong><p>统一整理决策证据、技术资产、可复用组件、运维责任和试点成功标准。</p><small>交付件：10 页以内方案与 Pilot Proposal。</small></div><span class="mode practice">小组实操</span></div>
+              <div class="break-row">课间休息 15 分钟</div>
+              <div class="session"><div class="session-time">15:15-15:45</div><div class="session-type">路演预审</div><div class="session-main"><strong>红队质询与最终修正</strong><p>Customer Coach 追问价值，Technical Coach 追问架构，Risk Coach 追问安全与失败接管。</p><small>每组只允许修复影响 Go/No-Go 的问题。</small></div><span class="mode practice">红队评审</span></div>
+              <div class="session"><div class="session-time">15:45-17:15</div><div class="session-type">Demo Day</div><div class="session-main"><strong>项目路演与现场部署验收</strong><p>每组 10 分钟路演、5 分钟答辩。评委同步评分，展示正常流程和一个真实异常流程。</p><small>评价顺序：业务结果、用户流程、系统证据、风险接管、复制价值。</small></div><span class="mode practice">路演答辩</span></div>
+              <div class="session"><div class="session-time">17:15-17:45</div><div class="session-type">认证与复盘</div><div class="session-main"><strong>成绩校准、个人行动计划与结营</strong><p>公布认证结果与优秀项目，形成 30 天岗位实践计划和人才档案。</p><small>合格线 80 分，关键安全项一票否决。</small></div><span class="mode mixed">反馈+结营</span></div>
+              <div class="session"><div class="session-time">19:00-20:30</div><div class="session-type">选修开放麦</div><div class="session-main"><strong>优秀项目拆解与省内项目对接</strong><p>复盘可复用资产、真实项目迁移路径和后续技术社群机制。</p><small>面向优秀学员安排项目储备与导师跟踪。</small></div><span class="mode practice">分享+对接</span></div>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>六套行业案例母题</h2>
+          <p>主办方可替换为省内真实项目。所有案例均需提供客户背景、脱敏数据、接口说明、约束条件和期望业务结果。</p>
+        </div>
+        <div class="case-grid">
+          <article class="case">
+            <h3>主案例：政务服务智能预审</h3>
+            <p>群众提交材料后，系统识别事项、检查完整性、提示缺失材料并生成预审意见，最终由窗口人员确认。</p>
+            <dl>
+              <dt>业务结果</dt><dd>减少退件与重复跑动，缩短预审时长。</dd>
+              <dt>关键数据</dt><dd>事项清单、办事指南、材料样例、历史退件原因。</dd>
+              <dt>风险边界</dt><dd>AI 不作行政许可决定，不虚构政策依据，个人信息最小化使用。</dd>
+              <dt>技术挑战</dt><dd>OCR、RAG、结构化输出、规则校验、HITL 与审计日志。</dd>
+            </dl>
+          </article>
+          <article class="case"><h3>工业制造</h3><p>设备故障问答与维修工单助手。重点训练多模态资料、知识检索、工单流转和安全操作边界。</p></article>
+          <article class="case"><h3>教育</h3><p>招生政策咨询与材料核验。重点训练高并发问答、政策时效、引用溯源和未成年人信息保护。</p></article>
+          <article class="case"><h3>医疗</h3><p>院内知识助手与随访信息整理。仅做信息辅助，不做诊断，重点训练敏感数据、拒答与人工升级。</p></article>
+          <article class="case"><h3>文旅</h3><p>目的地行程生成与客诉协同。重点训练实时信息、工具调用、个性化推荐和服务闭环。</p></article>
+          <article class="case"><h3>园区运营</h3><p>企业服务政策匹配与诉求派单。重点训练企业画像、跨部门流程、权限控制和进度追踪。</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head">
+          <h2>项目交付链与标准模板</h2>
+          <p>模板不是为了填满表格，而是让每一次判断都能被下一阶段直接使用。</p>
+        </div>
+        <div class="toolchain">
+          <article class="tool-step"><strong>发现</strong><p>访谈提纲、Stakeholder Map、问题证据、Outcome Statement</p></article>
+          <article class="tool-step"><strong>定义</strong><p>Scoping 一页纸、Ontology、流程图、数据源登记册、PRD</p></article>
+          <article class="tool-step"><strong>构建</strong><p>Role Card、Prompt、代码仓库、Demo Script、HITL Plan</p></article>
+          <article class="tool-step"><strong>验证</strong><p>Eval Dataset、测试记录、风险登记册、部署验收单</p></article>
+          <article class="tool-step"><strong>复制</strong><p>方案 PPT、报价框架、Outcome Ledger、Pilot Proposal、Playbook</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section id="assessment">
+      <div class="container">
+        <div class="section-head">
+          <h2>考核、认证与一票否决</h2>
+          <p>沿用需求文档的五项权重，并把评分证据嵌入三天的实际产出，不额外制造“为了考试而考试”的任务。</p>
+        </div>
+        <div class="assessment-wrap">
+          <div class="rubric">
+            <div class="rubric-row"><div><strong>需求文档质量</strong><span>业务结果、用户流程、数据与权限、验收指标、非目标</span></div><b>20%</b></div>
+            <div class="rubric-row"><div><strong>Demo 功能与代码质量</strong><span>主流程、异常流程、代码结构、工具调用、Evals 与安全</span></div><b>30%</b></div>
+            <div class="rubric-row"><div><strong>解决方案路演</strong><span>价值表达、Demo 叙事、证据、成本口径、答辩表现</span></div><b>20%</b></div>
+            <div class="rubric-row"><div><strong>部署实操验收</strong><span>陌生环境启动、配置、健康检查、日志、回滚与手册</span></div><b>20%</b></div>
+            <div class="rubric-row"><div><strong>小组协作互评</strong><span>责任承担、反馈质量、版本纪律、知识共享</span></div><b>10%</b></div>
+          </div>
+          <aside class="gate">
+            <h3>认证门槛</h3>
+            <span class="score">≥80</span>
+            <p>达到合格线可获得 XX 移动 FDE 前沿部署工程师初级专项证书。</p>
+            <ul>
+              <li>项目必须可运行，静态页面或录屏不可代替现场演示。</li>
+              <li>部署验收不得为零分。</li>
+              <li>隐私、越权、密钥泄露等关键安全项触发一票否决。</li>
+              <li>小组成绩之外，个人须完成口头答辩与行动计划。</li>
+            </ul>
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section id="delivery">
+      <div class="container">
+        <div class="section-head">
+          <h2>培训结束后的标准化资产</h2>
+          <p>交付物分为主办方资产、教学运行资产和学员项目资产，便于复训、复制和进入真实项目。</p>
+        </div>
+        <div class="deliverables">
+          <article class="deliverable"><h3>课程与教学资产</h3><ul><li>完整培训讲义与讲师备注</li><li>学员实操操作手册</li><li>六套行业 Case Pack</li><li>教练提问卡与评审量表</li><li>每日晨会与开放麦脚本</li></ul></article>
+          <article class="deliverable"><h3>技术与方案资产</h3><ul><li>AI 编程工具配置包</li><li>标准化提示词模板库</li><li>常见故障 FAQ 与排障树</li><li>六套项目源码与 Docker 脚本</li><li>PRD、PPT、报价、部署模板</li></ul></article>
+          <article class="deliverable"><div><h3>每组必须提交</h3><ul><li>需求文档与数据源登记册</li><li>可运行 Demo 与代码仓库</li><li>20 条以上 Eval Dataset</li><li>部署包、操作手册与验收记录</li></ul></div><div><h3>人才运营沉淀</h3><ul><li>个人能力雷达与综合成绩</li><li>项目角色与贡献记录</li><li>30 天岗位实践行动计划</li><li>优秀项目库与省内项目储备名单</li></ul></div></article>
+        </div>
+      </div>
+    </section>
+
+    <section>
+      <div class="container">
+        <div class="section-head"><h2>开班前准备</h2></div>
+        <div class="ops-grid">
+          <article class="ops-card">
+            <h3>课前准备事项</h3>
+            <ol>
+              <li>学员完成基础测评与工具安装。</li>
+              <li>主办方确认六套案例及脱敏数据。</li>
+              <li>技术组验证网络、模型配额、镜像仓库和 Docker 环境。</li>
+              <li>按能力与岗位混编小组，避免纯业务组或纯技术组。</li>
+            </ol>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>三天 FDE 前沿部署工程师训练营课程设计</span>
+      <span>设计依据：FDE 培训需求与“道、法、术、器”课程方法论</span>
+    </div>
+  </footer>
+
+  <script>
+    const tabs = [...document.querySelectorAll('[role="tab"]')];
+    const panels = [...document.querySelectorAll('[role="tabpanel"]')];
+    const themeToggle = document.querySelector('#theme-toggle');
+
+    function syncThemeButton() {
+      const isDark = document.documentElement.dataset.theme === 'dark';
+      themeToggle.setAttribute('aria-pressed', String(isDark));
+      themeToggle.setAttribute('aria-label', isDark ? '切换到亮色主题' : '切换到暗色主题');
+      themeToggle.setAttribute('title', isDark ? '切换到亮色主题' : '切换到暗色主题');
+    }
+
+    themeToggle.addEventListener('click', () => {
+      const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = nextTheme;
+      try { localStorage.setItem('fde-theme', nextTheme); } catch (error) { /* 不影响本次切换 */ }
+      syncThemeButton();
+    });
+
+    syncThemeButton();
+
+    function activateTab(tab) {
+      tabs.forEach(item => item.setAttribute('aria-selected', String(item === tab)));
+      panels.forEach(panel => panel.classList.toggle('active', panel.id === tab.getAttribute('aria-controls')));
+      tab.focus();
+    }
+
+    tabs.forEach((tab, index) => {
+      tab.addEventListener('click', () => activateTab(tab));
+      tab.addEventListener('keydown', event => {
+        if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        let next = index;
+        if (event.key === 'ArrowRight') next = (index + 1) % tabs.length;
+        if (event.key === 'ArrowLeft') next = (index - 1 + tabs.length) % tabs.length;
+        if (event.key === 'Home') next = 0;
+        if (event.key === 'End') next = tabs.length - 1;
+        activateTab(tabs[next]);
+      });
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>为什么要再做一个 Agent 通讯平台 — 长截图</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  [data-theme="light"] {
+    --bg: #f4f4fb;
+    --surface: #ffffff;
+    --surface2: #f0f0fa;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #1a1a30;
+    --text2: #5a5a78;
+    --text3: #9898ac;
+    --accent: #5b4cc4;
+    --accent2: #7b6cf0;
+    --green: #009a7c;
+    --green-bg: rgba(0,154,124,0.06);
+    --green-border: rgba(0,154,124,0.18);
+    --red: #d44040;
+    --red-bg: rgba(212,64,64,0.06);
+    --red-border: rgba(212,64,64,0.18);
+    --orange: #b88020;
+    --orange-bg: rgba(184,128,32,0.06);
+    --orange-border: rgba(184,128,32,0.18);
+    --accent-bg: rgba(91,76,196,0.06);
+    --accent-border: rgba(91,76,196,0.15);
+    --code-bg: #1a1a30;
+    --code-border: rgba(91,76,196,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --quote-bg: rgba(91,76,196,0.04);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+    --key-border: rgba(91,76,196,0.12);
+    --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+  }
+
+  body {
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .slides-container { width: 1200px; margin: 0 auto; }
+
+  .slide {
+    min-height: 700px;
+    padding: 56px 100px;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    border-top: 1px solid var(--border);
+    position: relative;
+  }
+  .slide:first-child { border-top: none; }
+  .slide > * { max-width: 860px; width: 100%; }
+  .slide > .tag { width: auto; }
+
+  .slide-cover { text-align: center; align-items: center; }
+  .slide-cover h1 { color: var(--accent); }
+  .slide-cover .subtitle {
+    font-size: 20px; color: var(--text2); font-weight: 300;
+    line-height: 1.7; max-width: 650px; margin: 0 auto;
+  }
+  .slide-cover .meta { margin-top: 2.5rem; font-size: 15px; color: var(--text3); }
+  .slide-cover .divider {
+    width: 72px; height: 2px; margin: 2rem auto;
+    background: var(--progress-bg); border-radius: 1px;
+  }
+
+  .slide-end { text-align: center; align-items: center; }
+
+  h1 { font-size: 42px; font-weight: 900; line-height: 1.2; margin-bottom: 1.4rem; letter-spacing: -0.02em; }
+  h2 { font-size: 30px; font-weight: 700; line-height: 1.25; margin-bottom: 1.4rem; color: var(--accent2); }
+  h3 { font-size: 20px; font-weight: 600; line-height: 1.4; margin-bottom: 0.8rem; }
+
+  p, li { font-size: 18px; line-height: 1.85; color: var(--text); }
+
+  ul { list-style: none; padding-left: 0; }
+  ul li { position: relative; padding-left: 1.8em; margin-bottom: 0.7em; }
+  ul li::before {
+    content: ''; position: absolute; left: 0.2em; top: 0.75em;
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent);
+  }
+
+  .tag {
+    display: inline-block; padding: 0.3rem 1rem; border-radius: 20px;
+    font-size: 15px; font-weight: 600; margin-bottom: 1rem;
+  }
+  .tag-lesson { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+  .tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .tag-green { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+  .quote {
+    border-left: 3px solid var(--quote-border); padding: 1.2rem 1.6rem;
+    margin: 1.4rem 0; background: var(--quote-bg); border-radius: 0 8px 8px 0;
+    font-size: 18px; line-height: 1.8; color: var(--accent2); font-weight: 500;
+  }
+
+  .key-point {
+    background: var(--key-bg); border: 1px solid var(--key-border);
+    border-radius: 12px; padding: 1.6rem 1.8rem; margin-top: 1.4rem;
+  }
+  .key-point p { font-size: 17px; font-weight: 500; line-height: 1.8; }
+  .key-point strong { color: var(--accent2); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.6rem; margin-top: 1.2rem; }
+  .col-card {
+    background: var(--surface); border-radius: 14px; padding: 1.6rem;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .col-card h3 { margin-bottom: 0.9rem; }
+  .col-card.green-card h3 { color: var(--green); }
+  .col-card.orange-card h3 { color: var(--orange); }
+  .col-card.red-card h3 { color: var(--red); }
+  .col-card.accent-card h3 { color: var(--accent2); }
+  .col-card li { font-size: 14px; margin-bottom: 0.4em; line-height: 1.65; }
+
+  .vs-block { display: flex; align-items: stretch; gap: 0; margin-top: 1.4rem; }
+  .vs-side { flex: 1; padding: 1.6rem 1.6rem; border-radius: 12px; }
+  .vs-side.red-side { background: var(--red-bg); border: 1px solid var(--red-border); border-radius: 12px 0 0 12px; }
+  .vs-side.green-side { background: var(--green-bg); border: 1px solid var(--green-border); border-radius: 0 12px 12px 0; }
+  .vs-side h4 { font-size: 17px; font-weight: 700; margin-bottom: 0.7rem; }
+  .vs-side.red-side h4 { color: var(--red); }
+  .vs-side.green-side h4 { color: var(--green); }
+  .vs-side li { font-size: 15px; line-height: 1.7; margin-bottom: 0.4em; }
+  .vs-divider { width: 3px; background: var(--border-strong); flex-shrink: 0; }
+
+  .steps { display: flex; flex-direction: column; gap: 0.8rem; margin-top: 1.2rem; }
+  .step-card {
+    background: var(--surface); border-radius: 12px; padding: 1.2rem 1.5rem;
+    border: 1px solid var(--border); box-shadow: var(--shadow);
+    display: flex; gap: 1.1rem; align-items: center;
+  }
+  .step-label {
+    flex-shrink: 0; padding: 0.3rem 0.8rem; border-radius: 6px;
+    font-size: 13px; font-weight: 700; letter-spacing: 0.04em;
+  }
+  .step-label.waterfall { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+  .step-label.agile { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .step-label.red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .step-label.orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+  .step-body { font-size: 16px; line-height: 1.7; }
+  .step-body strong { color: var(--accent2); }
+
+  .diagram-container { margin: 1.4rem 0; }
+  .diagram-container svg text { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; }
+  .diagram-container svg .mono { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; }
+</style>
+</head>
+<body>
+<div class="slides-container">
+
+  <!-- ====== Slide 1: 封面 ====== -->
+  <div class="slide slide-cover">
+    <span class="tag tag-section">AgentsZone</span>
+    <h1>为什么要再做一个<br>Agent 通讯平台</h1>
+    <div class="divider"></div>
+    <p class="subtitle">当 IM 接入已经"够用"的时候，我为什么还要造轮子</p>
+    <p class="meta">个人项目 · 2026.4</p>
+  </div>
+
+  <!-- ====== Slide 2: 现状 ====== -->
+  <div class="slide">
+    <span class="tag tag-section">现状</span>
+    <h2>Agent 接入 IM 已经很成熟了</h2>
+    <p>OpenClaw、Hermes、各种 Claw 产品，接飞书、钉钉、Slack、Discord……看起来通讯问题已经解决了。</p>
+    <div class="vs-block" style="margin-top:1.2rem;">
+      <div class="vs-side green-side">
+        <h4>IM 接入能做的事</h4>
+        <ul>
+          <li>消息收发、@提及触发 Agent</li>
+          <li>多平台统一入口</li>
+          <li>用户无需安装新 App</li>
+          <li>天然的消息通知能力</li>
+        </ul>
+      </div>
+      <div class="vs-divider"></div>
+      <div class="vs-side red-side">
+        <h4>IM 接入做不到的事</h4>
+        <ul>
+          <li>内网隔离环境无法使用</li>
+          <li>无法管理任务生命周期</li>
+          <li>Agent 间无法结构化通信</li>
+          <li>数据必须经过第三方</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:1.2rem;">
+      IM 是一个优秀的「人对人」通讯层，但 Agent 需要的远不止消息转发。
+    </div>
+  </div>
+
+  <!-- ====== Slide 3: 五大场景 ====== -->
+  <div class="slide">
+    <span class="tag tag-red">问题</span>
+    <h2>五大场景 IM 搞不定</h2>
+    <div class="diagram-container">
+      <svg width="800" height="420" viewBox="0 0 800 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="240" height="130" rx="12" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="222" y="30" text-anchor="end" font-size="32" font-weight="900" fill="var(--red)" opacity="0.18">01</text>
+        <text x="24" y="34" font-size="14" font-weight="700" fill="var(--red)">内网安全隔离</text>
+        <text x="24" y="56" font-size="12" fill="var(--text2)">企业内网、研发环境、涉密系统</text>
+        <text x="24" y="76" font-size="12" fill="var(--text2)">数据绝不能经过第三方 IM 服务器</text>
+        <rect x="24" y="92" width="192" height="26" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="120" y="109" text-anchor="middle" font-size="10" fill="var(--text3)">安全合规 &gt; 便利性</text>
+
+        <rect x="280" y="0" width="240" height="130" rx="12" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="502" y="30" text-anchor="end" font-size="32" font-weight="900" fill="var(--red)" opacity="0.18">02</text>
+        <text x="304" y="34" font-size="14" font-weight="700" fill="var(--red)">私有云 / 专属部署</text>
+        <text x="304" y="56" font-size="12" fill="var(--text2)">自主控制通信通道</text>
+        <text x="304" y="76" font-size="12" fill="var(--text2)">不依赖外部 SaaS 平台的可用性</text>
+        <rect x="304" y="92" width="192" height="26" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="400" y="109" text-anchor="middle" font-size="10" fill="var(--text3)">自主可控 &gt; 第三方托管</text>
+
+        <rect x="560" y="0" width="240" height="130" rx="12" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="782" y="30" text-anchor="end" font-size="32" font-weight="900" fill="var(--red)" opacity="0.18">03</text>
+        <text x="584" y="34" font-size="14" font-weight="700" fill="var(--red)">多 Agent 深度协作</text>
+        <text x="584" y="56" font-size="12" fill="var(--text2)">IM 只是消息转发管道</text>
+        <text x="584" y="76" font-size="12" fill="var(--text2)">无法支持结构化协议和 Artifact 传递</text>
+        <rect x="584" y="92" width="192" height="26" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="680" y="109" text-anchor="middle" font-size="10" fill="var(--text3)">结构化协议 &gt; 纯文本消息</text>
+
+        <rect x="140" y="160" width="240" height="130" rx="12" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="362" y="190" text-anchor="end" font-size="32" font-weight="900" fill="var(--red)" opacity="0.18">04</text>
+        <text x="164" y="194" font-size="14" font-weight="700" fill="var(--red)">任务生命周期管理</text>
+        <text x="164" y="216" font-size="12" fill="var(--text2)">Agent 任务有完整状态机</text>
+        <text x="164" y="236" font-size="12" fill="var(--text2)">提交 → 执行 → 完成/失败/取消</text>
+        <rect x="164" y="252" width="192" height="26" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="260" y="269" text-anchor="middle" font-size="10" fill="var(--text3)">状态机 &gt; 已发/已读</text>
+
+        <rect x="420" y="160" width="240" height="130" rx="12" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="642" y="190" text-anchor="end" font-size="32" font-weight="900" fill="var(--red)" opacity="0.18">05</text>
+        <text x="444" y="194" font-size="14" font-weight="700" fill="var(--red)">跨设备 / 跨网络拓扑</text>
+        <text x="444" y="216" font-size="12" fill="var(--text2)">LAN 直连、Bridge 网关、远程接入</text>
+        <text x="444" y="236" font-size="12" fill="var(--text2)">需要灵活的网络拓扑能力</text>
+        <rect x="444" y="252" width="192" height="26" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="540" y="269" text-anchor="middle" font-size="10" fill="var(--text3)">灵活组网 &gt; 单点连接</text>
+
+        <rect x="160" y="320" width="480" height="50" rx="10" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="400" y="350" text-anchor="middle" font-size="14" font-weight="600" fill="var(--accent2)">共同点：需要一个 Agent 原生的通讯层，而不是套一个 IM</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== Slide 4: 我们的方案 ====== -->
+  <div class="slide">
+    <span class="tag tag-green">方案</span>
+    <h2>AgentsZone —— Agent 原生通讯平台</h2>
+    <p>不依赖任何第三方 IM，为 Agent 间协作设计的专用通讯层。</p>
+    <div class="cols" style="margin-top:1rem;">
+      <div class="col-card accent-card"><h3>A2A 协议</h3><ul><li>Google A2A v1.0.0 标准</li><li>Agent-to-Agent 通信协议</li><li>任务委派 + Artifact 共享</li></ul></div>
+      <div class="col-card green-card"><h3>JSON-RPC 2.0</h3><ul><li>标准化远程调用</li><li>sendMessage / streamMessage</li><li>getTask / cancelTask / listTasks</li></ul></div>
+      <div class="col-card orange-card"><h3>Zone Protocol</h3><ul><li>七层上下文编排</li><li>精确 Token 预算分配</li><li>多 Agent 协作上下文管理</li></ul></div>
+      <div class="col-card green-card"><h3>多 Runtime</h3><ul><li>统一 Agent 抽象层</li><li>Claude Code / Codex 支持</li><li>LAN / 远程连接能力</li></ul></div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>核心思路：<strong>Agent 不应该通过「人用的聊天工具」来协作</strong>，它们需要自己的通讯协议。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 5: A2A 协议 ====== -->
+  <div class="slide">
+    <span class="tag tag-section">协议</span>
+    <h2>A2A 协议数据模型</h2>
+    <div class="diagram-container">
+      <svg width="860" height="440" viewBox="0 0 860 440" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="0" width="400" height="200" rx="14" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <rect x="20" y="0" width="400" height="40" rx="14" fill="var(--accent-bg)"/>
+        <rect x="20" y="28" width="400" height="12" fill="var(--accent-bg)"/>
+        <text x="220" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="var(--accent2)">Message</text>
+
+        <rect x="36" y="50" width="368" height="34" rx="6" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="1"/>
+        <text x="48" y="72" font-size="13" font-weight="600" fill="var(--accent2)">role</text>
+        <text x="80" y="72" font-size="13" fill="var(--text2)">: User | Agent | System</text>
+
+        <rect x="36" y="92" width="368" height="40" rx="6" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="1"/>
+        <text x="48" y="116" font-size="13" font-weight="600" fill="var(--accent2)">parts</text>
+        <text x="90" y="116" font-size="13" fill="var(--text2)">: Vec&lt;Part&gt;</text>
+        <rect x="200" y="98" width="56" height="22" rx="4" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="228" y="113" text-anchor="middle" font-size="10" font-weight="600" fill="var(--green)">Text</text>
+        <rect x="264" y="98" width="48" height="22" rx="4" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <text x="288" y="113" text-anchor="middle" font-size="10" font-weight="600" fill="var(--orange)">File</text>
+        <rect x="320" y="98" width="48" height="22" rx="4" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="344" y="113" text-anchor="middle" font-size="10" font-weight="600" fill="var(--accent2)">Data</text>
+        <rect x="376" y="98" width="18" height="22" rx="4" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="385" y="113" text-anchor="middle" font-size="8" font-weight="600" fill="var(--red)">+1</text>
+
+        <rect x="36" y="142" width="175" height="34" rx="6" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="1"/>
+        <text x="48" y="164" font-size="12" font-weight="600" fill="var(--accent2)">context</text>
+        <text x="108" y="164" font-size="12" fill="var(--text2)">: Option&lt;String&gt;</text>
+        <rect x="223" y="142" width="181" height="34" rx="6" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="1"/>
+        <text x="235" y="164" font-size="12" font-weight="600" fill="var(--accent2)">metadata</text>
+        <text x="305" y="164" font-size="12" fill="var(--text2)">: Option&lt;Value&gt;</text>
+
+        <rect x="460" y="0" width="380" height="200" rx="14" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <rect x="460" y="0" width="380" height="40" rx="14" fill="var(--orange-bg)"/>
+        <rect x="460" y="28" width="380" height="12" fill="var(--orange-bg)"/>
+        <text x="650" y="27" text-anchor="middle" font-size="16" font-weight="700" fill="var(--orange)">Task — 核心工作单元</text>
+
+        <text x="480" y="62" font-size="13" fill="var(--text)">id: <tspan class="mono" fill="var(--code-text)">"task-{:x}"</tspan></text>
+        <text x="480" y="84" font-size="13" fill="var(--text)">status: <tspan fill="var(--text2)">TaskStatus 状态机</tspan></text>
+        <text x="480" y="106" font-size="13" fill="var(--text)">session_id: <tspan fill="var(--text2)">多轮对话复用</tspan></text>
+        <text x="480" y="128" font-size="13" fill="var(--text)">messages: <tspan fill="var(--text2)">Vec&lt;Message&gt; 对话记录</tspan></text>
+        <text x="480" y="150" font-size="13" fill="var(--text)">artifacts: <tspan fill="var(--text2)">Vec&lt;Artifact&gt; 产出物</tspan></text>
+        <text x="480" y="172" font-size="13" fill="var(--text)">metadata: <tspan fill="var(--text2)">扩展数据</tspan></text>
+
+        <rect x="480" y="182" width="340" height="10" rx="0" fill="var(--orange-bg)"/>
+
+        <rect x="20" y="218" width="400" height="100" rx="14" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <rect x="20" y="218" width="400" height="36" rx="14" fill="var(--green-bg)"/>
+        <rect x="20" y="242" width="400" height="12" fill="var(--green-bg)"/>
+        <text x="220" y="243" text-anchor="middle" font-size="15" font-weight="700" fill="var(--green)">Artifact — Agent 产出物</text>
+        <text x="40" y="278" font-size="13" fill="var(--text)">id + name + description + parts: Vec&lt;Part&gt;</text>
+        <text x="40" y="300" font-size="11" fill="var(--text3)">tool_use → Artifact{Data{input}}, tool_result → Artifact{Data{content}}</text>
+
+        <rect x="460" y="218" width="380" height="100" rx="14" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <rect x="460" y="218" width="380" height="36" rx="14" fill="var(--accent-bg)"/>
+        <rect x="460" y="242" width="380" height="12" fill="var(--accent-bg)"/>
+        <text x="650" y="243" text-anchor="middle" font-size="15" font-weight="700" fill="var(--accent2)">AgentCard — 自描述</text>
+        <text x="480" y="278" font-size="13" fill="var(--text)">name, endpoint, capabilities</text>
+        <text x="480" y="298" font-size="13" fill="var(--text)">supported_operations, auth.schemes, version</text>
+
+        <rect x="20" y="334" width="820" height="96" rx="14" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="40" y="362" font-size="14" font-weight="700" fill="var(--text)">Bridge ↔ StreamEvent 双向转换</text>
+        <rect x="40" y="376" width="180" height="38" rx="6" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="130" y="400" text-anchor="middle" font-size="11" font-weight="500" fill="var(--accent2)">StreamEvent → Message</text>
+        <text x="232" y="400" font-size="16" fill="var(--text3)">&harr;</text>
+        <rect x="248" y="376" width="180" height="38" rx="6" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="338" y="400" text-anchor="middle" font-size="11" font-weight="500" fill="var(--green)">Message → StreamEvent</text>
+        <text x="440" y="390" font-size="11" fill="var(--text3)">role 映射：</text>
+        <text x="440" y="408" font-size="11" fill="var(--text2)">assistant→Agent, user→User, system→System</text>
+        <rect x="640" y="376" width="180" height="38" rx="6" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <text x="650" y="392" font-size="10" font-weight="500" fill="var(--orange)">content_blocks</text>
+        <text x="650" y="408" font-size="10" fill="var(--text2)">→ Artifact 存入 metadata</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== Slide 6: JSON-RPC ====== -->
+  <div class="slide">
+    <span class="tag tag-section">通信</span>
+    <h2>JSON-RPC 2.0 + SSE 双模式通信</h2>
+    <div class="diagram-container">
+      <svg width="800" height="460" viewBox="0 0 800 460" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="20" y="0" width="150" height="44" rx="10" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <text x="95" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="var(--accent2)">Caller</text>
+        <rect x="630" y="0" width="150" height="44" rx="10" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1.5"/>
+        <text x="705" y="28" text-anchor="middle" font-size="15" font-weight="700" fill="var(--green)">Agent Server</text>
+
+        <line x1="170" y1="62" x2="630" y2="62" stroke="var(--accent)" stroke-width="2"/>
+        <polygon points="630,57 644,62 630,67" fill="var(--accent)"/>
+        <text x="400" y="56" text-anchor="middle" font-size="12" font-weight="500" fill="var(--accent2)">sendMessage (stream: true)</text>
+
+        <rect x="170" y="72" width="460" height="62" rx="8" fill="var(--code-bg)" stroke="var(--code-border)" stroke-width="1"/>
+        <text x="186" y="92" font-size="11" fill="var(--code-text)" class="mono">{ "jsonrpc": "2.0", "method": "sendMessage",</text>
+        <text x="186" y="108" font-size="11" fill="var(--code-text)" class="mono">  "params": { "task": {...}, "stream": true }, "id": 1 }</text>
+
+        <rect x="20" y="148" width="380" height="140" rx="10" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1.5"/>
+        <text x="40" y="172" font-size="13" font-weight="700" fill="var(--green)">模式 A：SSE 流式</text>
+        <text x="40" y="196" font-size="10" fill="var(--text2)">Content-Type: text/event-stream</text>
+        <rect x="40" y="206" width="340" height="68" rx="6" fill="var(--code-bg)" stroke="var(--code-border)" stroke-width="1"/>
+        <text x="52" y="224" font-size="10" fill="var(--code-text)" class="mono">event: message</text>
+        <text x="52" y="240" font-size="10" fill="var(--code-text)" class="mono">data: {"role":"agent","parts":[...]}</text>
+        <text x="52" y="256" font-size="10" fill="var(--code-text)" class="mono">event: done</text>
+        <text x="52" y="272" font-size="10" fill="var(--code-text)" class="mono">data: {"role":"system","parts":[...]}</text>
+
+        <rect x="420" y="148" width="360" height="140" rx="10" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1.5"/>
+        <text x="440" y="172" font-size="13" font-weight="700" fill="var(--orange)">模式 B：Polling 降级</text>
+        <text x="440" y="196" font-size="10" fill="var(--text2)">远端不支持 SSE 时自动切换</text>
+        <rect x="440" y="206" width="136" height="28" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="508" y="224" text-anchor="middle" font-size="10" font-weight="600" fill="var(--accent2)">getTask (JSON-RPC)</text>
+        <text x="588" y="224" font-size="14" fill="var(--text3)">每 3s</text>
+        <rect x="440" y="244" width="320" height="32" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="452" y="264" font-size="10" fill="var(--text2)">轮询直到 COMPLETED / FAILED / CANCELED（超时 5min）</text>
+
+        <line x1="20" y1="300" x2="780" y2="300" stroke="var(--border-strong)" stroke-width="1" stroke-dasharray="6 4"/>
+        <text x="20" y="326" font-size="14" font-weight="700" fill="var(--text)">A2ATransport Trait — 6 个方法</text>
+
+        <rect x="20" y="340" width="150" height="48" rx="8" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="95" y="360" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent2)">sendMessage</text>
+        <text x="95" y="376" text-anchor="middle" font-size="10" fill="var(--text2)">Task + Message → Response</text>
+
+        <rect x="186" y="340" width="150" height="48" rx="8" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="261" y="360" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent2)">streamMessage</text>
+        <text x="261" y="376" text-anchor="middle" font-size="10" fill="var(--text2)">→ Receiver&lt;StreamEvent&gt;</text>
+
+        <rect x="352" y="340" width="120" height="48" rx="8" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="412" y="360" text-anchor="middle" font-size="13" font-weight="600" fill="var(--green)">getTask</text>
+        <text x="412" y="376" text-anchor="middle" font-size="10" fill="var(--text2)">id → Task</text>
+
+        <rect x="488" y="340" width="120" height="48" rx="8" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <text x="548" y="360" text-anchor="middle" font-size="13" font-weight="600" fill="var(--orange)">cancelTask</text>
+        <text x="548" y="376" text-anchor="middle" font-size="10" fill="var(--text2)">id → Task</text>
+
+        <rect x="20" y="400" width="120" height="48" rx="8" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+        <text x="80" y="420" text-anchor="middle" font-size="13" font-weight="600" fill="var(--text2)">listTasks</text>
+        <text x="80" y="436" text-anchor="middle" font-size="10" fill="var(--text3)">→ Vec&lt;Task&gt;</text>
+
+        <rect x="156" y="400" width="150" height="48" rx="8" fill="var(--red-bg)" stroke="var(--red-border)" stroke-width="1"/>
+        <text x="231" y="420" text-anchor="middle" font-size="13" font-weight="600" fill="var(--red)">getAgentCard</text>
+        <text x="231" y="436" text-anchor="middle" font-size="10" fill="var(--text2)">GET /agent-card</text>
+
+        <rect x="322" y="400" width="180" height="48" rx="8" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="342" y="420" font-size="10" font-weight="500" fill="var(--green)">Auth:</text>
+        <text x="342" y="436" font-size="10" fill="var(--text2)">Bearer Token via Keyring 存储</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== Slide 7: Task 生命周期 ====== -->
+  <div class="slide">
+    <span class="tag tag-section">状态机</span>
+    <h2>Task 生命周期</h2>
+    <p>每个 Agent 任务都有完整的状态流转，IM 消息模型完全无法支撑。</p>
+    <div class="diagram-container">
+      <svg width="800" height="350" viewBox="0 0 800 350" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="100" cy="110" r="48" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="2"/>
+        <text x="100" y="106" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent2)">SUBMITTED</text>
+        <text x="100" y="122" text-anchor="middle" font-size="11" fill="var(--text3)">提交</text>
+
+        <line x1="148" y1="110" x2="238" y2="110" stroke="var(--accent)" stroke-width="2"/>
+        <polygon points="238,105 252,110 238,115" fill="var(--accent)"/>
+
+        <circle cx="310" cy="110" r="56" fill="var(--accent-bg)" stroke="var(--accent)" stroke-width="2.5"/>
+        <text x="310" y="106" text-anchor="middle" font-size="15" font-weight="700" fill="var(--accent2)">WORKING</text>
+        <text x="310" y="124" text-anchor="middle" font-size="11" fill="var(--text3)">执行中</text>
+
+        <line x1="366" y1="110" x2="470" y2="110" stroke="var(--green)" stroke-width="2"/>
+        <polygon points="470,105 484,110 470,115" fill="var(--green)"/>
+        <text x="418" y="100" text-anchor="middle" font-size="11" fill="var(--green)">成功</text>
+
+        <circle cx="536" cy="110" r="48" fill="var(--green-bg)" stroke="var(--green)" stroke-width="2"/>
+        <text x="536" y="106" text-anchor="middle" font-size="13" font-weight="700" fill="var(--green)">COMPLETED</text>
+        <text x="536" y="122" text-anchor="middle" font-size="11" fill="var(--text3)">完成</text>
+
+        <line x1="310" y1="166" x2="310" y2="224" stroke="var(--red)" stroke-width="2"/>
+        <polygon points="305,224 310,238 315,224" fill="var(--red)"/>
+        <text x="328" y="200" font-size="11" fill="var(--red)">失败</text>
+
+        <circle cx="310" cy="280" r="44" fill="var(--red-bg)" stroke="var(--red)" stroke-width="1.5"/>
+        <text x="310" y="276" text-anchor="middle" font-size="13" font-weight="700" fill="var(--red)">FAILED</text>
+        <text x="310" y="292" text-anchor="middle" font-size="11" fill="var(--text3)">失败</text>
+
+        <line x1="366" y1="142" x2="486" y2="232" stroke="var(--orange)" stroke-width="1.5"/>
+        <polygon points="486,228 494,240 480,236" fill="var(--orange)"/>
+        <text x="434" y="190" font-size="11" fill="var(--orange)">取消</text>
+
+        <circle cx="520" cy="260" r="44" fill="var(--orange-bg)" stroke="var(--orange)" stroke-width="1.5"/>
+        <text x="520" y="256" text-anchor="middle" font-size="13" font-weight="700" fill="var(--orange)">CANCELED</text>
+        <text x="520" y="272" text-anchor="middle" font-size="11" fill="var(--text3)">取消</text>
+
+        <circle cx="100" cy="280" r="44" fill="var(--red-bg)" stroke="var(--red)" stroke-width="1.5"/>
+        <text x="100" y="276" text-anchor="middle" font-size="13" font-weight="700" fill="var(--red)">REJECTED</text>
+        <text x="100" y="292" text-anchor="middle" font-size="11" fill="var(--text3)">拒绝</text>
+
+        <line x1="100" y1="158" x2="100" y2="234" stroke="var(--red)" stroke-width="1.5"/>
+        <polygon points="95,234 100,248 105,234" fill="var(--red)"/>
+        <text x="118" y="206" font-size="11" fill="var(--red)">拒绝</text>
+
+        <rect x="610" y="60" width="170" height="52" rx="26" fill="var(--orange-bg)" stroke="var(--orange)" stroke-width="1.5"/>
+        <text x="695" y="90" text-anchor="middle" font-size="13" font-weight="600" fill="var(--orange)">INPUT_REQUIRED</text>
+        <path d="M366 128 Q490 140 610 86" fill="none" stroke="var(--orange)" stroke-width="1.2" stroke-dasharray="5 3"/>
+        <text x="500" y="120" font-size="10" fill="var(--orange)">需要输入</text>
+
+        <rect x="610" y="130" width="170" height="52" rx="26" fill="var(--red-bg)" stroke="var(--red)" stroke-width="1.5"/>
+        <text x="695" y="160" text-anchor="middle" font-size="13" font-weight="600" fill="var(--red)">AUTH_REQUIRED</text>
+
+        <rect x="600" y="210" width="180" height="80" rx="8" fill="var(--surface)" stroke="var(--border-strong)" stroke-width="1"/>
+        <text x="616" y="234" font-size="11" font-weight="600" fill="var(--text)">状态分类</text>
+        <circle cx="616" cy="254" r="5" fill="var(--accent)"/><text x="630" y="258" font-size="11" fill="var(--text2)">进行态</text>
+        <circle cx="700" cy="254" r="5" fill="var(--green)"/><text x="714" y="258" font-size="11" fill="var(--text2)">成功终态</text>
+        <circle cx="616" cy="274" r="5" fill="var(--red)"/><text x="630" y="278" font-size="11" fill="var(--text2)">失败终态</text>
+        <circle cx="700" cy="274" r="5" fill="var(--orange)"/><text x="714" y="278" font-size="11" fill="var(--text2)">等待/取消</text>
+      </svg>
+    </div>
+    <div class="key-point">
+      <p><strong>IM 的局限：</strong>IM 只有「已发送 / 已读」两个状态，无法表达 Agent 任务的复杂生命周期。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 8: Zone Protocol ====== -->
+  <div class="slide">
+    <span class="tag tag-section">编排</span>
+    <h2>Zone Protocol — 七层上下文架构</h2>
+    <p>精确控制 Token 预算分配，让多个 Agent 在同一个 Channel 中高效协作。</p>
+    <div class="diagram-container">
+      <svg width="800" height="380" viewBox="0 0 800 380" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <text x="20" y="20" font-size="12" font-weight="600" fill="var(--text3)">Prompt 组装顺序（自底向上注入）</text>
+
+        <rect x="20" y="32" width="760" height="44" rx="8" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1.5"/>
+        <rect x="20" y="32" width="54" height="44" rx="8" fill="var(--green-bg)"/>
+        <text x="47" y="59" text-anchor="middle" font-size="13" font-weight="700" fill="var(--green)">L7</text>
+        <text x="88" y="51" font-size="14" font-weight="600" fill="var(--green)">System Reminders</text>
+        <text x="88" y="67" font-size="11" fill="var(--text2)">动态上下文：当前日期、Channel 描述、运行时限制</text>
+        <rect x="676" y="42" width="86" height="24" rx="5" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="719" y="58" text-anchor="middle" font-size="10" font-weight="600" fill="var(--green)">运行时注入</text>
+
+        <rect x="20" y="86" width="760" height="44" rx="8" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <rect x="20" y="86" width="54" height="44" rx="8" fill="var(--accent-bg)"/>
+        <text x="47" y="113" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent2)">L6</text>
+        <text x="88" y="105" font-size="14" font-weight="600" fill="var(--text)">Conversation History</text>
+        <text x="88" y="121" font-size="11" fill="var(--text2)">JSONL 对话记录、完整历史消息</text>
+
+        <rect x="20" y="140" width="760" height="44" rx="8" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <rect x="20" y="140" width="54" height="44" rx="8" fill="var(--accent-bg)"/>
+        <text x="47" y="167" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent2)">L5</text>
+        <text x="88" y="159" font-size="14" font-weight="600" fill="var(--text)">Persistent Memory</text>
+        <text x="88" y="175" font-size="11" fill="var(--text2)">memory/MEMORY.md、长期记忆与历史摘要</text>
+
+        <rect x="20" y="194" width="760" height="44" rx="8" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <rect x="20" y="194" width="54" height="44" rx="8" fill="var(--accent-bg)"/>
+        <text x="47" y="221" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent2)">L4</text>
+        <text x="88" y="213" font-size="14" font-weight="600" fill="var(--text)">Environment Context</text>
+        <text x="88" y="229" font-size="11" fill="var(--text2)">USER.md + AGENTS.md + TOOLS.md</text>
+
+        <rect x="20" y="248" width="760" height="44" rx="8" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <rect x="20" y="248" width="54" height="44" rx="8" fill="var(--orange-bg)"/>
+        <text x="47" y="275" text-anchor="middle" font-size="13" font-weight="700" fill="var(--orange)">L3</text>
+        <text x="88" y="267" font-size="14" font-weight="600" fill="var(--text)">Role Definition</text>
+        <text x="88" y="283" font-size="11" fill="var(--text2)">IDENTITY.md + SOUL.md、角色与人格定义</text>
+
+        <rect x="20" y="302" width="760" height="44" rx="8" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <rect x="20" y="302" width="54" height="44" rx="8" fill="var(--accent-bg)"/>
+        <text x="47" y="329" text-anchor="middle" font-size="13" font-weight="700" fill="var(--accent2)">L2</text>
+        <text x="88" y="321" font-size="14" font-weight="600" fill="var(--text)">Zone Protocol</text>
+        <text x="88" y="337" font-size="11" fill="var(--text2)">Channel 成员表、协作规则、@mention 协议、Task Suggestion</text>
+
+        <rect x="20" y="354" width="760" height="24" rx="6" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="88" y="370" font-size="11" font-weight="600" fill="var(--text3)">L1 Runtime System Prompt — 由 Agent Runtime 自带（Claude Code / Codex），不在此注入</text>
+
+        <line x1="796" y1="378" x2="796" y2="44" stroke="var(--green-border)" stroke-width="2"/>
+        <polygon points="792,44 796,34 800,44" fill="var(--green)"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== Slide 9: 网络架构 ====== -->
+  <div class="slide">
+    <span class="tag tag-section">网络</span>
+    <h2>从 LAN 到远程：Connection-Centric 架构</h2>
+    <div class="diagram-container">
+      <svg width="800" height="420" viewBox="0 0 800 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="370" height="200" rx="16" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1.5" stroke-dasharray="8 4"/>
+        <text x="20" y="26" font-size="14" font-weight="700" fill="var(--accent2)">LAN / 内网 (Local)</text>
+
+        <rect x="20" y="42" width="105" height="54" rx="8" fill="var(--surface)" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <text x="72" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent2)">Agent A</text>
+        <text x="72" y="84" text-anchor="middle" font-size="10" fill="var(--text3)">Claude Code</text>
+
+        <rect x="140" y="42" width="105" height="54" rx="8" fill="var(--surface)" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <text x="192" y="66" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent2)">Agent B</text>
+        <text x="192" y="84" text-anchor="middle" font-size="10" fill="var(--text3)">Codex</text>
+
+        <rect x="20" y="112" width="105" height="54" rx="8" fill="var(--surface)" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <text x="72" y="136" text-anchor="middle" font-size="13" font-weight="600" fill="var(--accent2)">Agent C</text>
+        <text x="72" y="154" text-anchor="middle" font-size="10" fill="var(--text3)">Claude Code</text>
+
+        <rect x="140" y="112" width="210" height="54" rx="10" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="2"/>
+        <text x="245" y="136" text-anchor="middle" font-size="14" font-weight="700" fill="var(--green)">A2A Server</text>
+        <text x="245" y="154" text-anchor="middle" font-size="10" fill="var(--green)">TCP 0.0.0.0:8080 + Unix Socket</text>
+
+        <line x1="125" y1="69" x2="140" y2="69" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <line x1="72" y1="96" x2="72" y2="112" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <line x1="72" y1="139" x2="140" y2="139" stroke="var(--accent-border)" stroke-width="1.5"/>
+        <line x1="192" y1="96" x2="192" y2="112" stroke="var(--accent-border)" stroke-width="1.5"/>
+
+        <rect x="400" y="30" width="140" height="160" rx="12" fill="var(--orange-bg)" stroke="var(--orange)" stroke-width="2"/>
+        <text x="470" y="56" text-anchor="middle" font-size="14" font-weight="700" fill="var(--orange)">Bridge Server</text>
+        <text x="470" y="76" text-anchor="middle" font-size="10" fill="var(--text2)">az-bridge 独立二进制</text>
+
+        <rect x="414" y="88" width="112" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="470" y="103" text-anchor="middle" font-size="9" class="mono" fill="var(--code-text)">sendMessage</text>
+        <rect x="414" y="116" width="112" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="470" y="131" text-anchor="middle" font-size="9" class="mono" fill="var(--code-text)">streamMessage</text>
+        <rect x="414" y="144" width="112" height="22" rx="4" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="470" y="159" text-anchor="middle" font-size="9" class="mono" fill="var(--orange)">bridge.getAgents</text>
+
+        <line x1="400" y1="100" x2="370" y2="100" stroke="var(--orange)" stroke-width="2"/>
+        <polygon points="370,95 356,100 370,105" fill="var(--orange)"/>
+
+        <rect x="570" y="0" width="230" height="200" rx="16" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1.5" stroke-dasharray="8 4"/>
+        <text x="590" y="26" font-size="14" font-weight="700" fill="var(--green)">远程 (Remote)</text>
+
+        <line x1="540" y1="100" x2="570" y2="100" stroke="var(--green)" stroke-width="2"/>
+        <polygon points="570,95 584,100 570,105" fill="var(--green)"/>
+
+        <rect x="590" y="42" width="190" height="36" rx="6" fill="var(--surface)" stroke="var(--green-border)" stroke-width="1.5"/>
+        <text x="685" y="64" text-anchor="middle" font-size="11" font-weight="600" fill="var(--green)">RemoteConnection</text>
+
+        <text x="590" y="98" font-size="11" font-weight="600" fill="var(--text)">endpoint_url</text>
+        <text x="590" y="118" font-size="10" fill="var(--text2)">https://dev:8443/a2a</text>
+        <text x="710" y="98" font-size="11" font-weight="600" fill="var(--text)">auth_type</text>
+        <text x="710" y="118" font-size="10" fill="var(--text2)">ApiKey / OAuth2</text>
+
+        <rect x="590" y="132" width="190" height="52" rx="8" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="600" y="152" font-size="10" font-weight="600" fill="var(--text3)">Health Check</text>
+        <text x="600" y="170" font-size="10" class="mono" fill="var(--code-text)">GET /agent-card → AgentCard</text>
+
+        <rect x="0" y="220" width="380" height="190" rx="12" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="20" y="246" font-size="14" font-weight="700" fill="var(--text)">ConnectionMode：本地 vs 远程统一抽象</text>
+
+        <rect x="20" y="260" width="340" height="34" rx="6" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="30" y="281" font-size="11" font-weight="600" fill="var(--accent2)">Local</text>
+        <text x="72" y="281" font-size="11" fill="var(--text2)">= CLI Spawn (stdin/stdout)</text>
+
+        <rect x="20" y="302" width="340" height="34" rx="6" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="30" y="323" font-size="11" font-weight="600" fill="var(--green)">Remote</text>
+        <text x="82" y="323" font-size="11" fill="var(--text2)">= HTTP + JSON-RPC + SSE 流式</text>
+
+        <rect x="20" y="344" width="340" height="52" rx="6" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <text x="30" y="362" font-size="11" font-weight="600" fill="var(--orange)">关键设计：</text>
+        <text x="30" y="382" font-size="10" fill="var(--text2)">两者实现同一 AgentRuntime trait</text>
+        <text x="240" y="382" font-size="10" font-weight="600" fill="var(--orange)">→ 前端完全无感知</text>
+
+        <rect x="400" y="220" width="400" height="190" rx="12" fill="var(--surface)" stroke="var(--border)" stroke-width="1"/>
+        <text x="420" y="246" font-size="14" font-weight="700" fill="var(--text)">Remote Agent 完整生命周期</text>
+
+        <rect x="420" y="260" width="80" height="28" rx="14" fill="var(--accent-bg)" stroke="var(--accent-border)" stroke-width="1"/>
+        <text x="460" y="279" text-anchor="middle" font-size="10" font-weight="600" fill="var(--accent2)">创建连接</text>
+        <text x="508" y="279" font-size="14" fill="var(--text3)">→</text>
+        <rect x="520" y="260" width="80" height="28" rx="14" fill="var(--orange-bg)" stroke="var(--orange-border)" stroke-width="1"/>
+        <text x="560" y="279" text-anchor="middle" font-size="10" font-weight="600" fill="var(--orange)">存 Token</text>
+        <text x="608" y="279" font-size="14" fill="var(--text3)">→</text>
+        <rect x="620" y="260" width="80" height="28" rx="14" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="660" y="279" text-anchor="middle" font-size="10" font-weight="600" fill="var(--green)">健康检查</text>
+        <text x="708" y="279" font-size="14" fill="var(--text3)">→</text>
+        <rect x="720" y="260" width="60" height="28" rx="14" fill="var(--green-bg)" stroke="var(--green)" stroke-width="1.5"/>
+        <text x="750" y="279" text-anchor="middle" font-size="10" font-weight="700" fill="var(--green)">Online</text>
+
+        <rect x="420" y="300" width="360" height="34" rx="6" fill="var(--green-bg)" stroke="var(--green-border)" stroke-width="1"/>
+        <text x="430" y="322" font-size="11" font-weight="600" fill="var(--green)">execute()</text>
+        <text x="500" y="322" font-size="11" fill="var(--text2)">→ A2AHttpClient.stream_message() → Receiver&lt;StreamEvent&gt;</text>
+
+        <rect x="420" y="344" width="170" height="52" rx="8" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+        <text x="430" y="362" font-size="10" font-weight="600" fill="var(--accent2)">Auth 存储</text>
+        <text x="430" y="380" font-size="10" fill="var(--text2)">OS Keyring 加密存储</text>
+        <text x="570" y="371" font-size="10" fill="var(--text3)">key = remote_conn_{id}</text>
+
+        <rect x="604" y="344" width="176" height="52" rx="8" fill="var(--surface2)" stroke="var(--border)" stroke-width="1"/>
+        <text x="614" y="362" font-size="10" font-weight="600" fill="var(--orange)">Bridge 扩展方法</text>
+        <text x="614" y="380" font-size="9" class="mono" fill="var(--text2)">bridge.getWorkspaceInfo</text>
+        <text x="614" y="392" font-size="9" class="mono" fill="var(--text2)">bridge.getAgents / listFiles / readFile</text>
+      </svg>
+    </div>
+  </div>
+
+  <!-- ====== Slide 10: 总结 ====== -->
+  <div class="slide slide-end">
+    <span class="tag tag-section">总结</span>
+    <h2>Agent 需要自己的通讯层</h2>
+    <div style="max-width:620px;">
+      <div class="steps">
+        <div class="step-card"><span class="step-label red">IM 消息转发</span><div class="step-body">&rarr; <strong>A2A 结构化协议通信</strong></div></div>
+        <div class="step-card"><span class="step-label red">依赖第三方平台</span><div class="step-body">&rarr; <strong>内网 / 私有云自主部署</strong></div></div>
+        <div class="step-card"><span class="step-label red">无任务状态管理</span><div class="step-body">&rarr; <strong>完整 Task 生命周期状态机</strong></div></div>
+        <div class="step-card"><span class="step-label red">上下文不可控</span><div class="step-body">&rarr; <strong>Zone Protocol 七层编排</strong></div></div>
+        <div class="step-card"><span class="step-label red">单点网络拓扑</span><div class="step-body">&rarr; <strong>LAN / Bridge / Remote 灵活组网</strong></div></div>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:1rem;">
+      AgentsZone: A2A + JSON-RPC + Zone Protocol — 为 Agent 协作而生的通讯平台
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测机 Agent · Jarvis 知识驱动架构</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8FAFC;--surface:#FFFFFF;--surface2:#F1F5F9;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --font:'Fira Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Fira Code','SF Mono',Monaco,Consolas,monospace;
+  --r:10px;--rs:6px;
+  --a:#2563EB;--a-bg:#EFF6FF;--a-bd:rgba(37,99,235,.2);
+  --b:#D97706;--b-bg:#FFFBEB;--b-bd:rgba(217,119,6,.2);
+  --c:#16A34A;--c-bg:#F0FDF4;--c-bd:rgba(22,163,74,.2);
+  --ct:#7C3AED;--ct-bg:#F5F3FF;--ct-bd:rgba(124,58,237,.2);
+  --gold:#F59E0B;--gold-bg:#FEF3C7;--gold-bd:rgba(245,158,11,.2);
+  --red:#DC2626;--red-bg:#FEF2F2;
+  --ink:#4A5568;--ink-bg:#F7FAFC;--ink-bd:rgba(74,85,104,.2);
+  --tr:200ms ease;
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.nav-left{display:flex;align-items:center;gap:12px}
+.nav-logo{width:30px;height:30px;background:linear-gradient(135deg,var(--ct),#6D28D9);border-radius:var(--rs);display:flex;align-items:center;justify-content:center}
+.nav-logo svg{width:16px;height:16px;color:#fff}
+.nav-title{font-size:14px;font-weight:700}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 12px;font-size:12px;font-weight:600;color:var(--text2);border-radius:var(--rs);cursor:pointer;transition:all var(--tr);border:none;background:none;font-family:var(--font)}
+.nav-link:hover{background:var(--surface2);color:var(--text)}
+.nav-link.active{background:var(--ct-bg);color:var(--ct)}
+
+.hero{max-width:1200px;margin:0 auto;padding:48px 32px 32px}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--ct-bg);color:var(--ct);border:1px solid var(--ct-bd);border-radius:20px;font-size:11px;font-weight:600;margin-bottom:12px}
+.hero h1{font-size:30px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:10px}
+.hero-desc{font-size:15px;color:var(--text2);max-width:760px;line-height:1.7}
+.container{max-width:1200px;margin:0 auto;padding:0 32px 80px}
+
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.sec-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.sec-num.blue{background:var(--a-bg);color:var(--a);border:1.5px solid var(--a-bd)}
+.sec-num.amber{background:var(--b-bg);color:var(--b);border:1.5px solid var(--b-bd)}
+.sec-num.green{background:var(--c-bg);color:var(--c);border:1.5px solid var(--c-bd)}
+.sec-num.purple{background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)}
+.sec-num.ink{background:var(--ink-bg);color:var(--ink);border:1.5px solid var(--ink-bd)}
+.sec-title{font-size:18px;font-weight:700}
+.sec-sub{font-size:13px;color:var(--text3);margin-left:4px}
+
+.callout{display:flex;align-items:flex-start;gap:10px;padding:14px 18px;border-radius:var(--r);margin-bottom:16px;font-size:13px;font-weight:500;line-height:1.6}
+.callout svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.callout.blue{background:var(--a-bg);border:1px solid var(--a-bd);color:#1D4ED8}
+.callout.amber{background:var(--b-bg);border:1px solid var(--b-bd);color:#92400E}
+.callout.green{background:var(--c-bg);border:1px solid var(--c-bd);color:#166534}
+.callout.purple{background:var(--ct-bg);border:1px solid var(--ct-bd);color:#6D28D9}
+
+.card-grid{display:grid;gap:14px}
+.card-grid.c3{grid-template-columns:repeat(3,1fr)}
+.card-grid.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:all var(--tr)}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-1px)}
+.card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.card-icon svg{width:18px;height:18px}
+.card-icon.blue{background:var(--a-bg);border:1px solid var(--a-bd);color:var(--a)}
+.card-icon.amber{background:var(--b-bg);border:1px solid var(--b-bd);color:var(--b)}
+.card-icon.green{background:var(--c-bg);border:1px solid var(--c-bd);color:var(--c)}
+.card-icon.purple{background:var(--ct-bg);border:1px solid var(--ct-bd);color:var(--ct)}
+.card-icon.ink{background:var(--ink-bg);border:1px solid var(--ink-bd);color:var(--ink)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.7}
+.card-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-top:10px}
+.card-tag.blue{background:var(--a-bg);color:var(--a)}
+.card-tag.amber{background:var(--b-bg);color:var(--b)}
+.card-tag.green{background:var(--c-bg);color:var(--c)}
+.card-tag.purple{background:var(--ct-bg);color:var(--ct)}
+
+/* Pipeline */
+.pipeline{display:flex;gap:0;position:relative}
+.pipe-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 16px;position:relative;text-align:center;transition:all var(--tr)}
+.pipe-step:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.pipe-step::after{content:'';position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:12px solid var(--border);border-top:10px solid transparent;border-bottom:10px solid transparent;z-index:2}
+.pipe-step:last-child::after{display:none}
+.pipe-step .step-n{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-bottom:10px}
+.pipe-step h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.pipe-step p{font-size:11px;color:var(--text2);line-height:1.6}
+
+/* Knowledge table */
+.ktable{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.ktable th{text-align:left;padding:8px 12px;background:var(--surface2);font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);font-size:11px}
+.ktable td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.ktable tr:last-child td{border-bottom:none}
+.ktable code{font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 6px;border-radius:3px;border:1px solid var(--border)}
+
+/* Writeback flow */
+.wb-flow{display:grid;grid-template-columns:1fr 48px 1fr 48px 1fr 48px 1fr;gap:0;align-items:stretch}
+.wb-node{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;position:relative;transition:all var(--tr)}
+.wb-node:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-1px)}
+.wb-node.highlight{border:2px solid var(--ct);background:linear-gradient(135deg,var(--ct-bg),#fff);box-shadow:0 0 0 4px rgba(124,58,237,.08)}
+.wb-node.highlight-green{border:2px solid var(--c);background:linear-gradient(135deg,var(--c-bg),#fff);box-shadow:0 0 0 4px rgba(22,163,74,.08)}
+.wb-node-num{position:absolute;top:-10px;left:14px;width:22px;height:22px;border-radius:50%;background:var(--ct);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(124,58,237,.3)}
+.wb-node h4{font-size:13px;font-weight:700;margin-bottom:6px}
+.wb-node p{font-size:11px;color:var(--text2);line-height:1.6}
+.wb-node .wb-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;margin-top:8px}
+.wb-arrow{display:flex;align-items:center;justify-content:center}
+.wb-arrow svg{color:var(--text3)}
+
+/* Skill card */
+.skill-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all var(--tr)}
+.skill-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.skill-header{padding:16px 20px;display:flex;align-items:center;gap:10px}
+.skill-header.type-source{background:var(--a-bg);border-bottom:1px solid var(--a-bd)}
+.skill-header.type-repo{background:var(--c-bg);border-bottom:1px solid var(--c-bd)}
+.skill-header.type-workflow{background:var(--ct-bg);border-bottom:1px solid var(--ct-bd)}
+.skill-header.type-entry{background:linear-gradient(135deg,var(--ct-bg),var(--a-bg));border-bottom:1px solid var(--ct-bd)}
+.skill-dot{width:10px;height:10px;border-radius:50%}
+.skill-dot.blue{background:var(--a)}
+.skill-dot.green{background:var(--c)}
+.skill-dot.purple{background:var(--ct)}
+.skill-header h4{font-size:13px;font-weight:700}
+.skill-body{padding:16px 20px}
+.skill-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6}
+.skill-item:last-child{margin-bottom:0}
+.skill-item svg{width:14px;height:14px;flex-shrink:0;margin-top:2px}
+.skill-item svg.blue{color:var(--a)}
+.skill-item svg.green{color:var(--c)}
+.skill-item svg.purple{color:var(--ct)}
+
+/* Phase badge */
+.phase-badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;flex-shrink:0}
+.phase-badge.p1{background:var(--ct-bg);color:var(--ct)}
+.phase-badge.p2{background:var(--a-bg);color:var(--a)}
+.phase-badge.p3{background:var(--c-bg);color:var(--c)}
+.phase-badge.p4{background:var(--gold-bg);color:#92400E}
+
+@media(max-width:1024px){
+  .card-grid.c3,.card-grid.c2{grid-template-columns:1fr}
+  .pipeline{flex-direction:column}
+  .pipe-step::after{content:'';right:50%;top:auto;bottom:-14px;transform:translateX(50%) rotate(90deg)}
+  .wb-flow{grid-template-columns:1fr}
+  .wb-arrow{padding:8px 0}
+  .wb-arrow svg{transform:rotate(90deg)}
+}
+@media(max-width:640px){
+  .hero{padding:32px 16px 20px}
+  .hero h1{font-size:24px}
+  .container{padding:0 16px 60px}
+  .nav-links{display:none}
+}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.sec{animation:fadeInUp .5s ease both}
+.sec:nth-child(2){animation-delay:.05s}
+.sec:nth-child(3){animation-delay:.1s}
+.sec:nth-child(4){animation-delay:.15s}
+.sec:nth-child(5){animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="nav-title">Agent · Jarvis 知识驱动</span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="scrollToSec('concept')">核心理念</button>
+    <button class="nav-link" onclick="scrollToSec('accumulate')">开发积累</button>
+    <button class="nav-link" onclick="scrollToSec('knowledge')">知识资产</button>
+    <button class="nav-link" onclick="scrollToSec('skills')">Skill 体系</button>
+    <button class="nav-link" onclick="scrollToSec('logic')">Agent 逻辑</button>
+    <button class="nav-link" onclick="scrollToSec('grow')">回写成长</button>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-tag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Jarvis Knowledge-Driven Agent Design
+  </div>
+  <h1>业务知识驱动的 Agent 架构</h1>
+  <p class="hero-desc">
+    引入 Jarvis 思想：Agent 的智能不来自硬编码规则，而来自业务闭环中持续积累的知识。接口协议、设备行为、错误模式——这些在测试过程中沉淀的资产，通过 Skill 体系结构化后，成为 Agent 编排辅助和错误诊断的"大脑"。
+  </p>
+</div>
+
+<div class="container">
+
+<!-- SECTION 1: 核心理念 -->
+<div class="sec" id="concept">
+  <div class="sec-head">
+    <div class="sec-num purple">1</div>
+    <div class="sec-title">Jarvis 思想 · 知识驱动的 Agent</div>
+    <div class="sec-sub">Agent 不是写死的规则引擎，是知识驱动的决策层</div>
+  </div>
+
+  <div class="callout purple">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <span>Jarvis 的核心：Agent-first 的组织能力层。Agent 能理解业务资产、路由到正确的系统、遵循真实工作流，并通过回写让知识复利增长。映射到测机场景：接口知识库、设备行为库、错误模式库就是 Agent 的"记忆"，Skill 是结构化访问这些记忆的方式。</span>
+  </div>
+
+  <!-- Concept comparison -->
+  <div class="card-grid c2">
+    <div class="card" style="border-left:3px solid var(--red-bg)">
+      <div class="card-title" style="color:var(--red)">传统方式：规则硬编码</div>
+      <div class="card-desc">
+        <div style="margin-bottom:6px"><strong>问题：</strong>每种错误类型手写 if-else，新设备新接口就要改代码</div>
+        <div style="margin-bottom:6px"><strong>问题：</strong>编排逻辑固定，换一条业务线就要重新开发</div>
+        <div><strong>问题：</strong>经验只在老员工脑子里，不带走不走留</div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--c);background:linear-gradient(135deg,var(--c-bg),#fff)">
+      <div class="card-title" style="color:var(--c)">Jarvis 方式：知识驱动</div>
+      <div class="card-desc">
+        <div style="margin-bottom:6px"><strong>做法：</strong>错误模式从真实测试中积累，Agent 查询知识库做匹配</div>
+        <div style="margin-bottom:6px"><strong>做法：</strong>编排逻辑从业务知识中生成，新业务线只需要定义流程</div>
+        <div><strong>做法：</strong>经验通过每次测试回写沉淀，越用越准</div>
+      </div>
+      <div class="card-tag green">Jarvis 思路</div>
+    </div>
+  </div>
+
+  <!-- Jarvis Golden Path -->
+  <div style="margin-top:32px">
+    <div class="sec-head">
+      <div class="sec-num purple" style="width:24px;height:24px;font-size:10px">★</div>
+      <div class="sec-title" style="font-size:14px">Jarvis 闭环 · 映射到测机场景</div>
+    </div>
+    <div class="pipeline">
+      <div class="pipe-step" style="border-color:var(--ct-bd)">
+        <div class="step-n" style="background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)">CLARIFY</div>
+        <h4>明确闭环</h4>
+        <p>第一条闭环：Panel 过站全流程测试 + 错误诊断</p>
+      </div>
+      <div class="pipe-step" style="border-color:var(--ct-bd)">
+        <div class="step-n" style="background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)">INVENTORY</div>
+        <h4>盘点资产</h4>
+        <p>接口协议库、设备行为数据、EAP 接口定义、历史错误记录</p>
+      </div>
+      <div class="pipe-step" style="border-color:var(--ct-bd)">
+        <div class="step-n" style="background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)">SKILL</div>
+        <h4>构建 Skill</h4>
+        <p>Source Skill 访问知识 + Workflow Skill 编排流程 + Repo Skill 操作系统</p>
+      </div>
+      <div class="pipe-step" style="border-color:var(--ct-bd)">
+        <div class="step-n" style="background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)">PILOT</div>
+        <h4>试点验证</h4>
+        <p>真实测试闭环中验证 Agent 能力，确认知识准确性</p>
+      </div>
+      <div class="pipe-step" style="border-color:var(--c-bd)">
+        <div class="step-n green">GROW</div>
+        <h4>回写成长</h4>
+        <p>每次测试回写新知识：新错误模式、新设备特征、新业务流程</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 1.5: 开发即积累 -->
+<div class="sec" id="accumulate">
+  <div class="sec-head">
+    <div class="sec-num" style="background:var(--gold-bg);color:#92400E;border:1.5px solid var(--gold-bd)">!</div>
+    <div class="sec-title">开发即积累 · 业务阶段就在建知识库</div>
+    <div class="sec-sub">不是等 Agent 开发时才补课，是业务推进中同步沉淀</div>
+  </div>
+
+  <div class="callout" style="background:linear-gradient(135deg,var(--gold-bg),var(--ct-bg));border:1px solid var(--gold-bd);color:#78350F">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+    <span><strong>关键认知：</strong>Jarvis 不是 Agent 开发阶段才引入的东西。阶段一设备对接时就在定义接口协议——这就是 Source Knowledge 的起点。阶段二数据打通时就在记录设备响应特征——这就是设备画像的起点。阶段三三端联通时就在积累 EAP 行为数据——这就是错误模式库的起点。<strong>业务开发阶段如果不做结构化积累，到 Agent 阶段就是从零开始。</strong></span>
+  </div>
+
+  <!-- Phase-Knowledge mapping -->
+  <div style="display:grid;grid-template-columns:1fr 80px 1fr;gap:0;align-items:stretch;margin-bottom:24px">
+    <!-- Left: Business phases -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;border-left:4px solid var(--a)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="padding:2px 10px;background:var(--a);color:#fff;border-radius:12px;font-size:10px;font-weight:700">阶段一</span>
+          <span style="font-size:13px;font-weight:700;color:var(--a)">设备对接测试</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          设备厂商点对点对接测机服务，逐接口调试。
+        </div>
+        <div style="margin-top:8px;padding:6px 10px;background:var(--a-bg);border-radius:var(--rs);font-size:11px;color:var(--a);font-weight:600">
+          同步积累：接口协议定义 + 设备型号初步特征
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;border-left:4px solid var(--b)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="padding:2px 10px;background:var(--b);color:#fff;border-radius:12px;font-size:10px;font-weight:700">阶段二</span>
+          <span style="font-size:13px;font-weight:700;color:var(--b)">测机 ↔ EAP 打通</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          原子化方法打通，实时通信，数据抓取展示。
+        </div>
+        <div style="margin-top:8px;padding:6px 10px;background:var(--b-bg);border-radius:var(--rs);font-size:11px;color:var(--b);font-weight:600">
+          同步积累：设备响应基线 + EAP 服务行为数据
+        </div>
+      </div>
+      <div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 20px;border-left:4px solid var(--c)">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+          <span style="padding:2px 10px;background:var(--c);color:#fff;border-radius:12px;font-size:10px;font-weight:700">阶段三</span>
+          <span style="font-size:13px;font-weight:700;color:var(--c)">三端联通运维</span>
+        </div>
+        <div style="font-size:12px;color:var(--text2);line-height:1.6">
+          三端解耦数据打通，业务场景监控，实时数据运维。
+        </div>
+        <div style="margin-top:8px;padding:6px 10px;background:var(--c-bg);border-radius:var(--rs);font-size:11px;color:var(--c);font-weight:600">
+          同步积累：错误模式记录 + 业务流程实践经验
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Arrow -->
+    <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0">
+      <svg width="50" height="40" viewBox="0 0 50 40"><path d="M8 20 L36 20 M28 12 L36 20 L28 28" stroke="var(--gold)" stroke-width="2.5" fill="none"/></svg>
+      <div style="writing-mode:vertical-lr;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:1px;padding:8px 0">知识沉淀</div>
+      <svg width="50" height="40" viewBox="0 0 50 40"><path d="M8 20 L36 20 M28 12 L36 20 L28 28" stroke="var(--gold)" stroke-width="2.5" fill="none"/></svg>
+    </div>
+
+    <!-- Right: Knowledge accumulated -->
+    <div style="display:flex;flex-direction:column;gap:14px">
+      <div style="background:linear-gradient(135deg,var(--ct-bg),#fff);border:1.5px solid var(--ct-bd);border-radius:var(--r);padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--ct)" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          <span style="font-size:13px;font-weight:700;color:var(--ct)">接口协议知识库</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">
+          每对接一台新设备，就多一份接口协议定义。阶段一完成时，标准接口库已经成型。
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,var(--ct-bg),#fff);border:1.5px solid var(--ct-bd);border-radius:var(--r);padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--ct)" stroke-width="2" width="16" height="16"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <span style="font-size:13px;font-weight:700;color:var(--ct)">设备行为画像</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">
+          每次实时通信都在记录响应数据。阶段二完成时，主流型号的正常基线已经建立。
+        </div>
+      </div>
+      <div style="background:linear-gradient(135deg,var(--ct-bg),#fff);border:1.5px solid var(--ct-bd);border-radius:var(--r);padding:18px 20px">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--ct)" stroke-width="2" width="16" height="16"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          <span style="font-size:13px;font-weight:700;color:var(--ct)">错误模式库</span>
+        </div>
+        <div style="font-size:11px;color:var(--text2);line-height:1.7">
+          运维中每次异常处理都是一条错误记录。阶段三完成时，常见错误的归属和原因已有积累。
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key insight card -->
+  <div style="background:var(--surface);border:2px solid var(--gold);border-radius:var(--r);padding:24px 28px;display:flex;align-items:flex-start;gap:16px">
+    <div style="width:44px;height:44px;border-radius:50%;background:var(--gold-bg);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--gold)" stroke-width="2.5" width="20" height="20"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    </div>
+    <div>
+      <div style="font-size:14px;font-weight:700;margin-bottom:6px;color:#92400E">开发阶段不做积累，Agent 阶段就是从零开始</div>
+      <div style="font-size:12px;color:var(--text2);line-height:1.7">
+        阶段一到三的每一步业务推进，都在产生结构化数据。<strong style="color:var(--text)">关键是在开发时就用 Jarvis 思路做积累，而不是事后补文档。</strong>接口定义时同步建 Source Skill、设备对接时同步建画像、运维排障时同步记错误模式。等到了阶段四 Agent 开发时，知识库已经喂饱了，Agent 直接查询 Skill 就能工作——编排有流程模板可查，诊断有错误模式可匹配，不用从空库开始硬写规则。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: 知识积累 -->
+<div class="sec" id="knowledge">
+  <div class="sec-head">
+    <div class="sec-num blue">2</div>
+    <div class="sec-title">知识资产 · Agent 的"大脑"</div>
+    <div class="sec-sub">业务开发阶段已沉淀 + 持续回写增长</div>
+  </div>
+
+  <div class="callout blue">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>知识是 Agent 的燃料。前三阶段的业务开发已经在持续产生数据——接口协议定义、设备型号与响应特征、历史错误记录、EAP 服务行为。通过 Jarvis 思路结构化后，这些就是 Agent 的知识库。阶段四 Agent 不是从零开始，而是消费已经积累好的知识。</span>
+  </div>
+
+  <!-- Knowledge assets -->
+  <div class="card-grid c3" style="margin-bottom:24px">
+    <div class="card" style="border-top:3px solid var(--a)">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="card-title">接口协议知识库</div>
+      <div class="card-desc">36 项标准接口（28 上报 + 8 下发）的完整定义：端点路径、请求格式、响应结构、超时阈值、校验规则。每新增一个自定义接口，知识库自动扩容。</div>
+      <div class="card-tag blue">Source Knowledge</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--b)">
+      <div class="card-icon amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="card-title">设备行为画像</div>
+      <div class="card-desc">每种设备型号的正常响应基线：响应时间分布、数据格式特征、常见状态码、型号特有的协议偏差。Agent 靠这些基线判断"这次响应正常吗"。</div>
+      <div class="card-tag amber">Source Knowledge</div>
+    </div>
+    <div class="card" style="border-top:3px solid var(--red)">
+      <div class="card-icon" style="background:var(--red-bg);border:1px solid rgba(220,38,38,.2);color:var(--red)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="card-title">错误模式库</div>
+      <div class="card-desc">历史测试中积累的结构化错误记录：错误特征 → 归属端 → 根因分类 → 处置方式。Agent 靠模式匹配定位新错误，而不是靠硬编码规则。</div>
+      <div class="card-tag" style="background:var(--red-bg);color:var(--red)">Grow by Writeback</div>
+    </div>
+  </div>
+
+  <!-- Knowledge detail table -->
+  <div class="card">
+    <div class="card-title" style="margin-bottom:12px">知识资产明细 · 当前已积累 + 持续回写</div>
+    <table class="ktable">
+      <thead>
+        <tr><th>知识类型</th><th>数据来源</th><th>积累方式</th><th>Agent 消费方式</th><th>增长方式</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>接口协议定义</strong></td>
+          <td>系统提供商维护的标准接口库</td>
+          <td>人工定义 + 文档 Agent 解析</td>
+          <td>编排辅助时查询接口序列、校验规则、端点信息</td>
+          <td>新增自定义接口时自动扩容</td>
+        </tr>
+        <tr>
+          <td><strong>设备型号画像</strong></td>
+          <td>历史测试数据统计</td>
+          <td>每次测试自动汇总基线</td>
+          <td>错误诊断时比对"这个型号的正常范围是什么"</td>
+          <td>新设备首次测试后建立基线，后续测试修正</td>
+        </tr>
+        <tr>
+          <td><strong>业务流程模板</strong></td>
+          <td>产线工艺流程 + 测试经验</td>
+          <td>人工定义 + Agent 辅助生成</td>
+          <td>编排辅助时推荐"这条业务线该测哪些步骤"</td>
+          <td>新业务场景定义后入库</td>
+        </tr>
+        <tr>
+          <td><strong>错误模式记录</strong></td>
+          <td>测试中 Fail 节点的诊断结果</td>
+          <td>每次 Fail → 诊断 → 人工确认 → 回写</td>
+          <td>错误诊断时匹配"历史上有类似错误吗"</td>
+          <td>真实测试回写，复利增长</td>
+        </tr>
+        <tr>
+          <td><strong>EAP 服务行为</strong></td>
+          <td>EAP 真实服务日志和响应数据</td>
+          <td>系统 C 自动测试平台积累</td>
+          <td>诊断时"EAP 这个接口的正常表现是什么"</td>
+          <td>每次自动验证后更新基线</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- SECTION 3: Skill 体系 -->
+<div class="sec" id="skills">
+  <div class="sec-head">
+    <div class="sec-num green">3</div>
+    <div class="sec-title">Skill 体系 · 知识的结构化访问层</div>
+    <div class="sec-sub">Jarvis 思想：三类 Skill 覆盖知识访问、系统操作、流程编排</div>
+  </div>
+
+  <div class="callout green">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <span>Jarvis 用 Skill 组织 Agent 的能力。Source Skill 让 Agent 查询知识库（接口协议、设备画像）；Repo Skill 让 Agent 操作系统（测机服务、EAP 平台）；Workflow Skill 让 Agent 编排业务流程（测试用例执行、错误诊断闭环）。Agent 不是写死的，是 Skill 驱动的。</span>
+  </div>
+
+  <!-- Skill cards: 2+1 layout -->
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:14px;margin-bottom:14px">
+    <!-- Source Skill -->
+    <div class="skill-card">
+      <div class="skill-header type-source">
+        <div class="skill-dot blue"></div>
+        <h4 style="color:#1D4ED8">Source Skills · 知识访问层</h4>
+      </div>
+      <div class="skill-body">
+        <div class="skill-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>接口协议查询 Skill</strong> — 输入接口编号 → 输出端点、请求格式、响应结构、校验规则。编排辅助时"这条业务线涉及哪些接口"</span>
+        </div>
+        <div class="skill-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>设备画像查询 Skill</strong> — 输入设备型号 → 输出正常响应基线、已知偏差、常见问题。诊断时"这个型号的正常范围是什么"</span>
+        </div>
+        <div class="skill-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>错误模式匹配 Skill</strong> — 输入错误特征 → 输出历史同类错误、归属端、根因、处置方式。诊断时"之前有类似的错误吗"</span>
+        </div>
+        <div class="skill-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>业务流程模板 Skill</strong> — 输入业务场景名称 → 输出推荐步骤序列和每步待测接口。编排时"Panel 过站该测什么"</span>
+        </div>
+      </div>
+    </div>
+    <!-- Repo Skill -->
+    <div class="skill-card">
+      <div class="skill-header type-repo">
+        <div class="skill-dot green"></div>
+        <h4 style="color:#166534">Repo Skills · 系统操作层</h4>
+      </div>
+      <div class="skill-body">
+        <div class="skill-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>测机服务 Skill</strong> — 调用测机服务 API：发送测试指令、获取响应数据、查询设备状态</span>
+        </div>
+        <div class="skill-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>EAP 平台 Skill</strong> — 调用 EAP 自动测试平台：提交测试报告、查询验证结果、获取服务日志</span>
+        </div>
+        <div class="skill-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>数据采集 Skill</strong> — 实时抓取三端通信数据：报文、日志、状态、耗时</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Workflow Skills -->
+  <div class="skill-card" style="margin-bottom:14px">
+    <div class="skill-header type-workflow">
+      <div class="skill-dot purple"></div>
+      <h4 style="color:#6D28D9">Workflow Skills · 流程编排层（Agent 的核心能力载体）</h4>
+    </div>
+    <div class="skill-body" style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+      <div>
+        <div class="skill-item">
+          <svg class="purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>编排辅助 Workflow</strong><br>
+          Trigger：选择业务场景<br>
+          Steps：查询流程模板 → 逐步引导操作 → 调用接口查询 Skill → 判定结果 → 提示下一步<br>
+          Writeback：新发现的业务流程偏差 → 更新流程模板</span>
+        </div>
+      </div>
+      <div>
+        <div class="skill-item">
+          <svg class="purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span><strong>错误诊断 Workflow</strong><br>
+          Trigger：测试节点 Fail<br>
+          Steps：采集上下文 → 查询错误模式 Skill → 三端排查 → 原因排序 → 生成诊断报告<br>
+          Writeback：新的错误模式 → 人工确认 → 写入错误模式库</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Entry Skill -->
+  <div class="skill-card">
+    <div class="skill-header type-entry">
+      <div class="skill-dot purple"></div>
+      <h4 style="background:linear-gradient(90deg,var(--ct),var(--a));-webkit-background-clip:text;-webkit-text-fill-color:transparent">Entry Skill · 测机 Agent 入口</h4>
+    </div>
+    <div class="skill-body">
+      <div style="font-size:12px;color:var(--text2);line-height:1.7">
+        <strong>角色定义：</strong>测机人员与 Agent 的唯一交互入口。接收自然语言或界面操作，路由到正确的 Workflow Skill 执行。<br>
+        <strong>路由逻辑：</strong>"帮我测 Panel 过站" → 编排辅助 Workflow；"这个错误是什么原因" → 错误诊断 Workflow；"查一下钻孔机的接口" → 接口协议查询 Source Skill。<br>
+        <strong>回写职责：</strong>每次闭环结束后，将可持续复用的模式提升为知识，等待人工确认后写入知识库。
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: Agent 逻辑设计 -->
+<div class="sec" id="logic">
+  <div class="sec-head">
+    <div class="sec-num amber">4</div>
+    <div class="sec-title">Agent 逻辑设计 · Skill 编排而非代码编排</div>
+    <div class="sec-sub">Agent 的每一步决策都查询知识，而非执行硬逻辑</div>
+  </div>
+
+  <div class="callout amber">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>传统 Agent 把"钻孔机过站时该测什么"写死在代码里。Jarvis Agent 查询业务流程模板 Skill 获取答案——换了业务场景，Agent 代码不用改，知识库更新就行。这就是知识驱动的含义。</span>
+  </div>
+
+  <!-- Orchestration Logic -->
+  <div style="margin-bottom:32px">
+    <div class="sec-head">
+      <div class="sec-num amber" style="width:24px;height:24px;font-size:10px">A</div>
+      <div class="sec-title" style="font-size:14px">编排辅助 · Skill 驱动的逻辑流</div>
+    </div>
+
+    <div class="wb-flow">
+      <div class="wb-node">
+        <div class="wb-node-num" style="background:var(--a)">1</div>
+        <h4>接收场景指令</h4>
+        <p>Entry Skill 接收"Panel 过站全流程测试"</p>
+        <div class="wb-tag" style="background:var(--a-bg);color:var(--a)">Entry Skill</div>
+      </div>
+      <div class="wb-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="wb-node highlight">
+        <div class="wb-node-num">2</div>
+        <h4>查询流程模板</h4>
+        <p>业务流程模板 Skill 返回步骤序列和每步待测接口清单</p>
+        <div class="wb-tag" style="background:var(--ct-bg);color:var(--ct)">Source Skill</div>
+      </div>
+      <div class="wb-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="wb-node">
+        <div class="wb-node-num" style="background:var(--gold)">3</div>
+        <h4>逐步引导操作</h4>
+        <p>每步调用接口查询 Skill 获取校验规则，提示人工操作设备</p>
+        <div class="wb-tag" style="background:var(--gold-bg);color:#92400E">人工操作</div>
+      </div>
+      <div class="wb-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="wb-node">
+        <div class="wb-node-num" style="background:var(--c)">4</div>
+        <h4>调用系统校验</h4>
+        <p>测机服务 Skill 获取响应数据，设备画像 Skill 比对基线，判定结果</p>
+        <div class="wb-tag" style="background:var(--c-bg);color:var(--c)">Repo + Source</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagnosis Logic -->
+  <div>
+    <div class="sec-head">
+      <div class="sec-num amber" style="width:24px;height:24px;font-size:10px">B</div>
+      <div class="sec-title" style="font-size:14px">错误诊断 · 知识查询驱动的定位</div>
+    </div>
+
+    <div class="wb-flow">
+      <div class="wb-node" style="border-color:var(--red)">
+        <div class="wb-node-num" style="background:var(--red)">!</div>
+        <h4>Fail 触发</h4>
+        <p>测试节点判定失败，数据采集 Skill 抓取上下文快照</p>
+        <div class="wb-tag" style="background:var(--red-bg);color:var(--red)">Repo Skill</div>
+      </div>
+      <div class="wb-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="wb-node highlight">
+        <div class="wb-node-num">?</div>
+        <h4>查询知识库</h4>
+        <p>错误模式 Skill 匹配历史同类错误 + 设备画像 Skill 比对正常基线</p>
+        <div class="wb-tag" style="background:var(--a-bg);color:var(--a)">Source Skills</div>
+      </div>
+      <div class="wb-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="wb-node">
+        <div class="wb-node-num" style="background:var(--ct)">◆</div>
+        <h4>三端排查定位</h4>
+        <p>按匹配结果优先级排查：设备侧 → EAP 侧 → MES 侧，确定归属端</p>
+        <div class="wb-tag" style="background:var(--ct-bg);color:var(--ct)">Workflow</div>
+      </div>
+      <div class="wb-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="wb-node highlight-green">
+        <div class="wb-node-num" style="background:var(--c)">✓</div>
+        <h4>诊断 + 回写</h4>
+        <p>输出诊断报告 → 人工确认 → 新错误模式回写到知识库，下次更准</p>
+        <div class="wb-tag" style="background:var(--c-bg);color:var(--c)">Writeback</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: 回写成长 -->
+<div class="sec" id="grow">
+  <div class="sec-head">
+    <div class="sec-num green">5</div>
+    <div class="sec-title">回写成长 · 知识复利</div>
+    <div class="sec-sub">Jarvis 核心：真实闭环的 START → WORK → END 回写</div>
+  </div>
+
+  <div class="callout green">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    <span>Jarvis 不是生成一个漂亮的知识仓库就结束。真正的价值单位是一个可运行的闭环，在这个闭环里 Agent 能找到正确知识、帮助完成真实工作、把可持续复用的学习写回去。每次测试都是一次回写机会。</span>
+  </div>
+
+  <!-- Writeback types -->
+  <div class="card-grid c2" style="margin-bottom:24px">
+    <div class="card" style="border-left:3px solid var(--ct)">
+      <div class="card-title" style="color:var(--ct)">测试中回写</div>
+      <div class="card-desc">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--ct);flex-shrink:0"></span>
+          <span><strong>新错误模式</strong> — 首次遇到的错误类型，诊断确认后写入错误模式库</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--ct);flex-shrink:0"></span>
+          <span><strong>设备基线修正</strong> — 某型号的响应时间比已知基线偏移，更新画像</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--ct);flex-shrink:0"></span>
+          <span><strong>流程偏差发现</strong> — 实际操作步骤与流程模板不一致，记录偏差</span>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="border-left:3px solid var(--c)">
+      <div class="card-title" style="color:var(--c)">运维中回写（进化阶段）</div>
+      <div class="card-desc">
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+          <span><strong>生产环境新错误</strong> — 测试中未覆盖的错误模式，生产中首次发现</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+          <span><strong>设备老化特征</strong> — 同一设备长期运行后的行为偏移趋势</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+          <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+          <span><strong>跨产线知识复用</strong> — A 产线的错误模式在 B 产线也适用</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Writeback rules -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title" style="margin-bottom:12px">回写规则 · Jarvis 反模式约束</div>
+    <table class="ktable">
+      <thead>
+        <tr><th>规则</th><th>说明</th><th>为什么</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>只提升反复出现的模式</strong></td>
+          <td>一次性的偶发错误不写入知识库，出现 2 次以上才提升</td>
+          <td>避免噪音污染知识库，保证检索精度</td>
+        </tr>
+        <tr>
+          <td><strong>记录可持续模式，不记流水账</strong></td>
+          <td>"钻孔机过温 Alarm 处置方式"写进去，"今天下午 3 点测了什么"不写</td>
+          <td>知识库是模式库，不是日志库</td>
+        </tr>
+        <tr>
+          <td><strong>人工确认后才写入</strong></td>
+          <td>Agent 的诊断结论和建议由测机人员确认后才能进入知识库</td>
+          <td>Jarvis 原则：占位符和猜测不能当真相</td>
+        </tr>
+        <tr>
+          <td><strong>不编造历史</strong></td>
+          <td>不凭空生成"已知问题"或"决策记录"，只从真实闭环中提取</td>
+          <td>假历史毒害信任，Jarvis 明确禁止</td>
+        </tr>
+        <tr>
+          <td><strong>真实 START→WORK→END 后才回写</strong></td>
+          <td>一次完整的"启动测试→执行过程→输出报告"闭环结束后才写入</td>
+          <td>半途而废的数据比没有数据更危险</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Growth flywheel -->
+  <div>
+    <div class="sec-head">
+      <div class="sec-num green" style="width:24px;height:24px;font-size:10px">★</div>
+      <div class="sec-title" style="font-size:14px">知识飞轮 · 越用越准</div>
+    </div>
+
+    <div style="background:linear-gradient(135deg,var(--c-bg),var(--ct-bg));border:1px solid var(--border);border-radius:var(--r);padding:32px 28px;text-align:center">
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap">
+        <div style="padding:10px 20px;background:#fff;border:1.5px solid var(--a-bd);border-radius:var(--r)">
+          <div style="font-size:13px;font-weight:700;color:var(--a)">测试执行</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">人工操作 + Agent 辅助</div>
+        </div>
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="var(--a)" stroke-width="2" fill="none"/></svg>
+        <div style="padding:10px 20px;background:#fff;border:1.5px solid var(--ct-bd);border-radius:var(--r)">
+          <div style="font-size:13px;font-weight:700;color:var(--ct)">发现新模式</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">新错误、新设备特征、新流程偏差</div>
+        </div>
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="var(--ct)" stroke-width="2" fill="none"/></svg>
+        <div style="padding:10px 20px;background:#fff;border:1.5px solid var(--gold-bd);border-radius:var(--r)">
+          <div style="font-size:13px;font-weight:700;color:#92400E">人工确认</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">测机人员验证诊断结论</div>
+        </div>
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="#92400E" stroke-width="2" fill="none"/></svg>
+        <div style="padding:10px 20px;background:#fff;border:1.5px solid var(--c-bd);border-radius:var(--r)">
+          <div style="font-size:13px;font-weight:700;color:var(--c)">知识回写</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">更新 Skill 知识库</div>
+        </div>
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="var(--c)" stroke-width="2" fill="none"/></svg>
+        <div style="padding:10px 20px;background:#fff;border:1.5px solid var(--a-bd);border-radius:var(--r);border:2px solid var(--a)">
+          <div style="font-size:13px;font-weight:700;color:var(--a)">下次更准</div>
+          <div style="font-size:11px;color:var(--text2);margin-top:2px">Agent 诊断能力提升</div>
+        </div>
+      </div>
+      <div style="margin-top:20px;font-size:13px;color:var(--text2);max-width:600px;margin-left:auto;margin-right:auto;line-height:1.7">
+        知识飞轮转动一次，错误模式库多一条记录，设备画像多一个数据点，流程模板多一次修正。Agent 下次遇到同类场景，查询到的知识更丰富，诊断更准，辅助更到位。<strong style="color:var(--text)">这就是 Jarvis 说的"复利增长"。</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Summary -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num purple">6</div>
+    <div class="sec-title">总结 · Jarvis × 测机 Agent</div>
+  </div>
+  <div class="card-grid c3">
+    <div class="card" style="border-color:var(--ct-bd);background:linear-gradient(135deg,var(--ct-bg),#fff)">
+      <div class="card-icon purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--ct)">知识驱动，不硬编码</div>
+      <div class="card-desc">Agent 的编排逻辑和诊断能力来自结构化知识库，不是 if-else 规则。换设备、换业务线，知识库更新即可。</div>
+      <div class="card-tag purple">Skill 体系</div>
+    </div>
+    <div class="card" style="border-color:var(--a-bd);background:linear-gradient(135deg,var(--a-bg),#fff)">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--a)">三类 Skill 三层能力</div>
+      <div class="card-desc">Source Skill 查知识、Repo Skill 操作系统、Workflow Skill 编排流程。Entry Skill 是唯一入口，路由到正确的 Skill 执行。</div>
+      <div class="card-tag blue">分层解耦</div>
+    </div>
+    <div class="card" style="border-color:var(--c-bd);background:linear-gradient(135deg,var(--c-bg),#fff)">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--c)">回写复利，越用越准</div>
+      <div class="card-desc">每次测试闭环回写新知识，错误模式库持续增长。测试阶段积累的知识直接迁移到运维阶段，不浪费。</div>
+      <div class="card-tag green">持续成长</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 40px">
+  <div style="border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3)">
+    <span>测机 Agent · Jarvis 知识驱动架构 v3.0</span>
+    <span>Skill 体系 · 知识驱动 · 回写复利</span>
+  </div>
+</div>
+
+<script>
+function scrollToSec(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+}
+
+const sections = document.querySelectorAll('.sec[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.classList.toggle('active', l.textContent.includes(getNavLabel(id)));
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+function getNavLabel(id) {
+  const map = { concept: '理念', accumulate: '积累', knowledge: '知识', skills: 'Skill', logic: '逻辑', grow: '回写' };
+  return map[id] || '';
+}
+</script>
+</body>
+</html>

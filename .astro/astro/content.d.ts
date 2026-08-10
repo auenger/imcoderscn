@@ -152,9 +152,100 @@ declare module 'astro:content' {
 
 	type ContentEntryMap = {
 		"blog": {
+"agentszone.md": {
+	id: "agentszone.md";
+  slug: "agentszone";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
 "ai-agent-engineering.md": {
 	id: "ai-agent-engineering.md";
   slug: "ai-agent-engineering";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"ai-catfish-transformation.md": {
+	id: "ai-catfish-transformation.md";
+  slug: "ai-catfish-transformation";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"ai-framework-comparison.md": {
+	id: "ai-framework-comparison.md";
+  slug: "ai-framework-comparison";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"anyclaw-agent-first-future.md": {
+	id: "anyclaw-agent-first-future.md";
+  slug: "anyclaw-agent-first-future";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"anyclaw-security-skill-design.md": {
+	id: "anyclaw-security-skill-design.md";
+  slug: "anyclaw-security-skill-design";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"context-management-is-the-real-skill.md": {
+	id: "context-management-is-the-real-skill.md";
+  slug: "context-management-is-the-real-skill";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"database-agent-chat2db-work-os.md": {
+	id: "database-agent-chat2db-work-os.md";
+  slug: "database-agent-chat2db-work-os";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"domain-expert-agent-ecosystem.md": {
+	id: "domain-expert-agent-ecosystem.md";
+  slug: "domain-expert-agent-ecosystem";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"edith-agent.md": {
+	id: "edith-agent.md";
+  slug: "edith-agent";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"enterprise-ai-transformation-pitfalls.md": {
+	id: "enterprise-ai-transformation-pitfalls.md";
+  slug: "enterprise-ai-transformation-pitfalls";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"fde-china-kernel.md": {
+	id: "fde-china-kernel.md";
+  slug: "fde-china-kernel";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"fde-million-salary.md": {
+	id: "fde-million-salary.md";
+  slug: "fde-million-salary";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"feature-workflow-v3.md": {
+	id: "feature-workflow-v3.md";
+  slug: "feature-workflow-v3";
   body: string;
   collection: "blog";
   data: any
@@ -166,6 +257,41 @@ declare module 'astro:content' {
   collection: "blog";
   data: any
 } & { render(): Render[".md"] };
+"harness-engineering-training.md": {
+	id: "harness-engineering-training.md";
+  slug: "harness-engineering-training";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"hermes-agent-memory-context.md": {
+	id: "hermes-agent-memory-context.md";
+  slug: "hermes-agent-memory-context";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"human-agent-collaboration-work-os.md": {
+	id: "human-agent-collaboration-work-os.md";
+  slug: "human-agent-collaboration-work-os";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"lark-cli-agent2agent.md": {
+	id: "lark-cli-agent2agent.md";
+  slug: "lark-cli-agent2agent";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"mate-agent-context-optimization.md": {
+	id: "mate-agent-context-optimization.md";
+  slug: "mate-agent-context-optimization";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
 "neuro-ide.md": {
 	id: "neuro-ide.md";
   slug: "neuro-ide";
@@ -173,9 +299,23 @@ declare module 'astro:content' {
   collection: "blog";
   data: any
 } & { render(): Render[".md"] };
+"thingjs-architecture-testing.md": {
+	id: "thingjs-architecture-testing.md";
+  slug: "thingjs-architecture-testing";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
 "visual-replay-tester.md": {
 	id: "visual-replay-tester.md";
   slug: "visual-replay-tester";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
+"voice-agent-cascaded-full-duplex.md": {
+	id: "voice-agent-cascaded-full-duplex.md";
+  slug: "voice-agent-cascaded-full-duplex";
   body: string;
   collection: "blog";
   data: any
@@ -192,6 +332,13 @@ declare module 'astro:content' {
 "ai-agent-future.md": {
 	id: "ai-agent-future.md";
   slug: "ai-agent-future";
+  body: string;
+  collection: "podcast";
+  data: any
+} & { render(): Render[".md"] };
+"lark-cli-agent2agent.md": {
+	id: "lark-cli-agent2agent.md";
+  slug: "lark-cli-agent2agent";
   body: string;
   collection: "podcast";
   data: any

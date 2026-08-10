@@ -1,0 +1,3 @@
+[submodule "agentzone-ai"]
+	path = agentzone-ai
+	url = https://github.com/auenger/agentszone-ai.git

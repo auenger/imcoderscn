@@ -1,0 +1,50 @@
+      <section class="hero" id="summary">
+        <div>
+          <p class="eyebrow">内部决策报告</p>
+          <h1>生产制造 AI Agent 项目交付边界分析</h1>
+          <p class="lede">以现有 MES 为可信数据源，明确产品形态、平台边界、交互渠道、权限模型与技术基座。</p>
+          <div class="meta">
+            <span>汇报对象：公司管理层与项目决策组</span>
+            <span>报告日期：2026-07-17</span>
+            <span>建议阶段：立项与售前范围确认</span>
+          </div>
+        </div>
+        <div class="hero-visual" aria-label="建议交付结构">
+          <div class="hero-node"><strong>客户使用入口</strong><span>Web 工作台为标准入口，IM 作为可选渠道</span></div>
+          <div class="flow-line"></div>
+          <div class="hero-node primary"><strong>公司 Agent 平台</strong><span>编排、连接、审计、模型管理与运营</span></div>
+          <div class="flow-line"></div>
+          <div class="hero-node"><strong>MES 数据服务</strong><span>标准 API、指标口径、权限过滤与数据质量</span></div>
+        </div>
+      </section>
+
+      <section class="section" id="principles">
+        <h2>结论先行</h2>
+        <div class="callout">
+          <h3>推荐采用“平台承载、能力解耦、分层交付”的方案</h3>
+          <p>本项目优先基于公司现有 Agent 平台实施，以降低重复建设和运维成本；同时通过标准化 MES 数据服务、Agent 服务接口和渠道适配层控制耦合。客户购买的是四类业务 Agent 能力及其运行服务，不默认获得平台源代码、通用 Agent 开发能力或无限制连接器能力。</p>
+          <p><strong>实施方保护原则：</strong>只对已冻结的数据范围、业务问题、输出形式和验收样本承担交付责任。数据缺失、口径变化、客户新增场景、第三方系统限制及模型天然不确定性，不应被归入原合同内的无条件效果承诺。</p>
+        </div>
+        <div class="grid-asym" style="margin-top:16px">
+          <div class="panel">
+            <span class="tag must">本期建议必交</span>
+            <h3 style="margin-top:12px">工厂内部可用的四类业务 Agent</h3>
+            <p class="muted">覆盖产能分析、历史数据分析、计划模拟与预测性报告，提供 Web 入口、MES 对接、权限校验、日志审计、基础运营和验收指标。</p>
+          </div>
+          <div class="panel">
+            <span class="tag option">条件性交付</span>
+            <h3 style="margin-top:12px">IM Gateway 与客户自定义能力</h3>
+            <p class="muted">钉钉等 IM 接入、客户自建 Agent、通用连接器市场和开放平台能力应单独报价、单独验收。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>管理层需要记住的四句话</h2>
+        <div class="grid-2">
+          <div class="panel"><div class="metric">01</div><h3>交付业务结果</h3><p class="muted">交付可验收的制造业务能力，不把底层平台全部能力自动打包给客户。</p></div>
+          <div class="panel"><div class="metric">02</div><h3>Web 先于 IM</h3><p class="muted">Web 工作台承载完整体验和复杂结果，IM 只作为轻量问答、通知和审批入口。</p></div>
+          <div class="panel"><div class="metric">03</div><h3>权限必须双重校验</h3><p class="muted">既约束 Agent 能做什么，也约束当前用户能看什么，不能让 Agent 绕过 MES 权限。</p></div>
+          <div class="panel"><div class="metric">04</div><h3>替代基座不是捷径</h3><p class="muted">OpenClaw、Hermes 可用于验证，但企业交付仍需补齐身份、审计、权限、运维和版本治理。</p></div>
+        </div>
+      </section>

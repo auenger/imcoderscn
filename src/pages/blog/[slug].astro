@@ -4,7 +4,9 @@ import { getCollection } from 'astro:content';
 
 export async function getStaticPaths() {
   const posts = await getCollection('blog');
-  return posts.map(post => ({
+  return posts
+    .filter(post => post.data.pubDate && post.data.title && post.data.description)
+    .map(post => ({
     params: { slug: post.slug },
     props: { post },
   }));
@@ -12,9 +14,44 @@ export async function getStaticPaths() {
 
 const { post } = Astro.props;
 const { Content } = await post.render();
+
+// 生成分享描述（一句话，不超过50字）
+const shareDescription = post.data.shareDescription ||
+  post.data.description.slice(0, 50) + (post.data.description.length > 50 ? '...' : '');
+
+// 构建分享内容
+const shareUrl = `https://imcoders.cn${Astro.url.pathname}`;
+const shareText = `${shareDescription}\n\n${shareUrl}`;
 ---
 
-<Layout title={`${post.data.title} - 杨正武`}>
+<Layout
+  title={`${post.data.title} - 杨正武`}
+  description={post.data.description}
+  image={post.data.image}
+>
+  <script define:vars={{ shareText }}>
+    // 分享功能
+    window.shareArticle = async function() {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        // 显示成功提示
+        const btn = document.querySelector('.share-button');
+        if (btn) {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      } catch (err) {
+        console.error('复制失败:', err);
+        alert('复制失败，请手动复制');
+      }
+    };
+  </script>
+
   <style>
     .article-container {
       max-width: 800px;
@@ -90,6 +127,35 @@ const { Content } = await post.render();
       color: #a0a0a0;
       font-size: 1.1rem;
       line-height: 1.6;
+    }
+
+    .share-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.2rem;
+      background: linear-gradient(135deg, #d4af37, #f5c842);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 1rem;
+    }
+
+    .share-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    .share-button.copied {
+      background: linear-gradient(135deg, #10b981, #34d399);
+    }
+
+    .share-button i {
+      font-size: 1rem;
     }
 
     .article-content {
@@ -359,6 +425,10 @@ const { Content } = await post.render();
       </div>
       <h1 class="article-title">{post.data.title}</h1>
       <p class="article-description">{post.data.description}</p>
+      <button class="share-button" onclick="shareArticle()">
+        <i class="fas fa-share-alt"></i>
+        分享文章
+      </button>
     </header>
 
     <div class="article-content">

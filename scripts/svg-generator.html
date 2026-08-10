@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SVG 封面图生成器</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: #0a0a0f;
+      color: #f0f0f0;
+      padding: 2rem;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 2rem;
+      background: linear-gradient(135deg, #d4af37, #f5c842);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 2rem;
+    }
+
+    .controls {
+      background: #1a1a1a;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+    }
+
+    .preview {
+      background: #1a1a1a;
+      padding: 2rem;
+      border-radius: 12px;
+      border: 1px solid #2a2a2a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .form-group {
+      margin-bottom: 1.5rem;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5rem;
+      color: #d4af37;
+      font-weight: 600;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 0.75rem;
+      background: #0a0a0f;
+      border: 1px solid #2a2a2a;
+      border-radius: 8px;
+      color: #f0f0f0;
+      font-size: 1rem;
+    }
+
+    input:focus, select:focus {
+      outline: none;
+      border-color: #d4af37;
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background: linear-gradient(135deg, #d4af37, #f5c842);
+      color: #0a0a0f;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-bottom: 0.5rem;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+    }
+
+    button.secondary {
+      background: #2a2a2a;
+      color: #f0f0f0;
+    }
+
+    button.secondary:hover {
+      background: #3a3a3a;
+    }
+
+    #svgContainer svg {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .hint {
+      font-size: 0.875rem;
+      color: #6b7280;
+      margin-top: 0.25rem;
+    }
+
+    @media (max-width: 1024px) {
+      .content {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🎨 SVG 封面图生成器</h1>
+
+    <div class="content">
+      <div class="controls">
+        <div class="form-group">
+          <label for="title">文章标题</label>
+          <input type="text" id="title" placeholder="例如：MateAgent: 如何用 ES 中间层解决多 Agent 上下文爆炸问题" />
+          <p class="hint">最多显示 3 行，每行约 20 字</p>
+        </div>
+
+        <div class="form-group">
+          <label for="tag">标签</label>
+          <input type="text" id="tag" placeholder="例如：AI Agent" />
+        </div>
+
+        <div class="form-group">
+          <label for="author">作者</label>
+          <input type="text" id="author" placeholder="例如：Ryan" value="Ryan" />
+        </div>
+
+        <div class="form-group">
+          <label for="style">风格</label>
+          <select id="style">
+            <option value="gold">黑金风格</option>
+            <option value="blue">蓝色科技</option>
+            <option value="green">绿色极客</option>
+            <option value="purple">紫色创意</option>
+          </select>
+        </div>
+
+        <button onclick="generateSvg()">🔄 生成预览</button>
+        <button class="secondary" onclick="downloadSvg()">📥 下载 SVG</button>
+        <button class="secondary" onclick="downloadPng()">🖼️ 下载 PNG</button>
+      </div>
+
+      <div class="preview">
+        <div id="svgContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const CONFIG = {
+      width: 1200,
+      height: 630,
+      colors: {
+        gold: {
+          background: ['#0a0a0f', '#141414'],
+          primary: '#d4af37',
+          gradient: ['#d4af37', '#f5c842', '#ffd700']
+        },
+        blue: {
+          background: ['#0a0a1f', '#14142a'],
+          primary: '#667eea',
+          gradient: ['#667eea', '#764ba2', '#9f7aea']
+        },
+        green: {
+          background: ['#0a1f0a', '#142a14'],
+          primary: '#10b981',
+          gradient: ['#10b981', '#34d399', '#6ee7b7']
+        },
+        purple: {
+          background: ['#1f0a2a', '#2a142a'],
+          primary: '#a855f7',
+          gradient: ['#a855f7', '#c084fc', '#e9d5ff']
+        }
+      }
+    };
+
+    function escapeXml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&apos;');
+    }
+
+    function wrapText(title, maxCharsPerLine = 20) {
+      const lines = [];
+      let currentLine = '';
+
+      for (const char of title) {
+        if (currentLine.length < maxCharsPerLine) {
+          currentLine += char;
+        } else {
+          lines.push(currentLine);
+          currentLine = char;
+        }
+      }
+      if (currentLine) {
+        lines.push(currentLine);
+      }
+
+      return lines.slice(0, 3);
+    }
+
+    function generateSvg() {
+      const title = document.getElementById('title').value.trim() || '文章标题';
+      const tag = document.getElementById('tag').value.trim() || 'Technology';
+      const author = document.getElementById('author').value.trim() || 'Ryan';
+      const style = document.getElementById('style').value;
+
+      const colors = CONFIG.colors[style];
+      const lines = wrapText(title);
+
+      const startY = 250;
+      const lineHeight = 70;
+      const firstLineY = startY - ((lines.length * lineHeight) / 2) + (lineHeight / 2);
+
+      const svg = `
+<svg width="${CONFIG.width}" height="${CONFIG.height}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="goldGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:${colors.gradient[0]};stop-opacity:1" />
+      <stop offset="50%" style="stop-color:${colors.gradient[1]};stop-opacity:1" />
+      <stop offset="100%" style="stop-color:${colors.gradient[2]};stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:${colors.background[0]};stop-opacity:1" />
+      <stop offset="100%" style="stop-color:${colors.background[1]};stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <rect width="100%" height="100%" fill="url(#bgGradient)"/>
+  <circle cx="100" cy="100" r="200" fill="${colors.primary}" opacity="0.05"/>
+  <circle cx="1100" cy="530" r="150" fill="${colors.primary}" opacity="0.05"/>
+  <rect x="20" y="20" width="${CONFIG.width - 40}" height="${CONFIG.height - 40}"
+        fill="none" stroke="${colors.primary}" stroke-width="2" opacity="0.3" rx="10"/>
+  <rect x="60" y="150" width="4" height="330" fill="url(#goldGradient)" rx="2"/>
+
+  <text x="100" y="190" font-family="Inter, -apple-system, sans-serif" font-size="24"
+        fill="${colors.primary}" font-weight="600" letter-spacing="2">
+    ${escapeXml(tag.toUpperCase())}
+  </text>
+
+  ${lines.map((line, index) => `
+  <text x="100" y="${firstLineY + (index * lineHeight)}"
+        font-family="Inter, -apple-system, sans-serif" font-size="48"
+        fill="#f0f0f0" font-weight="700">
+    ${escapeXml(line)}
+  </text>`).join('')}
+
+  <text x="100" y="550" font-family="Inter, -apple-system, sans-serif" font-size="20" fill="#a0a0a0">
+    By ${escapeXml(author)}
+  </text>
+
+  <text x="${CONFIG.width - 100}" y="550" font-family="Inter, -apple-system, sans-serif" font-size="20"
+        fill="#a0a0a0" text-anchor="end">
+    imcoders.cn
+  </text>
+
+  <image x="${CONFIG.width - 140}" y="40" width="100" height="100"
+         href="https://imcoders.cn/monket-snow2.png" opacity="0.9"/>
+</svg>`;
+
+      document.getElementById('svgContainer').innerHTML = svg;
+      return svg;
+    }
+
+    function downloadSvg() {
+      const svg = generateSvg();
+      const blob = new Blob([svg], { type: 'image/svg+xml' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'og-image.svg';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function downloadPng() {
+      const svgString = generateSvg();
+      const img = new Image();
+      const svgBlob = new Blob([svgString], { type: 'image/svg+xml;charset=utf-8' });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = CONFIG.width;
+        canvas.height = CONFIG.height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        URL.revokeObjectURL(url);
+
+        canvas.toBlob((blob) => {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'og-image.png';
+          a.click();
+        });
+      };
+
+      img.src = url;
+    }
+
+    // 实时预览
+    ['title', 'tag', 'author', 'style'].forEach(id => {
+      document.getElementById(id).addEventListener('input', generateSvg);
+    });
+
+    // 初始化
+    generateSvg();
+  </script>
+</body>
+</html>

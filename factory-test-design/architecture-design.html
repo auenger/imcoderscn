@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EQP-EAP 三端解耦架构设计</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8FAFC;--surface:#FFFFFF;--surface2:#F1F5F9;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --font:'Fira Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Fira Code','SF Mono',Monaco,Consolas,monospace;
+  --r:10px;--rs:6px;
+  /* System A - Blue */
+  --a:#2563EB;--a-l:#3B82F6;--a-bg:#EFF6FF;--a-bd:rgba(37,99,235,.2);--a-glow:rgba(37,99,235,.06);
+  /* System B - Amber/Orange */
+  --b:#D97706;--b-l:#F59E0B;--b-bg:#FFFBEB;--b-bd:rgba(217,119,6,.2);--b-glow:rgba(217,119,6,.06);
+  /* System C - Green */
+  --c:#16A34A;--c-l:#22C55E;--c-bg:#F0FDF4;--c-bd:rgba(22,163,74,.2);--c-glow:rgba(22,163,74,.06);
+  /* Contract - Purple */
+  --ct:#7C3AED;--ct-bg:#F5F3FF;--ct-bd:rgba(124,58,237,.2);
+  /* Danger */
+  --red:#DC2626;--red-bg:#FEF2F2;
+  --tr:200ms ease;
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ===== NAV ===== */
+.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.nav-left{display:flex;align-items:center;gap:12px}
+.nav-logo{width:30px;height:30px;background:var(--a);border-radius:var(--rs);display:flex;align-items:center;justify-content:center}
+.nav-logo svg{width:16px;height:16px;color:#fff}
+.nav-title{font-size:14px;font-weight:700}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 12px;font-size:12px;font-weight:600;color:var(--text2);border-radius:var(--rs);cursor:pointer;transition:all var(--tr);border:none;background:none;font-family:var(--font)}
+.nav-link:hover{background:var(--surface2);color:var(--text)}
+.nav-link.active{background:var(--a-bg);color:var(--a)}
+
+/* ===== HERO ===== */
+.hero{max-width:1200px;margin:0 auto;padding:48px 32px 32px}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--a-bg);color:var(--a);border:1px solid var(--a-bd);border-radius:20px;font-size:11px;font-weight:600;margin-bottom:12px}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:10px}
+.hero-desc{font-size:15px;color:var(--text2);max-width:720px;line-height:1.7}
+
+/* ===== CONTAINER ===== */
+.container{max-width:1200px;margin:0 auto;padding:0 32px 80px}
+
+/* ===== SECTION ===== */
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.sec-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.sec-num.blue{background:var(--a-bg);color:var(--a);border:1.5px solid var(--a-bd)}
+.sec-num.amber{background:var(--b-bg);color:var(--b);border:1.5px solid var(--b-bd)}
+.sec-num.green{background:var(--c-bg);color:var(--c);border:1.5px solid var(--c-bd)}
+.sec-num.purple{background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)}
+.sec-title{font-size:18px;font-weight:700}
+.sec-sub{font-size:13px;color:var(--text3);margin-left:4px}
+
+/* ===== CALLOUT ===== */
+.callout{display:flex;align-items:flex-start;gap:10px;padding:14px 18px;border-radius:var(--r);margin-bottom:16px;font-size:13px;font-weight:500;line-height:1.6}
+.callout svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.callout.blue{background:var(--a-bg);border:1px solid var(--a-bd);color:#1D4ED8}
+.callout.amber{background:var(--b-bg);border:1px solid var(--b-bd);color:#92400E}
+.callout.green{background:var(--c-bg);border:1px solid var(--c-bd);color:#166534}
+.callout.purple{background:var(--ct-bg);border:1px solid var(--ct-bd);color:#6D28D9}
+
+/* ===== CARDS ===== */
+.card-grid{display:grid;gap:14px}
+.card-grid.c3{grid-template-columns:repeat(3,1fr)}
+.card-grid.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:all var(--tr)}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-1px)}
+.card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.card-icon svg{width:18px;height:18px}
+.card-icon.blue{background:var(--a-bg);border:1px solid var(--a-bd);color:var(--a)}
+.card-icon.amber{background:var(--b-bg);border:1px solid var(--b-bd);color:var(--b)}
+.card-icon.green{background:var(--c-bg);border:1px solid var(--c-bd);color:var(--c)}
+.card-icon.purple{background:var(--ct-bg);border:1px solid var(--ct-bd);color:var(--ct)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.7}
+.card-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-top:10px}
+.card-tag.blue{background:var(--a-bg);color:var(--a)}
+.card-tag.amber{background:var(--b-bg);color:var(--b)}
+.card-tag.green{background:var(--c-bg);color:var(--c)}
+.card-tag.purple{background:var(--ct-bg);color:var(--ct)}
+.card-tag.red{background:var(--red-bg);color:var(--red)}
+
+/* ===== FLOW DIAGRAM ===== */
+.flow-diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:40px 32px;position:relative;overflow:hidden}
+.flow-diagram::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,var(--border) 1px,transparent 1px);background-size:24px 24px;opacity:.4;pointer-events:none}
+
+/* Three system columns */
+.flow-cols{display:grid;grid-template-columns:1fr 80px 1fr 80px 1fr;gap:0;align-items:start;position:relative;z-index:1}
+
+.flow-col{text-align:center}
+.flow-col-header{padding:16px 20px;border-radius:var(--r);margin-bottom:12px;border:1.5px solid}
+.flow-col-header.sys-a{background:var(--a-bg);border-color:var(--a-bd)}
+.flow-col-header.sys-b{background:var(--b-bg);border-color:var(--b-bd)}
+.flow-col-header.sys-c{background:var(--c-bg);border-color:var(--c-bd)}
+.flow-col-header h3{font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px}
+.flow-col-header.sys-a h3{color:#1D4ED8}
+.flow-col-header.sys-b h3{color:#92400E}
+.flow-col-header.sys-c h3{color:#166534}
+.flow-col-header p{font-size:11px;margin-top:4px;opacity:.75}
+
+.flow-col-body{display:flex;flex-direction:column;gap:8px}
+.flow-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:12px 14px;text-align:left;transition:all var(--tr)}
+.flow-box:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.flow-box h4{font-size:12px;font-weight:700;margin-bottom:3px}
+.flow-box p{font-size:11px;color:var(--text2);line-height:1.5}
+
+/* Arrow connectors between columns */
+.flow-arrow{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;padding:40px 0;position:relative;z-index:1}
+.flow-arrow svg{color:var(--text3)}
+.flow-arrow-label{writing-mode:vertical-lr;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.5px;padding:8px 0;text-align:center}
+.flow-arrow-contract{background:var(--ct-bg);color:var(--ct);border:1px solid var(--ct-bd);padding:6px 10px;border-radius:var(--rs);font-size:10px;font-weight:700;writing-mode:vertical-lr;letter-spacing:.5px;margin:12px 0}
+
+/* ===== DATA FLOW DETAIL ===== */
+.flow-detail{display:grid;grid-template-columns:1fr 56px 1fr 56px 1fr;gap:0;align-items:stretch;margin-top:24px}
+.fd-block{background:var(--surface2);border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px}
+.fd-block h4{font-size:12px;font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:5px}
+.fd-block h4 .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.fd-block h4 .dot.blue{background:var(--a)}
+.fd-block h4 .dot.amber{background:var(--b)}
+.fd-block h4 .dot.green{background:var(--c)}
+.fd-item{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);padding:4px 0;border-bottom:1px solid var(--border)}
+.fd-item:last-child{border-bottom:none}
+.fd-item code{font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 5px;border-radius:3px;border:1px solid var(--border)}
+.fd-arrow{display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px}
+.fd-arrow svg{color:var(--text3)}
+.fd-arrow-text{font-size:9px;font-weight:600;color:var(--text3);text-align:center}
+
+/* ===== CONTRACT TABLE ===== */
+.contract-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.contract-table th{text-align:left;padding:8px 12px;background:var(--surface2);font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);font-size:11px}
+.contract-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.contract-table tr:last-child td{border-bottom:none}
+.contract-table code{font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 6px;border-radius:3px;border:1px solid var(--border)}
+.contract-table .type{color:var(--ct);font-weight:600;font-size:11px}
+
+/* ===== INDEPENDENCE GRID ===== */
+.indep-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.indep-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all var(--tr)}
+.indep-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.indep-header{padding:16px 20px;display:flex;align-items:center;gap:10px}
+.indep-header.sys-a{background:var(--a-bg);border-bottom:1px solid var(--a-bd)}
+.indep-header.sys-b{background:var(--b-bg);border-bottom:1px solid var(--b-bd)}
+.indep-header.sys-c{background:var(--c-bg);border-bottom:1px solid var(--c-bd)}
+.indep-dot{width:10px;height:10px;border-radius:50%}
+.indep-dot.blue{background:var(--a)}
+.indep-dot.amber{background:var(--b)}
+.indep-dot.green{background:var(--c)}
+.indep-header h4{font-size:13px;font-weight:700}
+.indep-body{padding:16px 20px}
+.indep-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6}
+.indep-item:last-child{margin-bottom:0}
+.indep-item svg{width:14px;height:14px;flex-shrink:0;margin-top:2px}
+.indep-item svg.blue{color:var(--a)}
+.indep-item svg.amber{color:var(--b)}
+.indep-item svg.green{color:var(--c)}
+
+/* ===== DECOUPLING BOUNDARY ===== */
+.boundary{position:relative;margin:32px 0}
+.boundary-line{display:flex;align-items:center;gap:16px;padding:20px 0}
+.boundary-line::before,.boundary-line::after{content:'';flex:1;height:2px;background:repeating-linear-gradient(90deg,var(--ct) 0,var(--ct) 8px,transparent 8px,transparent 16px)}
+.boundary-tag{padding:6px 16px;background:var(--ct-bg);border:1.5px solid var(--ct-bd);border-radius:20px;font-size:12px;font-weight:700;color:var(--ct);white-space:nowrap;display:flex;align-items:center;gap:6px}
+.boundary-tag svg{width:14px;height:14px}
+.boundary-desc{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-top:16px}
+.boundary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px;display:flex;gap:12px}
+.bc-icon{width:32px;height:32px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.bc-icon svg{width:16px;height:16px}
+.bc-icon.purple{background:var(--ct-bg);color:var(--ct)}
+.bc-text h5{font-size:12px;font-weight:700;margin-bottom:3px}
+.bc-text p{font-size:11px;color:var(--text2);line-height:1.6}
+
+/* ===== PIPELINE (Horizontal Steps) ===== */
+.pipeline{display:flex;gap:0;position:relative}
+.pipe-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 18px;position:relative;text-align:center;transition:all var(--tr)}
+.pipe-step:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.pipe-step::after{content:'';position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:12px solid var(--border);border-top:10px solid transparent;border-bottom:10px solid transparent;z-index:2}
+.pipe-step:last-child::after{display:none}
+.pipe-step .step-n{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-bottom:10px}
+.pipe-step .step-n.blue{background:var(--a-bg);color:var(--a);border:1.5px solid var(--a-bd)}
+.pipe-step .step-n.amber{background:var(--b-bg);color:var(--b);border:1.5px solid var(--b-bd)}
+.pipe-step .step-n.green{background:var(--c-bg);color:var(--c);border:1.5px solid var(--c-bd)}
+.pipe-step h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.pipe-step p{font-size:11px;color:var(--text2);line-height:1.6}
+.pipe-step .owner{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;margin-top:8px}
+.pipe-step .owner.blue{background:var(--a-bg);color:var(--a)}
+.pipe-step .owner.amber{background:var(--b-bg);color:var(--b)}
+.pipe-step .owner.green{background:var(--c-bg);color:var(--c)}
+
+/* ===== SEQUENCE DIAGRAM ===== */
+.seq-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow-x:auto;-webkit-overflow-scrolling:touch}
+.seq-wrap svg{display:block;margin:0 auto}
+.seq-phase{display:flex;align-items:center;gap:6px;margin-bottom:14px;margin-top:20px}
+.seq-phase:first-child{margin-top:0}
+.seq-phase-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.seq-phase-label{font-size:12px;font-weight:700}
+.seq-phase-sub{font-size:11px;color:var(--text3);margin-left:4px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .flow-cols,.flow-detail{grid-template-columns:1fr;gap:16px}
+  .flow-arrow,.fd-arrow{flex-direction:row;padding:8px 0}
+  .flow-arrow svg{transform:rotate(90deg)}
+  .flow-arrow-label{writing-mode:horizontal-tb}
+  .flow-arrow-contract{writing-mode:horizontal-tb}
+  .card-grid.c3,.card-grid.c2{grid-template-columns:1fr}
+  .indep-grid{grid-template-columns:1fr}
+  .boundary-desc{grid-template-columns:1fr}
+  .pipeline{flex-direction:column}
+  .pipe-step::after{content:'';right:50%;top:auto;bottom:-14px;transform:translateX(50%) rotate(90deg)}
+  .seq-wrap{padding:0}
+}
+@media(max-width:640px){
+  .hero{padding:32px 16px 20px}
+  .hero h1{font-size:24px}
+  .container{padding:0 16px 60px}
+  .nav-links{display:none}
+  .seq-wrap svg{min-width:700px}
+}
+
+/* ===== AGENT LAYER ===== */
+.agent-grad{background:linear-gradient(135deg,#FEF3C7 0%,#FDE68A 30%,#F59E0B 100%);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.agent-flow{display:grid;grid-template-columns:1fr 56px 1fr 56px 1fr 56px 1fr;gap:0;align-items:stretch}
+.af-node{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;position:relative;transition:all var(--tr)}
+.af-node:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-1px)}
+.af-node.highlight{border:2px solid #F59E0B;background:linear-gradient(135deg,#FFFBEB,#fff);box-shadow:0 0 0 4px rgba(245,158,11,.08)}
+.af-node-num{position:absolute;top:-10px;left:14px;width:22px;height:22px;border-radius:50%;background:#F59E0B;color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(245,158,11,.3)}
+.af-node h4{font-size:13px;font-weight:700;margin-bottom:6px}
+.af-node p{font-size:11px;color:var(--text2);line-height:1.6}
+.af-node .af-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;margin-top:8px;background:#FEF3C7;color:#92400E}
+.af-arrow{display:flex;align-items:center;justify-content:center}
+.af-arrow svg{color:var(--text3)}
+
+/* Agent placement map */
+.agent-map{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px 24px;overflow-x:auto}
+.agent-map-inner{min-width:900px}
+.am-row{display:grid;grid-template-columns:100px 1fr 40px 1fr 40px 1fr;gap:0;align-items:center;margin-bottom:16px}
+.am-row:last-child{margin-bottom:0}
+.am-label{font-size:12px;font-weight:700;text-align:center;padding:10px 8px;border-radius:var(--rs)}
+.am-label.sys-a{background:var(--a-bg);color:var(--a)}
+.am-label.sys-b{background:var(--b-bg);color:var(--b)}
+.am-label.sys-c{background:var(--c-bg);color:var(--c)}
+.am-flow{display:flex;flex-direction:column;gap:8px}
+.am-agent{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:var(--rs);border:1.5px solid;background:var(--surface);transition:all var(--tr)}
+.am-agent:hover{transform:translateX(4px);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.am-agent.gold{border-color:#F59E0B;background:linear-gradient(90deg,#FFFBEB,#fff)}
+.am-agent.blue{border-color:var(--a-bd);background:linear-gradient(90deg,var(--a-bg),#fff)}
+.am-agent.amber{border-color:var(--b-bd);background:linear-gradient(90deg,var(--b-bg),#fff)}
+.am-agent.green{border-color:var(--c-bd);background:linear-gradient(90deg,var(--c-bg),#fff)}
+.am-agent.purple{border-color:var(--ct-bd);background:linear-gradient(90deg,var(--ct-bg),#fff)}
+.am-agent-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.am-agent-dot.gold{background:#F59E0B;box-shadow:0 0 0 3px rgba(245,158,11,.2)}
+.am-agent-dot.blue{background:var(--a)}
+.am-agent-dot.amber{background:var(--b)}
+.am-agent-dot.green{background:var(--c)}
+.am-agent-info h5{font-size:12px;font-weight:700}
+.am-agent-info p{font-size:10px;color:var(--text2);line-height:1.5}
+.am-agent-info.gold h5{color:#92400E}
+.am-agent-info.blue h5{color:#1D4ED8}
+.am-agent-info.amber h5{color:#92400E}
+.am-agent-info.green h5{color:#166534}
+.am-agent-info.purple h5{color:#6D28D9}
+.am-connector{display:flex;align-items:center;justify-content:center;color:var(--text3)}
+
+/* Agent tier badges */
+.agent-tier{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:4px;font-size:10px;font-weight:700}
+.agent-tier.p0{background:#FEF3C7;color:#92400E}
+.agent-tier.p1{background:var(--a-bg);color:var(--a)}
+.agent-tier.p2{background:var(--surface2);color:var(--text2)}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.sec{animation:fadeInUp .5s ease both}
+.sec:nth-child(2){animation-delay:.05s}
+.sec:nth-child(3){animation-delay:.1s}
+.sec:nth-child(4){animation-delay:.15s}
+.sec:nth-child(5){animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<!-- ===== NAV ===== -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    </div>
+    <span class="nav-title">三端解耦架构设计</span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="scrollToSec('overview')">总览</button>
+    <button class="nav-link" onclick="scrollToSec('flow')">数据流</button>
+    <button class="nav-link" onclick="scrollToSec('contract')">契约层</button>
+    <button class="nav-link" onclick="scrollToSec('independence')">独立运行</button>
+    <button class="nav-link" onclick="scrollToSec('pipeline')">端到端</button>
+    <button class="nav-link" onclick="scrollToSec('agent')">Agent 层</button>
+  </div>
+</nav>
+
+<!-- ===== HERO ===== -->
+<div class="hero">
+  <div class="hero-tag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 2L2 7l10 5 10-5-10-5z"/><path d="M2 17l10 5 10-5"/><path d="M2 12l10 5 10-5"/></svg>
+    Architecture Design v1.0
+  </div>
+  <h1>EQP-EAP 工厂测试 · 三端解耦架构</h1>
+  <p class="hero-desc">
+    BS 测机服务 / 测试报告契约 / EAP 自动测试平台 — 三个系统通过结构化报告契约松耦合对接，可独立部署、独立演进、独立运行，实现工厂测试全流程自动化闭环。
+  </p>
+</div>
+
+<div class="container">
+
+<!-- ===== SECTION 1: OVERVIEW ===== -->
+<div class="sec" id="overview">
+  <div class="sec-head">
+    <div class="sec-num blue">1</div>
+    <div class="sec-title">系统总览 · 三端定位</div>
+    <div class="sec-sub">三个独立系统，一份共享契约</div>
+  </div>
+
+  <div class="callout blue">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+    <span>核心理念：三个系统通过「测试报告」这一数据契约实现松耦合。系统 A 产出的报告，是系统 C 的唯一输入。系统 B 定义报告格式，A 和 C 各自实现生产和消费。任何一端可独立运行、替换、升级。</span>
+  </div>
+
+  <div class="card-grid c3">
+    <!-- System A -->
+    <div class="card">
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="card-title">系统 A — BS 测机服务</div>
+      <div class="card-desc">网页前端操作台 + 模拟信号服务端。测机人员在浏览器中操作，服务端模拟 EQP/EAP 信号收发，完成接口逐项验证，产出结构化测试报告。</div>
+      <div class="card-tag blue">测机端</div>
+    </div>
+    <!-- System B -->
+    <div class="card">
+      <div class="card-icon amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      </div>
+      <div class="card-title">系统 B — 测试报告契约</div>
+      <div class="card-desc">定义标准化的测试报告 JSON Schema。包含设备信息、接口清单、测试结果、异常记录等字段。是系统 A 和系统 C 之间的唯一耦合点。</div>
+      <div class="card-tag amber">数据契约</div>
+    </div>
+    <!-- System C -->
+    <div class="card">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/><path d="M16 16h5a2 2 0 0 1 2 2v1a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2v-1a2 2 0 0 1 2-2h5"/></svg>
+      </div>
+      <div class="card-title">系统 C — EAP 自动测试平台</div>
+      <div class="card-desc">消费测试报告，自动解析接口清单，对真实 EAP Service 发起全量验证请求。支持回归测试、版本对比、兼容性检测，零人工介入。</div>
+      <div class="card-tag green">验证端</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 2: DATA FLOW ===== -->
+<div class="sec" id="flow">
+  <div class="sec-head">
+    <div class="sec-num amber">2</div>
+    <div class="sec-title">数据流向 · 三端交互</div>
+    <div class="sec-sub">从测机到验证的完整数据链路</div>
+  </div>
+
+  <div class="flow-diagram">
+    <!-- Main Three-Column Flow -->
+    <div class="flow-cols">
+      <!-- System A -->
+      <div class="flow-col">
+        <div class="flow-col-header sys-a">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            系统 A · BS 测机服务
+          </h3>
+          <p>Web 前端 + 模拟信号服务端</p>
+        </div>
+        <div class="flow-col-body">
+          <div class="flow-box">
+            <h4>1. 创建测试快照</h4>
+            <p>从标准接口库选择接口，配置设备型号和测试方案</p>
+          </div>
+          <div class="flow-box">
+            <h4>2. 模拟信号收发</h4>
+            <p>服务端模拟 EQP/EAP 协议信号，前端实时展示测试进度</p>
+          </div>
+          <div class="flow-box">
+            <h4>3. 逐项 / 批量测试</h4>
+            <p>每个接口独立测试：请求 → 响应 → 判定 → 记录耗时</p>
+          </div>
+          <div class="flow-box">
+            <h4>4. 产出测试报告</h4>
+            <p>汇总全部结果，按契约格式输出 JSON 报告</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow A → B -->
+      <div class="flow-arrow">
+        <svg width="32" height="48" viewBox="0 0 32 48"><path d="M16 0 L16 38 M10 32 L16 38 L22 32" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        <div class="flow-arrow-contract">JSON Report</div>
+        <div class="flow-arrow-label">输出契约</div>
+        <svg width="32" height="48" viewBox="0 0 32 48"><path d="M16 0 L16 38 M10 32 L16 38 L22 32" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+
+      <!-- System B (Contract) -->
+      <div class="flow-col">
+        <div class="flow-col-header sys-b">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            系统 B · 测试报告契约
+          </h3>
+          <p>标准化数据格式定义</p>
+        </div>
+        <div class="flow-col-body">
+          <div class="flow-box">
+            <h4>报告元数据</h4>
+            <p>报告ID、生成时间、快照版本、设备型号</p>
+          </div>
+          <div class="flow-box">
+            <h4>接口测试结果</h4>
+            <p>编号、端点、方向、状态、耗时、异常信息</p>
+          </div>
+          <div class="flow-box">
+            <h4>统计摘要</h4>
+            <p>总数、通过数、失败数、通过率</p>
+          </div>
+          <div class="flow-box">
+            <h4>异常记录</h4>
+            <p>失败接口的详细异常描述和复现信息</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Arrow B → C -->
+      <div class="flow-arrow">
+        <svg width="32" height="48" viewBox="0 0 32 48"><path d="M16 0 L16 38 M10 32 L16 38 L22 32" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        <div class="flow-arrow-contract">Parse Report</div>
+        <div class="flow-arrow-label">消费契约</div>
+        <svg width="32" height="48" viewBox="0 0 32 48"><path d="M16 0 L16 38 M10 32 L16 38 L22 32" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+
+      <!-- System C -->
+      <div class="flow-col">
+        <div class="flow-col-header sys-c">
+          <h3>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+            系统 C · EAP 自动测试平台
+          </h3>
+          <p>报告驱动真实服务验证</p>
+        </div>
+        <div class="flow-col-body">
+          <div class="flow-box">
+            <h4>1. 解析报告</h4>
+            <p>读取 JSON 报告，提取接口清单和端点信息</p>
+          </div>
+          <div class="flow-box">
+            <h4>2. 构建测试用例</h4>
+            <p>按接口定义自动生成请求参数和断言规则</p>
+          </div>
+          <div class="flow-box">
+            <h4>3. 发起真实验证</h4>
+            <p>对 EAP 真实 Service 发起 HTTP/gRPC 请求</p>
+          </div>
+          <div class="flow-box">
+            <h4>4. 回归报告对比</h4>
+            <p>对比历史结果，标识兼容性回归项</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Flow Detail -->
+  <div style="margin-top:20px">
+    <div class="sec-head">
+      <div class="sec-num amber" style="width:24px;height:24px;font-size:10px">→</div>
+      <div class="sec-title" style="font-size:14px">关键数据字段流转明细</div>
+    </div>
+    <div class="flow-detail">
+      <!-- A output -->
+      <div class="fd-block">
+        <h4><span class="dot blue"></span>系统 A 输出</h4>
+        <div class="fd-item"><code>reportId</code> <span>报告唯一标识</span></div>
+        <div class="fd-item"><code>snapshotId</code> <span>快照版本标识</span></div>
+        <div class="fd-item"><code>deviceModel</code> <span>设备型号</span></div>
+        <div class="fd-item"><code>interfaces[]</code> <span>接口测试结果数组</span></div>
+        <div class="fd-item"><code>interface.status</code> <span>pass / fail</span></div>
+        <div class="fd-item"><code>interface.timeMs</code> <span>响应耗时</span></div>
+        <div class="fd-item"><code>interface.error</code> <span>异常描述</span></div>
+        <div class="fd-item"><code>summary</code> <span>统计摘要</span></div>
+      </div>
+      <!-- Arrow -->
+      <div class="fd-arrow">
+        <svg width="24" height="40" viewBox="0 0 24 40"><path d="M12 0 L12 32 M7 26 L12 32 L17 26" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        <div class="fd-arrow-text">JSON<br>输出</div>
+      </div>
+      <!-- B Contract -->
+      <div class="fd-block" style="border-color:var(--b-bd);background:var(--b-bg)">
+        <h4><span class="dot amber"></span>系统 B 契约校验</h4>
+        <div class="fd-item"><code>schema validate</code> <span>字段完整性</span></div>
+        <div class="fd-item"><code>required fields</code> <span>必填项检查</span></div>
+        <div class="fd-item"><code>type check</code> <span>类型正确性</span></div>
+        <div class="fd-item"><code>version match</code> <span>版本兼容性</span></div>
+      </div>
+      <!-- Arrow -->
+      <div class="fd-arrow">
+        <svg width="24" height="40" viewBox="0 0 24 40"><path d="M12 0 L12 32 M7 26 L12 32 L17 26" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+        <div class="fd-arrow-text">解析<br>消费</div>
+      </div>
+      <!-- C input -->
+      <div class="fd-block">
+        <h4><span class="dot green"></span>系统 C 消费</h4>
+        <div class="fd-item"><code>parse interfaces[]</code> <span>提取接口清单</span></div>
+        <div class="fd-item"><code>build test cases</code> <span>生成测试用例</span></div>
+        <div class="fd-item"><code>call real service</code> <span>发起真实请求</span></div>
+        <div class="fd-item"><code>assert response</code> <span>断言响应结果</span></div>
+        <div class="fd-item"><code>compare history</code> <span>对比历史报告</span></div>
+        <div class="fd-item"><code>regression report</code> <span>输出回归报告</span></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 3: CONTRACT ===== -->
+<div class="sec" id="contract">
+  <div class="sec-head">
+    <div class="sec-num purple">3</div>
+    <div class="sec-title">契约层 · 测试报告 JSON Schema</div>
+    <div class="sec-sub">三端之间的唯一耦合点</div>
+  </div>
+
+  <div class="callout purple">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    <span>契约是三端解耦的关键：系统 A 只需保证输出符合 Schema，系统 C 只需保证能解析符合 Schema 的输入。两端无需知道对方的实现细节。契约变更需版本管理，向下兼容。</span>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-title" style="margin-bottom:12px">报告结构定义</div>
+    <table class="contract-table">
+      <thead>
+        <tr><th>字段路径</th><th>类型</th><th>必填</th><th>说明</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>reportId</code></td><td class="type">string</td><td>Yes</td><td>报告唯一标识，UUID 格式</td></tr>
+        <tr><td><code>version</code></td><td class="type">string</td><td>Yes</td><td>报告 Schema 版本，如 <code>"1.0.0"</code></td></tr>
+        <tr><td><code>snapshot.name</code></td><td class="type">string</td><td>Yes</td><td>测试快照名称</td></tr>
+        <tr><td><code>snapshot.id</code></td><td class="type">string</td><td>Yes</td><td>快照唯一标识</td></tr>
+        <tr><td><code>snapshot.version</code></td><td class="type">integer</td><td>Yes</td><td>快照版本号</td></tr>
+        <tr><td><code>device.model</code></td><td class="type">string</td><td>No</td><td>设备型号</td></tr>
+        <tr><td><code>device.line</code></td><td class="type">string</td><td>No</td><td>产线标识</td></tr>
+        <tr><td><code>createdAt</code></td><td class="type">ISO 8601</td><td>Yes</td><td>报告生成时间</td></tr>
+        <tr><td><code>interfaces[].id</code></td><td class="type">string</td><td>Yes</td><td>接口编号，如 <code>EQP-EAP-001</code></td></tr>
+        <tr><td><code>interfaces[].name</code></td><td class="type">string</td><td>Yes</td><td>接口名称</td></tr>
+        <tr><td><code>interfaces[].dir</code></td><td class="type">enum</td><td>Yes</td><td>方向：<code>upload</code> | <code>download</code></td></tr>
+        <tr><td><code>interfaces[].endpoint</code></td><td class="type">string</td><td>Yes</td><td>端点路径，如 <code>POST /api/v1/eqp/status</code></td></tr>
+        <tr><td><code>interfaces[].status</code></td><td class="type">enum</td><td>Yes</td><td>结果：<code>pass</code> | <code>fail</code></td></tr>
+        <tr><td><code>interfaces[].timeMs</code></td><td class="type">integer</td><td>Yes</td><td>响应耗时（毫秒）</td></tr>
+        <tr><td><code>interfaces[].error</code></td><td class="type">string</td><td>No</td><td>失败时的异常描述</td></tr>
+        <tr><td><code>interfaces[].custom</code></td><td class="type">boolean</td><td>No</td><td>是否为自定义接口</td></tr>
+        <tr><td><code>summary.total</code></td><td class="type">integer</td><td>Yes</td><td>总接口数</td></tr>
+        <tr><td><code>summary.pass</code></td><td class="type">integer</td><td>Yes</td><td>通过数</td></tr>
+        <tr><td><code>summary.fail</code></td><td class="type">integer</td><td>Yes</td><td>失败数</td></tr>
+        <tr><td><code>summary.passRate</code></td><td class="type">float</td><td>Yes</td><td>通过率（0-1）</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Decoupling Boundaries -->
+  <div class="boundary">
+    <div class="boundary-line">
+      <div class="boundary-tag">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        解耦边界 — 契约隔离
+      </div>
+    </div>
+    <div class="boundary-desc">
+      <div class="boundary-card">
+        <div class="bc-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
+        </div>
+        <div class="bc-text">
+          <h5>A → B 方向隔离</h5>
+          <p>系统 A 只负责生产报告，不关心谁来消费。报告输出可以是文件、消息队列、API 推送，消费端无感知。</p>
+        </div>
+      </div>
+      <div class="boundary-card">
+        <div class="bc-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+        </div>
+        <div class="bc-text">
+          <h5>B → C 方向隔离</h5>
+          <p>系统 C 只消费符合 Schema 的报告，不关心报告由谁生产。可以是 A 产出，也可以是人工录入或第三方系统。</p>
+        </div>
+      </div>
+      <div class="boundary-card">
+        <div class="bc-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        </div>
+        <div class="bc-text">
+          <h5>版本兼容策略</h5>
+          <p>契约版本号独立于系统版本。新字段可选添加（向下兼容），Breaking Change 需升主版本号，两端协商迁移。</p>
+        </div>
+      </div>
+      <div class="boundary-card">
+        <div class="bc-icon purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        </div>
+        <div class="bc-text">
+          <h5>传输方式无关</h5>
+          <p>报告可通过文件共享、HTTP API、消息队列等任意方式传递。传输层不在契约定义范围内，两端可独立选择。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 4: INDEPENDENCE ===== -->
+<div class="sec" id="independence">
+  <div class="sec-head">
+    <div class="sec-num green">4</div>
+    <div class="sec-title">独立运行 · 各端自治</div>
+    <div class="sec-sub">任一端可独立启动、测试、演进</div>
+  </div>
+
+  <div class="callout green">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+    <span>独立运行能力是三端解耦的核心价值：系统 A 可以在没有系统 C 的情况下完成测机工作；系统 C 可以用手工构造的报告启动服务验证；系统 B 的 Schema 可以独立迭代。</span>
+  </div>
+
+  <div class="indep-grid">
+    <!-- A Independent -->
+    <div class="indep-card">
+      <div class="indep-header sys-a">
+        <div class="indep-dot blue"></div>
+        <h4>系统 A · 独立运行模式</h4>
+      </div>
+      <div class="indep-body">
+        <div class="indep-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>内置模拟信号服务端，无需真实 EQP/EAP 即可完成全部接口测试</span>
+        </div>
+        <div class="indep-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>测试报告本地持久化，可导出 JSON 文件，手动传递给系统 C</span>
+        </div>
+        <div class="indep-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>支持离线运行，测机人员可在无网络环境下完成测试</span>
+        </div>
+        <div class="indep-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>多设备并发测试，A1 测钻孔机的同时 A2 可测 AOI 机</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- B Independent -->
+    <div class="indep-card">
+      <div class="indep-header sys-b">
+        <div class="indep-dot amber"></div>
+        <h4>系统 B · 契约独立演进</h4>
+      </div>
+      <div class="indep-body">
+        <div class="indep-item">
+          <svg class="amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>JSON Schema 独立版本管理，semver 语义化版本控制</span>
+        </div>
+        <div class="indep-item">
+          <svg class="amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>提供 Schema 校验工具，A 和 C 各自集成校验逻辑</span>
+        </div>
+        <div class="indep-item">
+          <svg class="amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>新字段以 optional 方式添加，保证向下兼容</span>
+        </div>
+        <div class="indep-item">
+          <svg class="amber" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>提供 Mock 报告生成器，方便 C 端开发调试</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- C Independent -->
+    <div class="indep-card">
+      <div class="indep-header sys-c">
+        <div class="indep-dot green"></div>
+        <h4>系统 C · 独立运行模式</h4>
+      </div>
+      <div class="indep-body">
+        <div class="indep-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>接受手工构造的 JSON 报告作为输入，无需系统 A 运行</span>
+        </div>
+        <div class="indep-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>内置 EAP Service Mock，可先于真实服务开发完成前验证测试框架</span>
+        </div>
+        <div class="indep-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>定时/触发式回归任务，对接 CI/CD 流水线自动执行</span>
+        </div>
+        <div class="indep-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>历史报告版本对比，兼容性回归结果可视化展示</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SECTION 5: END-TO-END PIPELINE ===== -->
+<div class="sec" id="pipeline">
+  <div class="sec-head">
+    <div class="sec-num blue">5</div>
+    <div class="sec-title">端到端工作流 · 全链路闭环</div>
+    <div class="sec-sub">从接口定义到服务验证的完整 pipeline</div>
+  </div>
+
+  <div class="pipeline">
+    <div class="pipe-step">
+      <div class="step-n blue">1</div>
+      <h4>定义接口协议</h4>
+      <p>系统提供商维护标准接口库，28项上报 + 8项下发，支持自定义扩展</p>
+      <span class="owner blue">系统提供商</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-n blue">2</div>
+      <h4>创建设备快照</h4>
+      <p>测机人员为每台设备勾选接口，组合为独立测试方案</p>
+      <span class="owner blue">测机人员</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-n blue">3</div>
+      <h4>模拟信号测试</h4>
+      <p>BS 测机服务模拟 EQP/EAP 收发，逐项验证接口协议</p>
+      <span class="owner blue">系统 A</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-n amber">4</div>
+      <h4>产出测试报告</h4>
+      <p>按契约格式输出 JSON 报告，包含全部接口结果和统计</p>
+      <span class="owner amber">系统 A → B</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-n green">5</div>
+      <h4>解析报告构建用例</h4>
+      <p>自动提取接口清单和端点，生成真实服务测试用例</p>
+      <span class="owner green">系统 C</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-n green">6</div>
+      <h4>自动验证 EAP Service</h4>
+      <p>对真实后端服务发起全量请求，回归对比历史结果</p>
+      <span class="owner green">系统 C</span>
+    </div>
+  </div>
+
+  <!-- Sequence Diagram -->
+  <div style="margin-top:32px">
+    <div class="sec-head">
+      <div class="sec-num green" style="width:24px;height:24px;font-size:10px">→</div>
+      <div class="sec-title" style="font-size:14px">时序交互 · 跨系统协作流程</div>
+    </div>
+    <div class="seq-wrap">
+    <svg viewBox="0 0 880 520" xmlns="http://www.w3.org/2000/svg" style="min-height:480px">
+      <style>
+        .actor-box{rx:6;ry:6;stroke-width:1.5}
+        .actor-label{font-family:'Fira Sans',sans-serif;font-size:13px;font-weight:700;text-anchor:middle}
+        .actor-sub{font-family:'Fira Sans',sans-serif;font-size:10px;text-anchor:middle;fill:#94A3B8}
+        .lifeline{stroke:#CBD5E1;stroke-width:1.5;stroke-dasharray:6 4}
+        .msg-line{stroke-width:2}
+        .msg-line.solid{stroke:#64748B}
+        .msg-line.dashed{stroke:#94A3B8;stroke-dasharray:6 3}
+        .msg-label{font-family:'Fira Sans',sans-serif;font-size:11px;font-weight:600;text-anchor:start}
+        .msg-num{font-family:'Fira Code',monospace;font-size:9px;font-weight:700;text-anchor:middle}
+        .note-box{rx:4;ry:4;stroke-width:1}
+        .note-text{font-family:'Fira Sans',sans-serif;font-size:10px;fill:#64748B;text-anchor:middle}
+        .phase-line{stroke:#E2E8F0;stroke-width:1;stroke-dasharray:3 3}
+        .phase-label{font-family:'Fira Sans',sans-serif;font-size:10px;font-weight:600;fill:#94A3B8}
+        .arrow-head{fill:#64748B;stroke:none}
+        .arrow-head-muted{fill:#94A3B8;stroke:none}
+      </style>
+      <defs>
+        <marker id="ah" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="arrow-head"/></marker>
+        <marker id="ahm" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" class="arrow-head-muted"/></marker>
+      </defs>
+
+      <!-- Phase backgrounds -->
+      <rect x="16" y="76" width="848" height="134" rx="8" fill="#EFF6FF" opacity=".35"/>
+      <rect x="16" y="220" width="848" height="72" rx="8" fill="#FFFBEB" opacity=".35"/>
+      <rect x="16" y="302" width="848" height="168" rx="8" fill="#F0FDF4" opacity=".35"/>
+
+      <!-- Phase labels -->
+      <text x="30" y="92" class="phase-label">PHASE 1 — 系统 A 内部：测机流程</text>
+      <text x="30" y="236" class="phase-label">PHASE 2 — 契约传递：报告输出</text>
+      <text x="30" y="318" class="phase-label">PHASE 3 — 系统 C 自动：服务验证</text>
+
+      <!-- Actor boxes -->
+      <rect x="80" y="16" width="140" height="42" class="actor-box" fill="#EFF6FF" stroke="rgba(37,99,235,.25)"/>
+      <text x="150" y="35" class="actor-label" fill="#1D4ED8">测机前端</text>
+      <text x="150" y="48" class="actor-sub">系统 A</text>
+
+      <rect x="370" y="16" width="140" height="42" class="actor-box" fill="#FFFBEB" stroke="rgba(217,119,6,.25)"/>
+      <text x="440" y="35" class="actor-label" fill="#92400E">模拟服务端</text>
+      <text x="440" y="48" class="actor-sub">系统 A</text>
+
+      <rect x="660" y="16" width="140" height="42" class="actor-box" fill="#F0FDF4" stroke="rgba(22,163,74,.25)"/>
+      <text x="730" y="35" class="actor-label" fill="#166534">自动测试平台</text>
+      <text x="730" y="48" class="actor-sub">系统 C</text>
+
+      <!-- Lifelines -->
+      <line x1="150" y1="58" x2="150" y2="490" class="lifeline"/>
+      <line x1="440" y1="58" x2="440" y2="490" class="lifeline"/>
+      <line x1="730" y1="58" x2="730" y2="490" class="lifeline"/>
+
+      <!-- ===== PHASE 1: A internal ===== -->
+      <!-- 1. 创建快照 -->
+      <circle cx="38" cy="112" r="10" fill="#EFF6FF" stroke="rgba(37,99,235,.3)" stroke-width="1.5"/>
+      <text x="38" y="116" class="msg-num" fill="#2563EB">1</text>
+      <line x1="150" y1="112" x2="440" y2="112" class="msg-line solid" marker-end="url(#ah)"/>
+      <rect x="230" y="98" width="130" height="18" rx="3" fill="#EFF6FF" stroke="rgba(37,99,235,.15)"/>
+      <text x="240" y="111" class="msg-label" fill="#2563EB">选择接口 · 创建快照</text>
+
+      <!-- 2. 执行测试 -->
+      <circle cx="38" cy="152" r="10" fill="#EFF6FF" stroke="rgba(37,99,235,.3)" stroke-width="1.5"/>
+      <text x="38" y="156" class="msg-num" fill="#2563EB">2</text>
+      <line x1="150" y1="152" x2="440" y2="152" class="msg-line solid" marker-end="url(#ah)"/>
+      <rect x="245" y="138" width="100" height="18" rx="3" fill="#EFF6FF" stroke="rgba(37,99,235,.15)"/>
+      <text x="255" y="151" class="msg-label" fill="#2563EB">发送测试指令</text>
+
+      <!-- 3. 模拟响应 -->
+      <circle cx="38" cy="192" r="10" fill="#EFF6FF" stroke="rgba(37,99,235,.3)" stroke-width="1.5"/>
+      <text x="38" y="196" class="msg-num" fill="#2563EB">3</text>
+      <line x1="440" y1="192" x2="150" y2="192" class="msg-line solid" marker-end="url(#ah)"/>
+      <rect x="225" y="178" width="140" height="18" rx="3" fill="#EFF6FF" stroke="rgba(37,99,235,.15)"/>
+      <text x="235" y="191" class="msg-label" fill="#2563EB">模拟响应 · 记录耗时</text>
+
+      <!-- ===== PHASE 2: Contract transfer ===== -->
+      <!-- 4. 产出报告 -->
+      <circle cx="38" cy="258" r="10" fill="#FFFBEB" stroke="rgba(217,119,6,.3)" stroke-width="1.5"/>
+      <text x="38" y="262" class="msg-num" fill="#D97706">4</text>
+      <line x1="150" y1="258" x2="440" y2="258" class="msg-line dashed" marker-end="url(#ahm)"/>
+      <rect x="222" y="244" width="146" height="18" rx="3" fill="#FFFBEB" stroke="rgba(217,119,6,.15)"/>
+      <text x="232" y="257" class="msg-label" fill="#D97706">按 Schema 组装报告</text>
+
+      <!-- 5. 报告传递 -->
+      <circle cx="38" cy="290" r="10" fill="#F5F3FF" stroke="rgba(124,58,237,.3)" stroke-width="1.5"/>
+      <text x="38" y="294" class="msg-num" fill="#7C3AED">5</text>
+      <line x1="440" y1="290" x2="730" y2="290" class="msg-line dashed" stroke="#7C3AED" marker-end="url(#ah)"/>
+      <rect x="520" y="276" width="130" height="18" rx="3" fill="#F5F3FF" stroke="rgba(124,58,237,.15)"/>
+      <text x="530" y="289" class="msg-label" fill="#7C3AED">JSON 报告 · 传递</text>
+
+      <!-- ===== PHASE 3: C auto ===== -->
+      <!-- 6. 解析报告 -->
+      <circle cx="38" cy="340" r="10" fill="#F0FDF4" stroke="rgba(22,163,74,.3)" stroke-width="1.5"/>
+      <text x="38" y="344" class="msg-num" fill="#16A34A">6</text>
+      <rect x="680" y="330" width="100" height="20" rx="4" fill="#F0FDF4" stroke="rgba(22,163,74,.15)"/>
+      <text x="730" y="344" class="note-text" fill="#16A34A" font-weight="600">解析报告 · 校验 Schema</text>
+
+      <!-- 7. 构建用例 -->
+      <circle cx="38" cy="372" r="10" fill="#F0FDF4" stroke="rgba(22,163,74,.3)" stroke-width="1.5"/>
+      <text x="38" y="376" class="msg-num" fill="#16A34A">7</text>
+      <rect x="680" y="362" width="100" height="20" rx="4" fill="#F0FDF4" stroke="rgba(22,163,74,.15)"/>
+      <text x="730" y="376" class="note-text" fill="#16A34A" font-weight="600">构建测试用例</text>
+
+      <!-- 8. 调用真实服务 -->
+      <circle cx="38" cy="410" r="10" fill="#F0FDF4" stroke="rgba(22,163,74,.3)" stroke-width="1.5"/>
+      <text x="38" y="414" class="msg-num" fill="#16A34A">8</text>
+      <line x1="730" y1="410" x2="440" y2="410" class="msg-line solid" stroke="#16A34A" marker-end="url(#ah)"/>
+      <rect x="500" y="396" width="170" height="18" rx="3" fill="#F0FDF4" stroke="rgba(22,163,74,.15)"/>
+      <text x="510" y="409" class="msg-label" fill="#16A34A">调用 EAP 真实 Service</text>
+
+      <!-- 9. 返回结果 -->
+      <circle cx="38" cy="442" r="10" fill="#F0FDF4" stroke="rgba(22,163,74,.3)" stroke-width="1.5"/>
+      <text x="38" y="446" class="msg-num" fill="#16A34A">9</text>
+      <line x1="440" y1="442" x2="730" y2="442" class="msg-line solid" stroke="#16A34A" marker-end="url(#ah)"/>
+      <rect x="522" y="428" width="126" height="18" rx="3" fill="#F0FDF4" stroke="rgba(22,163,74,.15)"/>
+      <text x="532" y="441" class="msg-label" fill="#16A34A">响应 · 断言结果</text>
+
+      <!-- 10. 回归报告 -->
+      <circle cx="38" cy="474" r="10" fill="#F0FDF4" stroke="rgba(22,163,74,.3)" stroke-width="1.5"/>
+      <text x="38" y="478" class="msg-num" fill="#16A34A">10</text>
+      <rect x="680" y="464" width="100" height="20" rx="4" fill="#F0FDF4" stroke="rgba(22,163,74,.15)"/>
+      <text x="730" y="478" class="note-text" fill="#16A34A" font-weight="600">输出回归报告 · 对比历史</text>
+
+      <!-- Actor bottom boxes -->
+      <rect x="80" y="492" width="140" height="22" rx="4" fill="#EFF6FF" stroke="rgba(37,99,235,.15)" stroke-width="1"/>
+      <rect x="370" y="492" width="140" height="22" rx="4" fill="#FFFBEB" stroke="rgba(217,119,6,.15)" stroke-width="1"/>
+      <rect x="660" y="492" width="140" height="22" rx="4" fill="#F0FDF4" stroke="rgba(22,163,74,.15)" stroke-width="1"/>
+    </svg>
+    </div>
+  </div>
+
+  <!-- ===== SECTION 7: AGENT LAYER ===== -->
+  <div class="sec" id="agent">
+    <div class="sec-head">
+      <div class="sec-num" style="background:#FEF3C7;color:#92400E;border:1.5px solid rgba(245,158,11,.3)">AI</div>
+      <div class="sec-title">Agent 智能层 · AI 增强全景</div>
+      <div class="sec-sub">挂载于三端关键节点的智能 Agent 集群</div>
+    </div>
+
+    <div class="callout" style="background:linear-gradient(135deg,#FEF3C7,#FFFBEB);border:1px solid rgba(245,158,11,.2);color:#92400E">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#D97706"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4a2 2 0 1 1-2 2 2 2 0 0 1 2-2zm0 10c-2.67 0-5.33-1.33-6-4h12c-.67 2.67-3.33 4-6 4z"/></svg>
+      <span>Agent 不改架构：每个 Agent 是独立插件，挂在三端各自的事件节点上，不打破 A→B→C 的解耦关系。Agent 只做"建议"和"增强"，人工确认后才执行。数据流不变，契约层不受影响。</span>
+    </div>
+
+    <!-- Agent Flow: Layer 0 (Doc Parse) as top-level -->
+    <div style="margin-bottom:32px">
+      <div class="sec-head">
+        <div class="sec-num" style="background:#FEF3C7;color:#92400E;border:1.5px solid rgba(245,158,11,.3)">0</div>
+        <div class="sec-title">Layer 0 · 文档智能解析</div>
+        <div class="sec-sub">全链路最上游，消除人工阅读说明书的瓶颈</div>
+      </div>
+
+      <div class="callout" style="background:#FEF3C7;border:1px solid rgba(245,158,11,.25);color:#78350F;margin-bottom:16px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:#D97706"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+        <span>核心价值：设备厂商提供 docx/pdf 说明书，Agent 自动提取协议参数、信号定义、寄存器地址等信息，与标准接口库对齐匹配，自动生成推荐快照草稿。将"人读文档 → 人勾选"的耗时环节压缩为秒级。</span>
+      </div>
+
+      <div class="agent-flow">
+        <div class="af-node highlight">
+          <div class="af-node-num">1</div>
+          <h4>上传设备文档</h4>
+          <p>支持 docx / pdf / excel 等格式的设备说明书、通讯协议手册</p>
+          <div class="af-tag">人工上传</div>
+        </div>
+        <div class="af-arrow">
+          <svg width="32" height="32" viewBox="0 0 32 32"><path d="M4 16 L24 16 M18 10 L24 16 L18 22" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        </div>
+        <div class="af-node highlight">
+          <div class="af-node-num">2</div>
+          <h4>文档解析 Agent</h4>
+          <p>AI 提取协议参数：接口编号、信号定义、数据格式、上报频率、字段含义、寄存器地址</p>
+          <div class="af-tag">Agent 自动</div>
+        </div>
+        <div class="af-arrow">
+          <svg width="32" height="32" viewBox="0 0 32 32"><path d="M4 16 L24 16 M18 10 L24 16 L18 22" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        </div>
+        <div class="af-node highlight">
+          <div class="af-node-num">3</div>
+          <h4>接口对齐 Agent</h4>
+          <p>将提取的参数与 36 项标准接口逐一匹配，识别：完全匹配 / 部分匹配 / 无匹配需自定义</p>
+          <div class="af-tag">Agent 自动</div>
+        </div>
+        <div class="af-arrow">
+          <svg width="32" height="32" viewBox="0 0 32 32"><path d="M4 16 L24 16 M18 10 L24 16 L18 22" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+        </div>
+        <div class="af-node">
+          <div class="af-node-num" style="background:var(--a)">4</div>
+          <h4>推荐快照草稿</h4>
+          <p>自动生成测试快照：已匹配的标准接口 + 推荐的自定义接口 + 参数预填，人工审阅后确认</p>
+          <div class="af-tag" style="background:var(--a-bg);color:var(--a)">人工审阅 → 系统 A</div>
+        </div>
+      </div>
+
+      <!-- Doc Parse Detail -->
+      <div class="card" style="margin-top:16px">
+        <div class="card-title" style="margin-bottom:12px">文档解析 Agent · 提取字段对齐表</div>
+        <table class="contract-table">
+          <thead>
+            <tr><th>设备文档中的信息</th><th>Agent 提取</th><th>对齐到标准接口</th><th>匹配结果</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>"设备上线时发送连接确认帧"</td><td>连线检查协议</td><td><code>EQP-EAP-001</code></td><td><span class="agent-tier p0">完全匹配</span></td></tr>
+            <tr><td>"每 5 秒上报设备运行状态"</td><td>周期状态上报</td><td><code>EQP-EAP-002</code></td><td><span class="agent-tier p0">完全匹配</span></td></tr>
+            <tr><td>"Alarm ID: 0x01 过温, 0x02 过压"</td><td>告警码映射表</td><td><code>EQP-EAP-004</code></td><td><span class="agent-tier p0">完全匹配</span></td></tr>
+            <tr><td>"读码器扫描 Panel 二维码"</td><td>扫码协议定义</td><td><code>EQP-EAP-007</code></td><td><span class="agent-tier p0">完全匹配</span></td></tr>
+            <tr><td>"打靶机 X/Y 偏移量量测"</td><td>涨缩量测数据格式</td><td><code>EQP-EAP-012</code></td><td><span class="agent-tier p0">完全匹配</span></td></tr>
+            <tr><td>"自定义温度传感器采集协议"</td><td>非标温度采集字段</td><td>—</td><td><span class="agent-tier p2">无匹配 → 自定义</span></td></tr>
+            <tr><td>"EAP 下发配方参数"</td><td>配方下发协议</td><td>—</td><td><span class="agent-tier p2">无匹配 → 自定义</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Agent Placement Map -->
+    <div style="margin-bottom:32px">
+      <div class="sec-head">
+        <div class="sec-num" style="background:#FEF3C7;color:#92400E;border:1.5px solid rgba(245,158,11,.3)">*</div>
+        <div class="sec-title">Agent 挂载全景 · 三端节点映射</div>
+        <div class="sec-sub">每个 Agent 挂载位置、触发时机、输入输出</div>
+      </div>
+
+      <div class="agent-map">
+        <div class="agent-map-inner">
+
+          <!-- Row 0: Layer 0 - Doc Parse -->
+          <div class="am-row">
+            <div class="am-label" style="background:#FEF3C7;color:#92400E;border:1px solid rgba(245,158,11,.2)">Layer 0</div>
+            <div class="am-flow">
+              <div class="am-agent gold">
+                <div class="am-agent-dot gold"></div>
+                <div class="am-agent-info gold">
+                  <h5>文档解析 Agent <span class="agent-tier p0">P0</span></h5>
+                  <p>输入：设备 docx/pdf 说明书 → 输出：接口参数提取 + 标准库匹配结果</p>
+                </div>
+              </div>
+              <div class="am-agent gold">
+                <div class="am-agent-dot gold"></div>
+                <div class="am-agent-info gold">
+                  <h5>接口对齐 Agent <span class="agent-tier p0">P0</span></h5>
+                  <p>输入：提取的参数 → 输出：匹配度评分 + 推荐快照草稿 + 自定义接口建议</p>
+                </div>
+              </div>
+            </div>
+            <div class="am-connector">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <div class="am-flow">
+              <div style="text-align:center;padding:20px;font-size:11px;color:var(--text3)">
+                推荐快照草稿<br>↓<br>人工审阅确认
+              </div>
+            </div>
+            <div class="am-connector">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <div class="am-flow"></div>
+          </div>
+
+          <!-- Divider -->
+          <div style="border-top:1px dashed var(--border);margin:8px 0 16px;padding-top:8px"></div>
+
+          <!-- Row 1: System A Agents -->
+          <div class="am-row">
+            <div class="am-label sys-a">系统 A</div>
+            <div class="am-flow">
+              <div class="am-agent blue">
+                <div class="am-agent-dot blue"></div>
+                <div class="am-agent-info blue">
+                  <h5>智能选配 Agent <span class="agent-tier p1">P1</span></h5>
+                  <p>输入：设备型号 → 输出：推荐测试接口集合 + 理由说明。不同设备差异大（钻孔机 vs AOI），避免遗漏</p>
+                </div>
+              </div>
+              <div class="am-agent blue">
+                <div class="am-agent-dot blue"></div>
+                <div class="am-agent-info blue">
+                  <h5>异常诊断 Agent <span class="agent-tier p0">P0</span></h5>
+                  <p>触发：接口测试 fail → 输出：对比历史同类失败、错误模式分析、根因推断、自动填入异常描述</p>
+                </div>
+              </div>
+              <div class="am-agent blue">
+                <div class="am-agent-dot blue"></div>
+                <div class="am-agent-info blue">
+                  <h5>自然语言 Agent <span class="agent-tier p2">P2</span></h5>
+                  <p>输入："帮我测 A 线钻孔机所有上报接口" → 输出：自动创建快照、执行测试、生成报告</p>
+                </div>
+              </div>
+            </div>
+            <div class="am-connector">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <div class="am-flow">
+              <div class="am-agent amber">
+                <div class="am-agent-dot amber"></div>
+                <div class="am-agent-info amber">
+                  <h5>报告质量 Agent <span class="agent-tier p2">P2</span></h5>
+                  <p>触发：报告生成后 → 输出：完整性校验、一致性检查（如全部 pass 但有 error 字段）、改进建议</p>
+                </div>
+              </div>
+            </div>
+            <div class="am-connector">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <div class="am-flow"></div>
+          </div>
+
+          <!-- Divider -->
+          <div style="border-top:1px dashed var(--border);margin:8px 0 16px;padding-top:8px"></div>
+
+          <!-- Row 2: System C Agents -->
+          <div class="am-row">
+            <div class="am-label sys-c">系统 C</div>
+            <div class="am-flow">
+              <div class="am-agent green">
+                <div class="am-agent-dot green"></div>
+                <div class="am-agent-info green">
+                  <h5>用例增强 Agent <span class="agent-tier p0">P0</span></h5>
+                  <p>输入：报告中的端点路径 → 输出：真实 payload、边界值用例、异常场景用例。报告只说"测什么"，Agent 补"怎么测"</p>
+                </div>
+              </div>
+              <div class="am-agent green">
+                <div class="am-agent-dot green"></div>
+                <div class="am-agent-info green">
+                  <h5>回归分析 Agent <span class="agent-tier p1">P1</span></h5>
+                  <p>触发：验证完成 → 输出：对比多版本报告，区分"新失败"vs"历史已知问题"，生成回归摘要</p>
+                </div>
+              </div>
+              <div class="am-agent green">
+                <div class="am-agent-dot green"></div>
+                <div class="am-agent-info green">
+                  <h5>调度编排 Agent <span class="agent-tier p1">P1</span></h5>
+                  <p>触发：报告就绪 → 自动判断是否触发 C 端验证、失败后决定重测策略、结果通知</p>
+                </div>
+              </div>
+            </div>
+            <div class="am-connector">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <div class="am-flow">
+              <div class="am-agent purple">
+                <div class="am-agent-dot" style="background:var(--ct);box-shadow:0 0 0 3px rgba(124,58,237,.2)"></div>
+                <div class="am-agent-info purple">
+                  <h5>契约演进 Agent <span class="agent-tier p2">P2</span></h5>
+                  <p>输入：历史报告数据 → 输出：发现 Schema 缺失字段，建议契约版本升级</p>
+                </div>
+              </div>
+            </div>
+            <div class="am-connector">
+              <svg width="24" height="24" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" stroke="currentColor" stroke-width="1.5" fill="none"/></svg>
+            </div>
+            <div class="am-flow">
+              <div style="text-align:center;padding:12px;font-size:11px;color:var(--text3)">
+                回归报告<br>兼容性检测<br>↓<br>人工审阅
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Data Flow Diagram -->
+    <div style="margin-bottom:32px">
+      <div class="sec-head">
+        <div class="sec-num" style="background:#FEF3C7;color:#92400E;border:1.5px solid rgba(245,158,11,.3)">→</div>
+        <div class="sec-title">Agent 数据流 · 增强后的端到端链路</div>
+      </div>
+
+      <div class="flow-diagram">
+        <div style="position:relative;z-index:1">
+          <!-- Layer 0 band -->
+          <div style="background:#FEF3C7;border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:16px 20px;margin-bottom:20px">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+              <span style="font-size:12px;font-weight:700;color:#92400E">Layer 0 · 文档智能</span>
+              <span style="font-size:10px;color:#B45309">设备说明书 → 接口匹配</span>
+            </div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1px solid rgba(245,158,11,.2);border-radius:var(--rs);font-size:11px">
+                <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" width="14" height="14"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                <span style="color:#92400E;font-weight:600">设备文档</span>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" width="16" height="16" style="flex-shrink:0;align-self:center"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1.5px solid #F59E0B;border-radius:var(--rs);font-size:11px">
+                <span style="color:#92400E;font-weight:700">文档解析 Agent</span>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" width="16" height="16" style="flex-shrink:0;align-self:center"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:#fff;border:1.5px solid #F59E0B;border-radius:var(--rs);font-size:11px">
+                <span style="color:#92400E;font-weight:700">接口对齐 Agent</span>
+              </div>
+              <svg viewBox="0 0 24 24" fill="none" stroke="#D97706" stroke-width="2" width="16" height="16" style="flex-shrink:0;align-self:center"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              <div style="display:flex;align-items:center;gap:6px;padding:6px 12px;background:var(--a-bg);border:1px solid var(--a-bd);border-radius:var(--rs);font-size:11px">
+                <span style="color:var(--a);font-weight:600">推荐快照 → 系统 A</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- System A band -->
+          <div style="background:var(--a-bg);border:1px solid var(--a-bd);border-radius:var(--r);padding:16px 20px;margin-bottom:12px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:12px;font-weight:700;color:#1D4ED8">系统 A · BS 测机服务</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--a-bd);border-radius:var(--rs);font-size:10px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--a)"></span>
+                  <span style="color:var(--a);font-weight:600">智能选配 Agent</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--a-bd);border-radius:var(--rs);font-size:10px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--a)"></span>
+                  <span style="color:var(--a);font-weight:600">异常诊断 Agent</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--a-bd);border-radius:var(--rs);font-size:10px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--a)"></span>
+                  <span style="color:var(--a);font-weight:600">NL Agent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Arrow down -->
+          <div style="display:flex;justify-content:center;padding:4px 0">
+            <svg width="24" height="32" viewBox="0 0 24 32"><path d="M12 0 L12 24 M7 18 L12 24 L17 18" stroke="var(--ct)" stroke-width="2" fill="none"/></svg>
+          </div>
+          <div style="text-align:center;font-size:10px;font-weight:600;color:var(--ct);margin-bottom:4px">JSON 测试报告（契约）</div>
+
+          <!-- Arrow down -->
+          <div style="display:flex;justify-content:center;padding:4px 0">
+            <svg width="24" height="32" viewBox="0 0 24 32"><path d="M12 0 L12 24 M7 18 L12 24 L17 18" stroke="var(--ct)" stroke-width="2" fill="none"/></svg>
+          </div>
+
+          <!-- System C band -->
+          <div style="background:var(--c-bg);border:1px solid var(--c-bd);border-radius:var(--r);padding:16px 20px">
+            <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px">
+              <div style="display:flex;align-items:center;gap:8px">
+                <span style="font-size:12px;font-weight:700;color:#166534">系统 C · EAP 自动测试平台</span>
+              </div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--c-bd);border-radius:var(--rs);font-size:10px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--c)"></span>
+                  <span style="color:var(--c);font-weight:600">用例增强 Agent</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--c-bd);border-radius:var(--rs);font-size:10px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--c)"></span>
+                  <span style="color:var(--c);font-weight:600">回归分析 Agent</span>
+                </div>
+                <div style="display:flex;align-items:center;gap:4px;padding:4px 10px;background:#fff;border:1px solid var(--c-bd);border-radius:var(--rs);font-size:10px">
+                  <span style="width:6px;height:6px;border-radius:50%;background:var(--c)"></span>
+                  <span style="color:var(--c);font-weight:600">调度编排 Agent</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Agent Priority Summary -->
+    <div>
+      <div class="sec-head">
+        <div class="sec-num" style="background:#FEF3C7;color:#92400E;border:1.5px solid rgba(245,158,11,.3)">!</div>
+        <div class="sec-title">Agent 优先级矩阵</div>
+      </div>
+      <div class="card-grid c3">
+        <div class="card" style="border-color:rgba(245,158,11,.3);background:linear-gradient(135deg,#FFFBEB,#fff)">
+          <div class="card-title" style="color:#92400E">P0 · 核心必做</div>
+          <div class="card-desc" style="margin-top:8px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0"></span>
+              <span><strong>文档解析 Agent</strong> — 消除说明书阅读瓶颈</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:#F59E0B;flex-shrink:0"></span>
+              <span><strong>接口对齐 Agent</strong> — 自动匹配标准接口库</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--a);flex-shrink:0"></span>
+              <span><strong>异常诊断 Agent</strong> — fail 时自动分析根因</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+              <span><strong>用例增强 Agent</strong> — 补全真实测试参数</span>
+            </div>
+          </div>
+          <div class="card-tag" style="background:#FEF3C7;color:#92400E">先落地</div>
+        </div>
+        <div class="card">
+          <div class="card-title">P1 · 效率提升</div>
+          <div class="card-desc" style="margin-top:8px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--a);flex-shrink:0"></span>
+              <span><strong>智能选配 Agent</strong> — 按设备型号推荐接口</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+              <span><strong>回归分析 Agent</strong> — 版本对比与问题分类</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+              <span><strong>调度编排 Agent</strong> — 自动触发验证链路</span>
+            </div>
+          </div>
+          <div class="card-tag blue">中期</div>
+        </div>
+        <div class="card">
+          <div class="card-title">P2 · 探索性</div>
+          <div class="card-desc" style="margin-top:8px">
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--a);flex-shrink:0"></span>
+              <span><strong>NL Agent</strong> — 自然语言操作</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--b);flex-shrink:0"></span>
+              <span><strong>报告质量 Agent</strong> — 完整性校验</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+              <span style="width:6px;height:6px;border-radius:50%;background:var(--ct);flex-shrink:0"></span>
+              <span><strong>契约演进 Agent</strong> — Schema 升级建议</span>
+            </div>
+          </div>
+          <div class="card-tag" style="background:var(--surface2);color:var(--text2)">远期</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary: Advantages -->
+    <div class="sec-head">
+      <div class="sec-num purple">6</div>
+      <div class="sec-title">架构优势总结</div>
+    </div>
+    <div class="card-grid c3">
+      <div class="card" style="border-color:var(--a-bd);background:linear-gradient(135deg,var(--a-bg),#fff)">
+        <div class="card-title" style="color:var(--a)">独立部署 · 自由演进</div>
+        <div class="card-desc">三个系统独立部署、独立升级。系统 A 重构前端不影响系统 C，系统 C 切换验证框架不影响系统 A。技术栈可独立选择。</div>
+        <div class="card-tag blue">解耦</div>
+      </div>
+      <div class="card" style="border-color:var(--c-bd);background:linear-gradient(135deg,var(--c-bg),#fff)">
+        <div class="card-title" style="color:var(--c)">效率提升 · 并行工作</div>
+        <div class="card-desc">测机团队和后端团队可以并行工作。测机人员完成接口测试后立即产出报告，后端团队基于报告自动验证，消除等待时间。</div>
+        <div class="card-tag green">效率</div>
+      </div>
+      <div class="card" style="border-color:var(--b-bd);background:linear-gradient(135deg,var(--b-bg),#fff)">
+        <div class="card-title" style="color:var(--b)">契约保障 · 质量可控</div>
+        <div class="card-desc">标准化报告契约确保三端数据一致性。Schema 校验在生产和消费两端各执行一次，杜绝格式不兼容导致的集成问题。</div>
+        <div class="card-tag amber">质量</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- ===== FOOTER ===== -->
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 40px">
+  <div style="border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3)">
+    <span>EQP-EAP 三端解耦架构设计 v1.0</span>
+    <span>数据契约驱动 · 独立部署 · 自由演进</span>
+  </div>
+</div>
+
+<script>
+function scrollToSec(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    // Update nav active state
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+}
+
+// Intersection observer for nav highlighting
+const sections = document.querySelectorAll('.sec[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.classList.toggle('active', l.textContent.includes(getNavLabel(id)));
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+function getNavLabel(id) {
+  const map = { overview: '总览', flow: '数据流', contract: '契约层', independence: '独立运行', pipeline: '端到端', agent: 'Agent' };
+  return map[id] || '';
+}
+</script>
+</body>
+</html>

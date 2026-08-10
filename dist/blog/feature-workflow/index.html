@@ -1,6 +1,126 @@
-<!DOCTYPE html> <html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><link rel="stylesheet" href="/_astro/_slug_.BapUKss4.css">
-<link rel="stylesheet" href="/_astro/_slug_.DjRBbXAw.css"><script type="module" src="/_astro/hoisted.BJe75Bl7.js"></script></head> <body> <nav class="navbar" id="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
-杨正武<span>.imcoders</span> </a> <button class="hamburger" onclick="toggleMenu()" aria-label="切换菜单"> <span></span> <span></span> <span></span> </button> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>   <article class="article-container" data-astro-cid-4sn4zg3r> <header class="article-header" data-astro-cid-4sn4zg3r> <div class="article-meta" data-astro-cid-4sn4zg3r> <time class="article-date" data-astro-cid-4sn4zg3r> <i class="far fa-calendar" data-astro-cid-4sn4zg3r></i> 2026年3月13日 </time> <span class="article-author" data-astro-cid-4sn4zg3r> <i class="far fa-user" data-astro-cid-4sn4zg3r></i> 杨正武 </span> <div class="article-tags" data-astro-cid-4sn4zg3r> <span class="tag" data-astro-cid-4sn4zg3r>工作流</span><span class="tag" data-astro-cid-4sn4zg3r>Git Worktree</span><span class="tag" data-astro-cid-4sn4zg3r>并行开发</span><span class="tag" data-astro-cid-4sn4zg3r>多Agent</span><span class="tag" data-astro-cid-4sn4zg3r>AILock-Step</span> </div> </div> <h1 class="article-title" data-astro-cid-4sn4zg3r>Feature Workflow：基于 Worktree 的多特性并行开发范式</h1> <p class="article-description" data-astro-cid-4sn4zg3r>融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发</p> </header> <div class="article-content" data-astro-cid-4sn4zg3r> <h2 id="引言">引言</h2>
+<!DOCTYPE html><script>
+  // 移动端菜单切换
+  let menuOpen = false;
+
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    const nav = document.querySelector('.navbar-nav');
+    const hamburger = document.querySelector('.hamburger');
+    const navbar = document.querySelector('.navbar');
+
+    if (nav && hamburger && navbar) {
+      nav.classList.toggle('active', menuOpen);
+      hamburger.classList.toggle('active', menuOpen);
+      navbar.classList.toggle('menu-open', menuOpen);
+      // 防止背景滚动
+      document.body.style.overflow = menuOpen ? 'hidden' : '';
+    }
+  }
+
+  // 点击导航链接后关闭菜单
+  document.addEventListener('DOMContentLoaded', () => {
+    const navLinks = document.querySelectorAll('.navbar-nav a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          menuOpen = false;
+          const nav = document.querySelector('.navbar-nav');
+          const hamburger = document.querySelector('.hamburger');
+          const navbar = document.querySelector('.navbar');
+          if (nav && hamburger && navbar) {
+            nav.classList.remove('active');
+            hamburger.classList.remove('active');
+            navbar.classList.remove('menu-open');
+            document.body.style.overflow = '';
+          }
+        }
+      });
+    });
+
+    // 点击遮罩层关闭菜单
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+      navbar.addEventListener('click', (e) => {
+        if (e.target === navbar && menuOpen) {
+          toggleMenu();
+        }
+      });
+    }
+  });
+
+  // 窗口大小变化时重置菜单状态
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      menuOpen = false;
+      const nav = document.querySelector('.navbar-nav');
+      const hamburger = document.querySelector('.hamburger');
+      const navbar = document.querySelector('.navbar');
+      if (nav && hamburger && navbar) {
+        nav.classList.remove('active');
+        hamburger.classList.remove('active');
+        navbar.classList.remove('menu-open');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+
+  window.toggleMenu = toggleMenu;
+</script> <html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武</title><meta name="description" content="融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:site_name" content="杨正武 · imcoders"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武"><meta property="og:description" content="融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发"><meta property="og:url" content="https://imcoders.cn/blog/feature-workflow/"><meta property="og:image" content="https://imcoders.cn/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武"><meta name="twitter:description" content="融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发"><meta name="twitter:image" content="https://imcoders.cn/og-default.png"><!-- 微信 / 结构化数据 --><meta itemprop="name" content="Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武"><meta itemprop="description" content="融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发"><meta itemprop="image" content="https://imcoders.cn/og-default.png"><!-- 微信 JS-SDK：自定义“微信内打开网页后点分享”的卡片 --><script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script><script>(function(){const signUrl = "/api/wx-sign";
+const shareTitle = "Feature Workflow：基于 Worktree 的多特性并行开发范式 - 杨正武";
+const shareDesc = "融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发";
+const shareLink = "https://imcoders.cn/blog/feature-workflow/";
+const shareImg = "https://imcoders.cn/og-default.png";
+
+      (function () {
+        if (!signUrl || typeof wx === 'undefined') return;
+        var url = location.href.split('#')[0];
+        fetch(signUrl + '?url=' + encodeURIComponent(url))
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (!d || !d.signature) return;
+            wx.config({
+              debug: false,
+              appId: d.appId,
+              timestamp: d.timestamp,
+              nonceStr: d.nonceStr,
+              signature: d.signature,
+              jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+            });
+            wx.ready(function () {
+              wx.updateAppMessageShareData({ title: shareTitle, desc: shareDesc, link: shareLink, imgUrl: shareImg });
+              wx.updateTimelineShareData({ title: shareTitle, link: shareLink, imgUrl: shareImg });
+            });
+            wx.error(function (res) { console.warn('[wx-sign] config failed:', res && res.errMsg); });
+          })
+          .catch(function (e) { console.error('wx-sign failed', e); });
+      })();
+    })();</script><link rel="stylesheet" href="/_astro/_slug_.BapUKss4.css">
+<link rel="stylesheet" href="/_astro/_slug_.C91PZkZW.css"></head> <body> <nav class="navbar" id="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
+杨正武<span>.imcoders</span> </a> <button class="hamburger" onclick="toggleMenu()" aria-label="切换菜单"> <span></span> <span></span> <span></span> </button> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>  <script>(function(){const shareText = "融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发\n\nhttps://imcoders.cn/blog/feature-workflow/";
+
+    // 分享功能
+    window.shareArticle = async function() {
+      try {
+        await navigator.clipboard.writeText(shareText);
+        // 显示成功提示
+        const btn = document.querySelector('.share-button');
+        if (btn) {
+          const originalText = btn.innerHTML;
+          btn.innerHTML = '<i class="fas fa-check"></i> 已复制';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.classList.remove('copied');
+          }, 2000);
+        }
+      } catch (err) {
+        console.error('复制失败:', err);
+        alert('复制失败，请手动复制');
+      }
+    };
+  })();</script>  <article class="article-container" data-astro-cid-4sn4zg3r> <header class="article-header" data-astro-cid-4sn4zg3r> <div class="article-meta" data-astro-cid-4sn4zg3r> <time class="article-date" data-astro-cid-4sn4zg3r> <i class="far fa-calendar" data-astro-cid-4sn4zg3r></i> 2026年3月13日 </time> <span class="article-author" data-astro-cid-4sn4zg3r> <i class="far fa-user" data-astro-cid-4sn4zg3r></i> 杨正武 </span> <div class="article-tags" data-astro-cid-4sn4zg3r> <span class="tag" data-astro-cid-4sn4zg3r>工作流</span><span class="tag" data-astro-cid-4sn4zg3r>Git Worktree</span><span class="tag" data-astro-cid-4sn4zg3r>并行开发</span><span class="tag" data-astro-cid-4sn4zg3r>多Agent</span><span class="tag" data-astro-cid-4sn4zg3r>AILock-Step</span> </div> </div> <h1 class="article-title" data-astro-cid-4sn4zg3r>Feature Workflow：基于 Worktree 的多特性并行开发范式</h1> <p class="article-description" data-astro-cid-4sn4zg3r>融合 Bmad 与 OpenSpec 的 AI 工作流，实现真正的多特性并行开发</p> <button class="share-button" onclick="shareArticle()" data-astro-cid-4sn4zg3r> <i class="fas fa-share-alt" data-astro-cid-4sn4zg3r></i>
+分享文章
+</button> </header> <div class="article-content" data-astro-cid-4sn4zg3r> <h2 id="引言">引言</h2>
 <p>在 AI 辅助开发的实际应用中，多特性并行开发面临几个核心问题。不同需求的代码会相互干扰，AI 容易产生上下文混淆。传统分支切换方式会导致工作进度丢失。多个 AI Agent 同时工作时，代码冲突难以避免。需求状态管理混乱，无法追溯开发历史。</p>
 <p>为了解决这些问题，我设计了 Feature Workflow。这是一个融合了 Bmad 和 OpenSpec 优秀理念的工作流范式，基于 Git Worktree 实现真正的物理隔离，支持多 Agent 并行开发，从根本上避免了代码冲突问题。</p>
 <h2 id="worktree-物理隔离">Worktree 物理隔离</h2>

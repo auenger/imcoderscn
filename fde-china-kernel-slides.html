@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="paper">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中国本土 FDE 的内核 · 从 Palantir 到腾讯 WorkBuddy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* === TOKENS：5 套配色主题（点右下角圆点切换，localStorage 持久化）=== */
+:root, [data-theme="paper"] {
+  --paper:#F2EEDF; --paper-2:#ECE6D2; --ink:#2A241B; --ink-soft:#5C5345;
+  --pink:#E1A4C2; --lemon:#D6DD63; --blush:#E8C9B6; --sage:#B7C7A8; --lilac:#C9BEDC;
+  --card-fill:rgba(255,255,255,0.55); --card-fill-2:rgba(255,255,255,0.78);
+  --rule-soft:rgba(42,36,27,0.18); --rule-medium:rgba(42,36,27,0.35);
+  --nav-bg:rgba(42,36,27,0.07); --nav-dot:rgba(42,36,27,0.28);
+  --nav-tip-bg:#2A241B; --nav-tip-text:#F2EEDF;
+  --font-display: 'Albert Sans','Noto Serif SC',sans-serif;
+  --font-body:    'Albert Sans','Noto Serif SC',sans-serif;
+  --ease:         cubic-bezier(0.16,1,0.3,1);
+}
+[data-theme="ink"] {
+  --paper:#211C15; --paper-2:#2B251C; --ink:#EDE7D4; --ink-soft:#A89E84;
+  --pink:#E8B4D0; --lemon:#E0E678; --blush:#EFD2C0; --sage:#C4D2B5; --lilac:#D2C8E6;
+  --card-fill:rgba(255,255,255,0.07); --card-fill-2:rgba(255,255,255,0.13);
+  --rule-soft:rgba(237,231,212,0.15); --rule-medium:rgba(237,231,212,0.32);
+  --nav-bg:rgba(255,255,255,0.08); --nav-dot:rgba(237,231,212,0.34);
+  --nav-tip-bg:rgba(20,16,10,0.92); --nav-tip-text:#EDE7D4;
+}
+[data-theme="cream"] {
+  --paper:#F6EAD0; --paper-2:#EFDFBE; --ink:#4A3520; --ink-soft:#806A4C;
+  --pink:#E0A0BC; --lemon:#D8D058; --blush:#EFC6A4; --sage:#B0C69A; --lilac:#CBB8DC;
+  --card-fill:rgba(255,255,255,0.5); --card-fill-2:rgba(255,255,255,0.72);
+  --rule-soft:rgba(74,53,32,0.18); --rule-medium:rgba(74,53,32,0.35);
+  --nav-bg:rgba(74,53,32,0.08); --nav-dot:rgba(74,53,32,0.3);
+  --nav-tip-bg:#4A3520; --nav-tip-text:#F6EAD0;
+}
+[data-theme="mint"] {
+  --paper:#E6ECDF; --paper-2:#D8E0CF; --ink:#283228; --ink-soft:#566B52;
+  --pink:#DCA8BE; --lemon:#D6DC68; --blush:#E8CBB6; --sage:#A2BE90; --lilac:#BEB6D6;
+  --card-fill:rgba(255,255,255,0.5); --card-fill-2:rgba(255,255,255,0.72);
+  --rule-soft:rgba(40,50,40,0.18); --rule-medium:rgba(40,50,40,0.35);
+  --nav-bg:rgba(40,50,40,0.08); --nav-dot:rgba(40,50,40,0.3);
+  --nav-tip-bg:#283228; --nav-tip-text:#E6ECDF;
+}
+[data-theme="berry"] {
+  --paper:#2A2030; --paper-2:#352840; --ink:#ECE0F0; --ink-soft:#AE9EBC;
+  --pink:#E8A8C8; --lemon:#E0DC70; --blush:#EFCAB8; --sage:#B8C9A8; --lilac:#D0C0E8;
+  --card-fill:rgba(255,255,255,0.08); --card-fill-2:rgba(255,255,255,0.14);
+  --rule-soft:rgba(236,224,240,0.15); --rule-medium:rgba(236,224,240,0.32);
+  --nav-bg:rgba(255,255,255,0.08); --nav-dot:rgba(236,224,240,0.34);
+  --nav-tip-bg:rgba(15,10,20,0.92); --nav-tip-text:#ECE0F0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+* { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+html,body { width:100%; height:100%; margin:0; overflow:hidden; background:var(--paper); }
+body { font-family:var(--font-body); color:var(--ink);
+  -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+.slide { font-feature-settings:"palt" 1; }
+
+/* === FIXED-STAGE === */
+.deck-viewport { position:fixed; inset:0; overflow:hidden; background:var(--paper); }
+.deck-stage { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden;
+  transform-origin:0 0; background:var(--paper); }
+.slide { position:absolute; inset:0; width:1920px; height:1080px; overflow:hidden;
+  background:var(--paper); opacity:0; transform:translateX(60px); pointer-events:none; z-index:1;
+  transition: opacity .45s ease, transform .45s ease, background-color .4s ease; }
+.slide.active { opacity:1; transform:translateX(0); pointer-events:auto; z-index:2; }
+
+/* === 排版 === */
+.h-display,.h-title,.h-section { font-family:var(--font-display); font-weight:700; line-height:1.2; color:var(--ink); }
+em.soft { font-style:normal; font-weight:700; color:var(--ink);
+  background:linear-gradient(180deg,transparent 58%,var(--blush) 58%,var(--blush) 90%,transparent 90%);
+  padding:0 0.06em; }
+.body-text { font-family:var(--font-body); font-weight:500; line-height:1.65; color:var(--ink); }
+.lead { font-family:var(--font-body); font-weight:600; line-height:1.5; color:var(--ink-soft); }
+.page-numeral { position:absolute; top:56px; right:80px;
+  font-family:var(--font-display); font-weight:600; font-size:30px; color:var(--ink-soft); z-index:5; }
+.numeral { font-family:var(--font-display); font-weight:700; font-size:60px; color:var(--ink); line-height:0.9; }
+
+/* === pill === */
+.pill { display:inline-flex; align-items:center; gap:14px; border-radius:999px;
+  padding:12px 28px; font-family:var(--font-body); font-weight:700; font-size:36px;
+  color:var(--ink); background:var(--paper); border:1.5px solid var(--ink); align-self:flex-start; }
+.pill .pdot { width:18px; height:18px; border-radius:50%; display:inline-block; }
+.pill .pdot.sage{background:var(--sage)} .pill .pdot.pink{background:var(--pink)} .pill .pdot.lemon{background:var(--lemon)}
+
+/* === slide-pad === */
+.slide-pad { position:absolute; inset:0; padding:96px 80px;
+  display:flex; flex-direction:column; justify-content:center; gap:30px; }
+.h-section { font-size:84px; }
+
+/* === step-list === */
+.step-list { display:flex; flex-direction:column; gap:20px; }
+.step-row { display:grid; grid-template-columns:80px 1fr; gap:26px; align-items:start;
+  background:var(--card-fill); border-radius:26px; padding:28px 38px; }
+.step-row .numeral { font-size:60px; }
+.step-row .body-text { font-size:34px; line-height:1.5; }
+
+/* === key-point === */
+.key-point { background:linear-gradient(135deg, var(--lemon), var(--blush)); border-radius:30px;
+  padding:44px 48px; box-shadow:0 8px 28px rgba(42,36,27,0.12); }
+.key-point p { font-family:var(--font-display); font-weight:700; font-size:46px; line-height:1.4; color:var(--ink); }
+
+/* === s3-grid === */
+.s3-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:30px; margin-top:36px; }
+.s3-card { border-radius:34px; padding:56px 38px; display:flex; flex-direction:column; gap:22px; }
+.s3-card .numeral { font-size:60px; }
+.s3-card .t { font-family:var(--font-display); font-weight:700; font-size:40px; line-height:1.3; color:var(--ink); }
+
+/* === vs-block === */
+.vs-block { display:grid; grid-template-columns:1fr auto 1fr; gap:28px; align-items:stretch; margin-top:30px; }
+.vs-side { border-radius:28px; padding:44px 40px; }
+.vs-a { background:var(--blush); }
+.vs-b { background:var(--sage); }
+.vs-side h4 { font-family:var(--font-display); font-weight:700; font-size:42px; color:var(--ink); margin-bottom:22px; }
+.vs-side ul { list-style:none; padding:0; }
+.vs-side li { font-size:32px; line-height:1.7; color:var(--ink); padding-left:34px; position:relative; }
+.vs-side li::before { content:'•'; position:absolute; left:8px; color:var(--ink-soft); }
+.vs-vs { display:flex; align-items:center; font-family:var(--font-display); font-weight:900; font-size:42px; color:var(--ink-soft); }
+
+/* === three-step === */
+.three-step { display:grid; grid-template-columns:repeat(3,1fr); gap:34px; min-height:0; }
+.ts-card { border-radius:36px; padding:48px 42px; display:flex; flex-direction:column; justify-content:center; gap:22px; min-height:0; }
+.ts-card .numeral { font-size:68px; }
+.ts-card .t { font-family:var(--font-display); font-weight:700; font-size:50px; line-height:1.2; color:var(--ink); }
+.ts-card .ann { font-family:var(--font-body); font-weight:500; font-size:30px; line-height:1.55; color:var(--ink);
+  border-top:1px dashed var(--rule-soft); padding-top:20px; }
+
+/* === center-statement === */
+.center-statement { position:absolute; inset:0; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:0 80px; text-align:center; }
+.center-statement h1 { font-size:118px; line-height:1.25; }
+.center-statement .lead { font-size:38px; margin-top:36px; }
+
+/* === cover === */
+.cover { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  background: radial-gradient(ellipse at 50% 45%, rgba(225,164,194,0.16), transparent 68%); }
+.cover .cover-inner { padding:0 80px; display:flex; flex-direction:column; align-items:center; gap:40px; }
+.cover .pill { align-self:center; }
+.cover h1 { font-size:156px; }
+.cover h1 .line { display:block; }
+.cover .divider { width:88px; height:4px; background:var(--ink); border-radius:2px; }
+
+/* === closer === */
+.closer { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  background: radial-gradient(ellipse at 50% 55%, rgba(225,164,194,0.18), transparent 70%); }
+.closer-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:0 110px; gap:36px; }
+.closer h1 { font-size:150px; line-height:1.08; }
+.closer .lead { font-size:40px; }
+
+/* === reveal === */
+.reveal { opacity:0; transform:translateY(26px);
+  transition: opacity .7s var(--ease), transform .7s var(--ease),
+              background-color .4s ease, color .4s ease, border-color .4s ease; }
+.slide.active .reveal { opacity:1; transform:translateY(0); }
+.slide.active .reveal:nth-child(1){transition-delay:.05s}
+.slide.active .reveal:nth-child(2){transition-delay:.15s}
+.slide.active .reveal:nth-child(3){transition-delay:.25s}
+.slide.active .reveal:nth-child(4){transition-delay:.35s}
+.slide.active .reveal:nth-child(5){transition-delay:.45s}
+.slide.active .reveal:nth-child(6){transition-delay:.55s}
+
+/* === nav-dots 可拖拽圆点导航 === */
+.nav-bar { position:fixed; bottom:0; left:0; right:0; display:flex; align-items:center;
+  justify-content:center; z-index:90; padding:8px 0 12px; pointer-events:none; }
+.nav-dots { display:flex; align-items:center; background:var(--nav-bg); backdrop-filter:blur(16px);
+  border:1px solid var(--rule-soft); border-radius:999px; padding:9px 20px; gap:7px;
+  pointer-events:auto; cursor:grab;
+  transition: background-color .25s ease, transform .25s ease, border-color .4s ease; }
+.nav-dot { width:9px; height:9px; border-radius:50%; background:var(--nav-dot); border:none;
+  cursor:pointer; opacity:.5; position:relative;
+  transition: background-color .25s ease, width .25s ease, opacity .25s ease, transform .25s ease; }
+.nav-dot:hover { opacity:.95; transform:scale(1.3); }
+.nav-dot.active { background:var(--ink); opacity:1; width:26px; border-radius:999px;
+  box-shadow:0 0 10px rgba(225,164,194,0.7); }
+.nav-dot .dot-tip { position:absolute; bottom:calc(100% + 12px); left:50%; transform:translateX(-50%);
+  background:var(--nav-tip-bg); color:var(--nav-tip-text); padding:5px 11px; border-radius:8px;
+  font-size:13px; white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none; }
+.nav-dot:hover .dot-tip { opacity:1; }
+.nav-dots.dragging { transform:scaleY(1.22); }
+.nav-dots.dragging .nav-dot .dot-tip { opacity:0 !important; }
+.drag-label { position:absolute; bottom:calc(100% + 12px); left:50%; transform:translateX(-50%);
+  background:var(--ink); color:var(--paper); padding:6px 16px; border-radius:10px;
+  font-size:14px; font-weight:600; opacity:0; transition:opacity .15s; white-space:nowrap; }
+.nav-dots.dragging .drag-label { opacity:1; }
+
+/* === palette-dots 配色 + 全屏 === */
+.palette-dots { position:fixed; bottom:14px; right:16px; z-index:95; display:flex; align-items:center; gap:7px;
+  background:var(--nav-bg); backdrop-filter:blur(10px); border:1px solid var(--rule-soft);
+  border-radius:999px; padding:6px 10px; transition: background-color .3s ease, border-color .4s ease; }
+.palette-dot { width:16px; height:16px; border-radius:50%; cursor:pointer; border:2px solid transparent;
+  padding:0; position:relative; transition: transform .2s ease, border-color .2s ease; }
+.palette-dot:hover { transform:scale(1.18); }
+.palette-dot.active { border-color:var(--ink); transform:scale(1.1); }
+.palette-dot .pd-tip { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%);
+  background:var(--nav-tip-bg); color:var(--nav-tip-text); padding:3px 9px; border-radius:6px;
+  font-size:11px; white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none; }
+.palette-dot:hover .pd-tip { opacity:1; }
+.fs-toggle { width:24px; height:24px; border-radius:50%; cursor:pointer; background:transparent; border:none;
+  color:var(--ink); display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0;
+  transition: background-color .2s ease, transform .2s ease; }
+.fs-toggle:hover { background:var(--card-fill-2); transform:scale(1.1); }
+.fs-toggle svg { width:15px; height:15px; }
+.fs-toggle .icon-collapse { display:none; }
+.fs-toggle.is-fs .icon-expand { display:none; }
+.fs-toggle.is-fs .icon-collapse { display:flex; }
+.palette-sep { width:1px; height:18px; background:var(--rule-medium); flex-shrink:0; }
+
+.nav-hint { position:fixed; bottom:22px; left:24px; z-index:90; font-size:15px; color:var(--ink-soft);
+  background:var(--nav-bg); backdrop-filter:blur(8px); border:1px solid var(--rule-soft);
+  padding:7px 14px; border-radius:999px; opacity:.85; pointer-events:none; }
+@media (hover:none){ .nav-hint{ display:none; } }
+@media (prefers-reduced-motion:reduce){ *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.2s!important;} }
+</style>
+</head>
+<body>
+
+<div class="palette-dots" id="paletteDots">
+  <button class="fs-toggle" id="fsToggle" aria-label="全屏"><svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg><svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4"/><path d="M15 4v5h5"/><path d="M9 20v-5H4"/><path d="M15 20v-5h5"/></svg></button>
+  <span class="palette-sep"></span>
+  <button class="palette-dot" data-theme="paper" style="background:#E1A4C2" aria-label="米纸"><span class="pd-tip">米纸</span></button>
+  <button class="palette-dot" data-theme="ink" style="background:#D2C8E6" aria-label="墨夜"><span class="pd-tip">墨夜</span></button>
+  <button class="palette-dot" data-theme="cream" style="background:#EFC6A4" aria-label="奶油"><span class="pd-tip">奶油</span></button>
+  <button class="palette-dot" data-theme="mint" style="background:#A2BE90" aria-label="薄荷"><span class="pd-tip">薄荷</span></button>
+  <button class="palette-dot" data-theme="berry" style="background:#E0DC70" aria-label="莓果"><span class="pd-tip">莓果</span></button>
+</div>
+<div class="nav-hint">← → / 滚轮 / 拖拽圆点</div>
+
+<div class="deck-viewport">
+<main class="deck-stage" id="deckStage">
+
+<!-- 1 COVER -->
+<section class="slide cover active">
+  <div class="cover-inner">
+    <span class="pill reveal"><span class="pdot sage"></span>FDE · 企业 Agent</span>
+    <h1 class="h-display reveal"><span class="line">中国本土 FDE</span><span class="line">的内核</span></h1>
+    <div class="divider reveal"></div>
+    <p class="lead reveal" style="font-size:42px">从 Palantir 到腾讯 WorkBuddy</p>
+  </div>
+</section>
+
+<!-- 2 金句：体系出口 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="center-statement">
+    <h1 class="h-title reveal" style="font-size:88px;line-height:1.4">FDE 是<em class="soft">体系的出口</em>。<br>出口看着光鲜，是因为背后有产品线在供水。</h1>
+  </div>
+</section>
+
+<!-- 3 Palantir FDE 四件事 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="slide-pad">
+    <h2 class="h-section reveal">Palantir 的 FDE，<em class="soft">不是一个人在战斗</em></h2>
+    <div class="step-list">
+      <div class="step-row reveal"><span class="numeral">1</span><p class="body-text">跟业务负责人聊，把对方说不清的痛点，翻译成能落地的方案。</p></div>
+      <div class="step-row reveal"><span class="numeral">2</span><p class="body-text">现场快速搭一版原型，验证这条路跑得通。</p></div>
+      <div class="step-row reveal"><span class="numeral">3</span><p class="body-text">跑通了再推交付，主导整个落地过程。</p></div>
+      <div class="step-row reveal"><span class="numeral">4</span><p class="body-text">把这一单里的<em class="soft">共性</em>抽出来，沉淀回产品——这是最值钱的一步。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 抽取共性 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="slide-pad">
+    <h2 class="h-section reveal">FDE 真正值钱的地方</h2>
+    <div class="key-point reveal"><p><strong>抽取共性</strong>，是 FDE 跟外包的核心区别。</p></div>
+    <p class="body-text reveal" style="font-size:34px">A 客户做的数据管道、一套分析模型，B 客户也用得上。把共性抽出来沉淀回 Gotham、Foundry，变成一个模块、一个模板、一条流水线——下个客户来了直接配，站在前面所有客户的肩膀上。</p>
+  </div>
+</section>
+
+<!-- 5 国内 FDE 三困境 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="slide-pad">
+    <h2 class="h-section reveal">国内 FDE，<em class="soft">活成了高级外包</em></h2>
+    <div class="s3-grid">
+      <div class="s3-card reveal" style="background:var(--lemon)">
+        <span class="numeral">01</span>
+        <p class="t">四样活全压一人</p>
+        <p class="body-text">销售、驻场、培训、实施，什么都得会，什么都得干。</p>
+      </div>
+      <div class="s3-card reveal" style="background:var(--blush)">
+        <span class="numeral">02</span>
+        <p class="t">共性没地方放</p>
+        <p class="body-text">没有自己的产品可以回流，只能存进 PPT、项目文档，跟着验收进归档。</p>
+      </div>
+      <div class="s3-card reveal" style="background:var(--sage)">
+        <span class="numeral">03</span>
+        <p class="t">经验跟着人走</p>
+        <p class="body-text">人一离场，留下的就是一堆文档，下个项目的人还得重新摸索。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 6 对比 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="slide-pad">
+    <h2 class="h-section reveal"><em class="soft">越做越轻松</em>，还是越做越累？</h2>
+    <div class="vs-block reveal">
+      <div class="vs-side vs-a">
+        <h4>Palantir 的 FDE</h4>
+        <ul>
+          <li>共性沉淀回产品线</li>
+          <li>下个客户站在上个客户的肩膀上</li>
+          <li>越做越轻松</li>
+        </ul>
+      </div>
+      <div class="vs-vs">VS</div>
+      <div class="vs-side vs-b">
+        <h4>国内的 FDE</h4>
+        <ul>
+          <li>每个客户都从零开始</li>
+          <li>经验攒不下来，跟着人走</li>
+          <li>越做越累</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 7 金句：做一单是一单 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="center-statement">
+    <h1 class="h-title reveal" style="font-size:96px;line-height:1.4"><em class="soft">做一单是一单</em>，<br>能力长在人身上，人走了经验也走了。</h1>
+  </div>
+</section>
+
+<!-- 8 腾讯补三层 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="slide-pad">
+    <h2 class="h-section reveal">腾讯 WorkBuddy，在补<em class="soft">哪一层</em></h2>
+    <div class="three-step">
+      <div class="ts-card reveal" style="background:var(--lilac)">
+        <span class="numeral">01</span>
+        <p class="t">驻场切入</p>
+        <p class="ann">打开就送积分养习惯，FDE 拿 WorkBuddy 当入口，摸清甲方场景。</p>
+      </div>
+      <div class="ts-card reveal" style="background:var(--lemon)">
+        <span class="numeral">02</span>
+        <p class="t">生态定制</p>
+        <p class="ann">Skills + Connector + MCP，打通飞书 / 企微 / IDE / CRM，手里是有家伙的。</p>
+      </div>
+      <div class="ts-card reveal" style="background:var(--blush)">
+        <span class="numeral">03</span>
+        <p class="t">反哺产品</p>
+        <p class="ann">一线经验沉淀成交付资产和行业模板，回灌产品——对应 Palantir 的抽取共性。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 9 结论金句 -->
+<section class="slide">
+  <div class="page-numeral"></div>
+  <div class="center-statement">
+    <h1 class="h-title reveal" style="font-size:112px;line-height:1.3"><em class="soft">先有产品</em>，<br>再谈 FDE 客制化。</h1>
+    <p class="lead reveal">容器没有，FDE 就是外包。容器有了，越做越厚。</p>
+  </div>
+</section>
+
+<!-- 10 结束 -->
+<section class="slide closer">
+  <div class="page-numeral"></div>
+  <div class="closer-inner">
+    <h1 class="h-display reveal">FDE 得有<em class="soft">底座</em>。</h1>
+  </div>
+</section>
+
+</main>
+</div>
+
+<div class="nav-bar" id="navBar"></div>
+
+<script>
+(function () {
+  var slides = document.querySelectorAll('.slide');
+  var total = slides.length, current = 0, isAnimating = false;
+  var stage = document.getElementById('deckStage');
+  var navBar = document.getElementById('navBar');
+
+  function fit() {
+    var f = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    var x = (window.innerWidth - 1920 * f) / 2, y = (window.innerHeight - 1080 * f) / 2;
+    stage.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + f + ')';
+  }
+  window.addEventListener('resize', fit);
+
+  function updateSlide(newIdx, direction) {
+    if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+    isAnimating = true;
+    var oldSlide = slides[current], newSlide = slides[newIdx];
+    var exitX = direction === 'next' ? '-60px' : '60px';
+    var enterX = direction === 'next' ? '60px' : '-60px';
+    oldSlide.classList.remove('active');
+    newSlide.style.transition = 'none';
+    newSlide.style.transform = 'translateX(' + enterX + ')';
+    newSlide.classList.add('active');
+    void newSlide.offsetWidth;
+    newSlide.style.transition = '';
+    newSlide.style.transform = '';
+    oldSlide.style.transform = 'translateX(' + exitX + ')';
+    current = newIdx; updateUI();
+    setTimeout(function () { oldSlide.style.transform = ''; isAnimating = false; }, 470);
+  }
+  function jumpTo(idx) {
+    if (idx === current || idx < 0 || idx >= total) return;
+    isAnimating = false;
+    slides[current].classList.remove('active'); slides[current].style.transform = '';
+    slides[idx].style.transition = 'none'; slides[idx].style.transform = '';
+    slides[idx].classList.add('active');
+    void slides[idx].offsetWidth; slides[idx].style.transition = '';
+    current = idx; updateUI();
+  }
+  function next() { updateSlide(current + 1, 'next'); }
+  function prev() { updateSlide(current - 1, 'prev'); }
+  function updateUI() {
+    for (var i = 0; i < total; i++) {
+      var pn = slides[i].querySelector('.page-numeral');
+      if (pn) pn.textContent = (i + 1) + ' / ' + total;
+    }
+    dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
+    updateDragLabel();
+  }
+
+  var dotsContainer = document.createElement('div'); dotsContainer.className = 'nav-dots';
+  var dots = [], labels = [];
+  slides.forEach(function (slide, i) {
+    var h2 = slide.querySelector('h2'), h1 = slide.querySelector('h1');
+    var label = (h2 ? h2.textContent.trim() : (h1 ? h1.textContent.trim() : '')).replace(/\s+/g, ' ').slice(0, 16);
+    labels.push(label);
+    var dot = document.createElement('button');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.innerHTML = '<span class="dot-tip">' + (i + 1) + (label ? ' · ' + label : '') + '</span>';
+    dot.addEventListener('click', function (e) { e.stopPropagation(); if (i !== current) updateSlide(i, i > current ? 'next' : 'prev'); });
+    dotsContainer.appendChild(dot); dots.push(dot);
+  });
+  var dragLabel = document.createElement('div'); dragLabel.className = 'drag-label';
+  dotsContainer.appendChild(dragLabel); navBar.appendChild(dotsContainer);
+  function updateDragLabel() {
+    dragLabel.textContent = (current + 1) + ' / ' + total + (labels[current] ? '  ' + labels[current] : '');
+  }
+
+  var isDragging = false, dotPositions = [];
+  function getIdxFromX(clientX) {
+    var closest = 0, minDist = Infinity;
+    dotPositions.forEach(function (cx, i) { var d = Math.abs(clientX - cx); if (d < minDist) { minDist = d; closest = i; } });
+    return closest;
+  }
+  function refreshPositions() {
+    dotPositions = dots.map(function (d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+  }
+  dotsContainer.addEventListener('mousedown', function (e) {
+    e.preventDefault(); isDragging = true; refreshPositions(); dotsContainer.classList.add('dragging');
+    var idx = getIdxFromX(e.clientX); if (idx !== current) jumpTo(idx);
+  });
+  document.addEventListener('mousemove', function (e) {
+    if (!isDragging) return; e.preventDefault(); var idx = getIdxFromX(e.clientX); if (idx !== current) jumpTo(idx);
+  });
+  document.addEventListener('mouseup', function () { if (!isDragging) return; isDragging = false; dotsContainer.classList.remove('dragging'); });
+  dotsContainer.addEventListener('touchstart', function (e) {
+    isDragging = true; refreshPositions(); dotsContainer.classList.add('dragging');
+    var idx = getIdxFromX(e.touches[0].clientX); if (idx !== current) jumpTo(idx);
+  }, { passive: true });
+  dotsContainer.addEventListener('touchmove', function (e) {
+    if (!isDragging) return; e.preventDefault(); var idx = getIdxFromX(e.touches[0].clientX); if (idx !== current) jumpTo(idx);
+  }, { passive: false });
+  dotsContainer.addEventListener('touchend', function () { isDragging = false; dotsContainer.classList.remove('dragging'); });
+
+  document.addEventListener('keydown', function (e) {
+    switch (e.key) {
+      case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+      case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+      case 'Home': updateSlide(0, 'prev'); break;
+      case 'End': updateSlide(total - 1, 'next'); break;
+    }
+  });
+  var touchStartX = -1;
+  document.addEventListener('touchstart', function (e) {
+    if (e.target.closest('.nav-bar') || e.target.closest('.palette-dots')) { touchStartX = -1; return; }
+    touchStartX = e.touches[0].clientX;
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (touchStartX === -1) return;
+    var dx = e.changedTouches[0].clientX - touchStartX;
+    if (Math.abs(dx) > 50) (dx < 0 ? next() : prev());
+    touchStartX = -1;
+  }, { passive: true });
+  var wheelLock = false;
+  document.addEventListener('wheel', function (e) {
+    if (e.target.closest && e.target.closest('.nav-bar')) return;
+    if (wheelLock || Math.abs(e.deltaY) < 30) return;
+    wheelLock = true; (e.deltaY > 0 ? next() : prev());
+    setTimeout(function () { wheelLock = false; }, 750);
+  }, { passive: true });
+
+  var THEME_KEY = 'magazine-theme';
+  var paletteDots = document.querySelectorAll('.palette-dot');
+  try { var saved = localStorage.getItem(THEME_KEY); if (saved) document.documentElement.setAttribute('data-theme', saved); } catch (e) {}
+  function syncPalette() {
+    var cur = document.documentElement.getAttribute('data-theme') || 'paper';
+    paletteDots.forEach(function (d) { d.classList.toggle('active', d.getAttribute('data-theme') === cur); });
+  }
+  paletteDots.forEach(function (dot) {
+    dot.addEventListener('click', function () {
+      var t = dot.getAttribute('data-theme');
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+      syncPalette();
+    });
+  });
+  syncPalette();
+
+  var fsToggle = document.getElementById('fsToggle');
+  function setFsState(on) { fsToggle.classList.toggle('is-fs', on); }
+  fsToggle.addEventListener('click', function () {
+    var d = document;
+    if (!d.fullscreenElement && !d.webkitFullscreenElement) {
+      var el = d.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+      if (req) { try { req.call(el); } catch (e) {} }
+    } else {
+      var exit = d.exitFullscreen || d.webkitExitFullscreen;
+      if (exit) { try { exit.call(d); } catch (e) {} }
+    }
+  });
+  document.addEventListener('fullscreenchange', function () { setFsState(!!document.fullscreenElement); });
+  document.addEventListener('webkitfullscreenchange', function () { setFsState(!!document.webkitFullscreenElement); });
+
+  fit(); updateUI();
+})();
+</script>
+</body>
+</html>

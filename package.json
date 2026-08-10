@@ -7,11 +7,13 @@
     "start": "astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "deploy": "./deploy.sh"
   },
   "dependencies": {
     "@astrojs/mdx": "^3.1.8",
-    "astro": "^4.16.12"
+    "astro": "^4.16.12",
+    "playwright": "^1.59.1"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.7",

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FDD 驱动 AI Coding 工作流 — 从理论到实践</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f4fb; --bg2: #eaeaf4; --surface: #ffffff; --surface2: #f0f0fa; --surface3: #e6e6f2;
+  --border: rgba(0,0,0,0.07); --border-strong: rgba(0,0,0,0.12);
+  --text: #1a1a30; --text2: #5a5a78; --text3: #9898ac;
+  --accent: #5b4cc4; --accent2: #7b6cf0;
+  --green: #009a7c; --green-bg: rgba(0,154,124,0.06); --green-border: rgba(0,154,124,0.18);
+  --red: #d44040; --red-bg: rgba(212,64,64,0.06); --red-border: rgba(212,64,64,0.18);
+  --orange: #b88020; --orange-bg: rgba(184,128,32,0.06); --orange-border: rgba(184,128,32,0.18);
+  --accent-bg: rgba(91,76,196,0.06); --accent-border: rgba(91,76,196,0.15);
+  --code-bg: #1a1a30; --code-border: rgba(91,76,196,0.12); --code-text: #00d4aa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06); --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --quote-bg: rgba(91,76,196,0.04); --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+  --key-border: rgba(91,76,196,0.12);
+  --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.slides-container { width: 1200px; margin: 0 auto; }
+.slide { min-height: 675px; padding: 48px 96px; display: flex; flex-direction: column; justify-content: center; align-items: center; border-top: 1px solid var(--border); position: relative; overflow: hidden; }
+.slide > .section-num { position: absolute; top: 30px; right: 96px; z-index: 1; pointer-events: none; }
+.slide-content { max-width: 920px; width: 100%; }
+.slide-cover { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%); }
+.slide-cover h1 { font-size: 2.6rem; font-weight: 900; line-height: 1.35; background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.slide-cover .divider { width: 60px; height: 2px; margin: 1.8rem auto; background: var(--progress-bg); border-radius: 1px; }
+.slide-cover .subtitle { font-size: 1.15rem; color: var(--text2); margin-top: 0.5rem; }
+.slide-cover .meta { font-size: 0.85rem; color: var(--text3); margin-top: 1.5rem; }
+.slide-end { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%); }
+h2 { font-size: 1.7rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text); }
+h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.7rem; color: var(--text); }
+.tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; margin-bottom: 1rem; }
+.tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.key-point { background: var(--key-bg); border: 1px solid var(--key-border); border-radius: 12px; padding: 1.2rem 1.5rem; margin: 1rem 0; }
+.key-point p { font-size: 0.95rem; line-height: 1.7; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.col-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; }
+.col-card h3 { margin-bottom: 0.6rem; font-size: 1rem; }
+.col-card p, .col-card li { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+.col-card ul { padding-left: 1.2rem; }
+.green-card { border-color: var(--green-border); background: linear-gradient(135deg, var(--green-bg), var(--surface)); }
+.accent-card { border-color: var(--accent-border); background: linear-gradient(135deg, var(--accent-bg), var(--surface)); }
+.red-card { border-color: var(--red-border); background: linear-gradient(135deg, var(--red-bg), var(--surface)); }
+.orange-card { border-color: var(--orange-border); background: linear-gradient(135deg, var(--orange-bg), var(--surface)); }
+.flow { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0; flex-wrap: wrap; }
+.flow-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap; }
+.flow-item.green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.flow-item.accent { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+.flow-item.red { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+.flow-item.orange { background: var(--orange-bg); border-color: var(--orange-border); color: var(--orange); }
+.flow-arrow { color: var(--text3); font-size: 1.2rem; }
+.steps { margin: 1rem 0; }
+.step-card { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+.step-card:last-child { border-bottom: none; }
+.step-label { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.step-label.waterfall { background: var(--accent-bg); color: var(--accent); }
+.step-label.agile { background: var(--green-bg); color: var(--green); }
+.step-body { font-size: 0.9rem; color: var(--text2); }
+.step-body strong { color: var(--text); }
+.quote { background: var(--quote-bg); border-left: 3px solid var(--quote-border); padding: 1rem 1.4rem; margin: 1rem 0; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: var(--text2); }
+.quote em { color: var(--accent); font-weight: 600; font-style: normal; }
+pre { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1rem 0; overflow-x: auto; }
+pre code { color: var(--code-text); font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.6; }
+.data-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.85rem; }
+.data-table th { background: var(--accent-bg); color: var(--accent); font-weight: 600; text-align: left; padding: 0.55rem 0.9rem; border-bottom: 2px solid var(--accent-border); }
+.data-table td { padding: 0.5rem 0.9rem; border-bottom: 1px solid var(--border); color: var(--text2); }
+.data-table tr:hover td { background: var(--surface2); }
+.score-bar { display: flex; align-items: center; gap: 0.8rem; margin: 0.35rem 0; }
+.score-label { width: 110px; font-size: 0.82rem; color: var(--text2); text-align: right; flex-shrink: 0; }
+.score-track { flex: 1; height: 22px; background: var(--surface3); border-radius: 11px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 600; color: white; background: var(--progress-bg); }
+.s9 { width: 90%; } .s10 { width: 100%; }
+.vs-block { display: flex; margin: 1rem 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.vs-side { flex: 1; padding: 1.1rem 1.3rem; }
+.vs-side h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+.vs-side ul { padding-left: 1.2rem; font-size: 0.85rem; color: var(--text2); }
+.vs-side li { margin-bottom: 0.25rem; }
+.red-side { background: var(--red-bg); }
+.red-side h4 { color: var(--red); }
+.green-side { background: var(--green-bg); }
+.green-side h4 { color: var(--green); }
+.vs-divider { width: 2px; background: var(--border); }
+.loop-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; padding: 0.9rem 1.3rem; margin: 0.7rem 0; }
+.loop-card h4 { font-size: 0.95rem; color: var(--green); margin-bottom: 0.3rem; }
+.loop-card p { font-size: 0.85rem; color: var(--text2); }
+.icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin: 1rem 0; }
+.icon-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.2rem; }
+.icon-card h4 { font-size: 0.92rem; margin-bottom: 0.4rem; }
+.icon-card p { font-size: 0.83rem; color: var(--text2); }
+ul.clean-list { list-style: none; padding: 0; }
+ul.clean-list li { padding: 0.25rem 0; font-size: 0.88rem; color: var(--text2); }
+ul.clean-list li::before { content: "•"; color: var(--accent); margin-right: 0.5rem; }
+p { font-size: 0.92rem; color: var(--text2); line-height: 1.7; }
+.section-num { font-size: 4rem; font-weight: 900; background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; opacity: 0.15; }
+.agenda-list { list-style: none; padding: 0; }
+.agenda-item { display: flex; align-items: center; gap: 1.2rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+.agenda-item:last-child { border-bottom: none; }
+.agenda-num { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px; border-radius: 50%; font-size: 0.85rem; font-weight: 700; flex-shrink: 0; }
+.agenda-num.p1 { background: var(--accent-bg); color: var(--accent); }
+.agenda-num.p2 { background: var(--orange-bg); color: var(--orange); }
+.agenda-num.p3 { background: var(--green-bg); color: var(--green); }
+.agenda-num.p4 { background: var(--red-bg); color: var(--red); }
+.agenda-text { font-size: 0.95rem; color: var(--text2); }
+.agenda-text strong { color: var(--text); }
+</style>
+</head>
+<body>
+<div class="slides-container">
+
+<!-- Slide 1: Cover -->
+<div class="slide slide-cover">
+<div class="slide-content">
+<h1>FDD 驱动 AI Coding 工作流<br>从理论框架到工程实践</h1>
+<div class="divider"></div>
+<p class="subtitle">Feature-Driven Development 如何重塑 AI 辅助编程工作流</p>
+<p class="meta">分享人：杨正武 · 2026-05</p>
+</div>
+</div>
+
+<!-- Slide 2: Agenda -->
+<div class="slide">
+<span class="section-num">00</span>
+<div class="slide-content">
+<span class="tag tag-section">议程</span>
+<h2>今天聊什么</h2>
+<ul class="agenda-list">
+  <li class="agenda-item"><span class="agenda-num p1">1</span><div class="agenda-text"><strong>FDD 方法论回顾</strong> — 特性驱动开发的经典五阶段</div></li>
+  <li class="agenda-item"><span class="agenda-num p2">2</span><div class="agenda-text"><strong>三大 AI 编程框架工作流对比</strong> — OpenSpec / BMad / Superpowers</div></li>
+  <li class="agenda-item"><span class="agenda-num p3">3</span><div class="agenda-text"><strong>Feature-Workflow 的 FDD 设计驱动</strong> — 理论映证与工程实践</div></li>
+  <li class="agenda-item"><span class="agenda-num p4">4</span><div class="agenda-text"><strong>Feature-Workflow 实践</strong> — 55 个特性归档的工程经验</div></li>
+</ul>
+</div>
+</div>
+
+<!-- Slide 3: What is FDD -->
+<div class="slide">
+<span class="section-num">01</span>
+<div class="slide-content">
+<span class="tag tag-section">方法论</span>
+<h2>Feature-Driven Development</h2>
+<div class="quote">以<em>特性</em>为最小交付单元，按<em>依赖关系</em>迭代开发。不按时间盒，不按任务列表，而是按业务价值切割交付。</div>
+<div class="steps">
+  <div class="step-card"><span class="step-label waterfall">FDD 1</span><div class="step-body"><strong>Build Overall Model</strong> — 全局建模，建立团队共识</div></div>
+  <div class="step-card"><span class="step-label waterfall">FDD 2</span><div class="step-body"><strong>Build Features List</strong> — 列出所有待交付特性</div></div>
+  <div class="step-card"><span class="step-label waterfall">FDD 3</span><div class="step-body"><strong>Plan by Feature</strong> — 按依赖关系排序开发顺序</div></div>
+  <div class="step-card"><span class="step-label agile">FDD 4</span><div class="step-body"><strong>Design by Feature</strong> — 逐个特性进行技术设计</div></div>
+  <div class="step-card"><span class="step-label agile">FDD 5</span><div class="step-body"><strong>Build by Feature</strong> — 逐个特性实现、测试、交付</div></div>
+</div>
+<div class="key-point"><p><strong>核心思想：</strong>先全局、再分解、按依赖迭代。每一步都围绕"特性"这个核心组织。</p></div>
+</div>
+</div>
+
+<!-- Slide 3.5: Horizontal to Vertical Slicing -->
+<div class="slide">
+<span class="section-num">01</span>
+<div class="slide-content">
+<span class="tag tag-orange">关键转变</span>
+<h2>从水平切片到垂直切片</h2>
+<div class="cols">
+  <div class="col-card red-card">
+    <h3>水平切片（传统做法）</h3>
+    <div class="flow" style="flex-direction:column; align-items:stretch;">
+      <div class="flow-item red" style="text-align:center;">数据库层</div>
+      <span class="flow-arrow" style="text-align:center;">↓</span>
+      <div class="flow-item red" style="text-align:center;">业务逻辑层</div>
+      <span class="flow-arrow" style="text-align:center;">↓</span>
+      <div class="flow-item red" style="text-align:center;">API 接口层</div>
+      <span class="flow-arrow" style="text-align:center;">↓</span>
+      <div class="flow-item red" style="text-align:center;">UI 展示层</div>
+    </div>
+    <p style="margin-top:0.6rem; text-align:center;">按技术层分工，完成后才看到完整功能</p>
+  </div>
+  <div class="col-card green-card">
+    <h3>垂直切片（FDD 驱动）</h3>
+    <div class="flow" style="flex-direction:column; align-items:stretch; gap:0.4rem;">
+      <div class="flow-item green" style="text-align:center;">特性 A：用户登录（DB→逻辑→API→UI）</div>
+      <div class="flow-item green" style="text-align:center;">特性 B：订单查询（DB→逻辑→API→UI）</div>
+      <div class="flow-item green" style="text-align:center;">特性 C：支付流程（DB→逻辑→API→UI）</div>
+    </div>
+    <p style="margin-top:0.6rem; text-align:center;">每个特性横跨所有层，独立可交付</p>
+  </div>
+</div>
+<div class="key-point"><p><strong>为什么重要：</strong>垂直切片让每一次交付都有业务价值。FDD 的"特性"天然就是垂直切片 — 一个对用户有价值的小功能，必须横跨所有技术层。</p></div>
+</div>
+</div>
+
+<!-- Slide 3.6: How FDD enables Vertical Slicing + Team Change -->
+<div class="slide">
+<span class="section-num">01</span>
+<div class="slide-content">
+<span class="tag tag-orange">团队演进</span>
+<h2>垂直切片驱动团队组织变化</h2>
+<div class="cols">
+  <div class="col-card">
+    <h3>FDD 如何保证垂直切片</h3>
+    <ul>
+      <li><strong>颗粒度控制</strong>：按用户价值点拆分，3+ 价值点时建议拆为子特性</li>
+      <li><strong>Context 窗口设计</strong>：每个特性控制在单个 Agent 的 context 承载范围内</li>
+      <li><strong>先建模后切分</strong>：Build Overall Model 提供共同骨架，避免碎片化</li>
+      <li><strong>按特性交付</strong>：Design & Build by Feature 确保每块都端到端跑通</li>
+    </ul>
+  </div>
+  <div class="col-card green-card">
+    <h3>团队组织方式的变化</h3>
+    <ul>
+      <li><strong>传统</strong>：前端组 / 后端组 / DBA 组（按技术层分工）</li>
+      <li><strong>FDD</strong>：特性小组（按业务功能跨职能组合）</li>
+      <li><strong>AI Coding</strong>：AI Agent 同时覆盖所有技术层</li>
+    </ul>
+    <p style="margin-top:0.6rem;">AI Agent 天然适合垂直切片 — 一个 Agent 可以同时改 DB、逻辑和 UI，不存在技术筒仓问题。</p>
+  </div>
+</div>
+<div class="key-point"><p><strong>核心洞察：</strong>垂直切片 + FDD + AI Agent = 开发组织方式的根本转变。AI Agent 天然是"全栈"的，垂直切片在 AI Coding 中比传统团队更容易实现。</p></div>
+</div>
+</div>
+
+<!-- Slide 4: Three Frameworks Overview -->
+<div class="slide">
+<span class="section-num">02</span>
+<div class="slide-content">
+<span class="tag tag-orange">框架对比</span>
+<h2>三大 AI 编程框架概览</h2>
+<table class="data-table">
+<thead><tr><th>维度</th><th>OpenSpec</th><th>BMad Method</th><th>Superpowers</th></tr></thead>
+<tbody>
+<tr><td><strong>核心焦点</strong></td><td>规范管理</td><td>敏捷流程</td><td>代码质量</td></tr>
+<tr><td><strong>工作流风格</strong></td><td>轻量、灵活</td><td>企业级、结构化</td><td>强制性、系统化</td></tr>
+<tr><td><strong>学习曲线</strong></td><td>低</td><td>中高</td><td>中</td></tr>
+<tr><td><strong>团队规模</strong></td><td>个人到企业</td><td>中大型团队</td><td>个人到小型团队</td></tr>
+<tr><td><strong>设计哲学</strong></td><td>流动至上</td><td>规模至上</td><td>质量至上</td></tr>
+</tbody>
+</table>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>共同趋势</h3>
+    <ul>
+      <li>从临时对话 → 系统化工作流</li>
+      <li>从单一 Agent → 多代理协作</li>
+    </ul>
+  </div>
+  <div class="col-card green-card">
+    <h3>互相借鉴的方向</h3>
+    <ul>
+      <li>OpenSpec 的规范先行思想</li>
+      <li>BMad 的多角色分工机制</li>
+      <li>Superpowers 的 TDD 强制流程</li>
+    </ul>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Slide 5: OpenSpec -->
+<div class="slide">
+<span class="section-num">03</span>
+<div class="slide-content">
+<span class="tag tag-lesson">OpenSpec</span>
+<h2>规范驱动开发（SDD）</h2>
+<div class="quote">流动而非僵化，迭代而非瀑布，简单而非复杂，适配遗留系统而非仅限新项目。</div>
+<div class="flow">
+  <div class="flow-item accent">/opsx:propose</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-item accent">/opsx:apply</div>
+  <span class="flow-arrow">→</span>
+  <div class="flow-item accent">/opsx:archive</div>
+</div>
+<pre><code># 1. 提议：创建变更文件夹
+/opsx:propose "add-dark-mode"
+→ proposal.md / specs/ / design.md / tasks.md
+
+# 2. 实施：逐任务执行
+/opsx:apply  →  逐个任务实施并验证
+
+# 3. 归档：更新规范
+/opsx:archive  →  移至归档目录</code></pre>
+<div class="cols">
+  <div class="col-card"><h3>核心理念</h3><ul><li>轻量，工具无关</li><li>支持 20+ AI 编码助手</li><li>构建前共识，减少不可预测性</li></ul></div>
+  <div class="col-card"><h3>适用场景</h3><ul><li>规范先行的团队项目</li><li>遗留系统渐进改进</li><li>多人协作的企业环境</li></ul></div>
+</div>
+</div>
+</div>
+
+<!-- Slide 6: BMad Method -->
+<div class="slide">
+<span class="section-num">04</span>
+<div class="slide-content">
+<span class="tag tag-lesson">BMad Method</span>
+<h2>敏捷 AI 驱动开发</h2>
+<div class="quote">"Build More Architect Dreams" — 规模自适应的 AI 敏捷开发框架，从错误修复到企业系统。</div>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>核心特性</h3>
+    <ul>
+      <li><strong>12+ 专业代理</strong>：PM、架构师、开发者、UX、Scrum Master</li>
+      <li><strong>规模自适应</strong>：根据复杂度自动调整规划深度</li>
+      <li><strong>Party Mode</strong>：多代理协作讨论</li>
+      <li><strong>完整生命周期</strong>：头脑风暴 → 部署</li>
+    </ul>
+  </div>
+  <div class="col-card green-card">
+    <h3>模块生态</h3>
+    <ul>
+      <li><strong>BMM</strong>：核心框架，34+ 工作流</li>
+      <li><strong>BMB</strong>：自定义代理和工作流构建器</li>
+      <li><strong>TEA</strong>：基于风险的测试策略</li>
+      <li><strong>BMGD</strong>：游戏开发工作流</li>
+      <li><strong>CIS</strong>：创新、头脑风暴、设计思维</li>
+    </ul>
+  </div>
+</div>
+<div class="key-point"><p><strong>定位：</strong>企业级敏捷框架，适合需要多角色协作的大型项目和专业领域。</p></div>
+</div>
+</div>
+
+<!-- Slide 7: Superpowers -->
+<div class="slide">
+<span class="section-num">05</span>
+<div class="slide-content">
+<span class="tag tag-lesson">Superpowers</span>
+<h2>代理技能框架</h2>
+<div class="quote">测试驱动、系统化、降低复杂度、<em>证据优于声明</em>。</div>
+<div class="flow">
+  <div class="flow-item">brainstorming</div><span class="flow-arrow">→</span>
+  <div class="flow-item">worktrees</div><span class="flow-arrow">→</span>
+  <div class="flow-item">plans</div><span class="flow-arrow">→</span>
+  <div class="flow-item">subagent</div><span class="flow-arrow">→</span>
+  <div class="flow-item green">TDD</div><span class="flow-arrow">→</span>
+  <div class="flow-item">review</div><span class="flow-arrow">→</span>
+  <div class="flow-item orange">finish</div>
+</div>
+<div class="cols">
+  <div class="col-card">
+    <h3>7 步流程</h3>
+    <ul class="clean-list">
+      <li>苏格拉底式设计完善</li>
+      <li>Git worktree 隔离工作区</li>
+      <li>2-5 分钟小任务拆分</li>
+      <li>子代理 + 两阶段审查</li>
+      <li>RED-GREEN-REFACTOR 循环</li>
+      <li>按计划代码审查</li>
+      <li>验证 + 合并/PR</li>
+    </ul>
+  </div>
+  <div class="col-card green-card">
+    <h3>核心理念</h3>
+    <ul>
+      <li><strong>强制性流程</strong>：不是建议，是要求</li>
+      <li><strong>自动触发</strong>：代理自动检查技能</li>
+      <li><strong>TDD 核心</strong>：测试先行，删除无测试代码</li>
+      <li><strong>子代理架构</strong>：并行深度审查</li>
+    </ul>
+    <p style="margin-top:0.6rem;">适合极端重视代码质量、TDD 实践、使用 Claude Code 的团队。</p>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Slide 8: Three Philosophies -->
+<div class="slide">
+<span class="section-num">06</span>
+<div class="slide-content">
+<span class="tag tag-orange">设计哲学</span>
+<h2>规范 vs 规模 vs 质量</h2>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>OpenSpec — 流动至上</h3>
+    <ul>
+      <li>规范先于代码</li>
+      <li>迭代优于瀑布</li>
+      <li>适合遗留系统改造</li>
+      <li style="color:var(--text3); margin-top:0.4rem;">Workflow: propose → apply → archive</li>
+    </ul>
+  </div>
+  <div class="col-card orange-card">
+    <h3>BMad Method — 规模至上</h3>
+    <ul>
+      <li>自适应智能</li>
+      <li>多角色协作（12+ 代理）</li>
+      <li>覆盖完整生命周期</li>
+      <li style="color:var(--text3); margin-top:0.4rem;">Workflow: brainstorm → plan → architect → dev</li>
+    </ul>
+  </div>
+</div>
+<div class="cols">
+  <div class="col-card green-card">
+    <h3>Superpowers — 质量至上</h3>
+    <ul>
+      <li>TDD 强制执行</li>
+      <li>系统化调试</li>
+      <li>子代理审查机制</li>
+      <li style="color:var(--text3); margin-top:0.4rem;">Workflow: brainstorm → worktree → plan → dev → TDD</li>
+    </ul>
+  </div>
+  <div class="col-card accent-card">
+    <h3>Feature-Workflow — FDD 驱动</h3>
+    <ul>
+      <li>特性为核心组织单元</li>
+      <li>依赖建模 + 上下文传播</li>
+      <li>物理隔离 + 归档积累</li>
+      <li style="color:var(--text3); margin-top:0.4rem;">Workflow: init → new → spec → impl → verify → archive</li>
+    </ul>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Slide 9: Feature-Workflow Introduction -->
+<div class="slide">
+<span class="section-num">07</span>
+<div class="slide-content">
+<span class="tag tag-section">实践</span>
+<h2>Feature-Workflow 登场</h2>
+<div class="quote">Feature-Workflow 是一套以 <em>FDD 为理论驱动</em> 的 AI Coding 工作流插件。借鉴了三大框架的优秀实践，同时以<em>特性为核心组织单元</em>，构建端到端开发工作流。</div>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>借鉴三大框架</h3>
+    <ul>
+      <li><strong>OpenSpec</strong>：规范先行，构建前共识</li>
+      <li><strong>BMad</strong>：多角色分工，规模自适应</li>
+      <li><strong>Superpowers</strong>：TDD 流程，worktree 隔离</li>
+    </ul>
+  </div>
+  <div class="col-card green-card">
+    <h3>FW 的 FDD 特性</h3>
+    <ul>
+      <li>以 Feature 为核心组织单元</li>
+      <li>显式依赖 DAG + 上下文传播</li>
+      <li>物理隔离（worktree）+ 并行</li>
+      <li>归档即知识积累（55 归档）</li>
+    </ul>
+  </div>
+</div>
+<div class="key-point"><p><strong>核心问题：</strong>EvoDev 论文提出的 FDD + Feature Map 理论框架，在工程实践中是否可行？55 个特性归档能否构成实证？</p></div>
+</div>
+</div>
+
+<!-- Slide 10: EvoDev Paper -->
+<div class="slide">
+<span class="section-num">08</span>
+<div class="slide-content">
+<span class="tag tag-lesson">论文介绍</span>
+<h2>EvoDev：FDD 的学术形式化</h2>
+<div class="quote">EvoDev 是一篇将 FDD 方法论引入 AI Coding 的学术论文，核心思想是引入 <em>Feature Map（特性地图）</em>作为 DAG 结构，显式建模特性依赖关系。</div>
+<p style="font-size:0.82rem; color:var(--text3); margin-bottom:1rem;"><a href="https://arxiv.org/abs/2511.02399" style="color:var(--accent);">arxiv.org/abs/2511.02399</a> — EvoDev: An Iterative Feature-Driven Framework for End-to-End Software Development</p>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>论文三阶段</h3>
+    <div class="flow">
+      <div class="flow-item accent">Overall Design</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item accent">Feature Map</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item accent">Iterative Dev</div>
+    </div>
+    <p>灵感来源：经典 FDD 方法论</p>
+  </div>
+  <div class="col-card green-card">
+    <h3>四项创新</h3>
+    <ul>
+      <li>Feature Map 作为 DAG 建模依赖</li>
+      <li>三层上下文：Business / Design / Implementation</li>
+      <li>依赖关系驱动的上下文传播</li>
+      <li>在 Android 任务上超越 Claude Code 56.8%</li>
+    </ul>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Slide 11: FDD 5-Stage Mapping -->
+<div class="slide">
+<span class="section-num">09</span>
+<div class="slide-content">
+<span class="tag tag-section">FDD 映射</span>
+<h2>FDD 五阶段 → Feature-Workflow</h2>
+<div class="steps">
+  <div class="step-card">
+    <span class="step-label waterfall">FDD 1</span>
+    <div class="step-body"><strong>Build Overall Model</strong> → EvoDev: Overall Design → FW: <em>/init-project + project-context.md</em></div>
+  </div>
+  <div class="step-card">
+    <span class="step-label waterfall">FDD 2</span>
+    <div class="step-body"><strong>Build Features List</strong> → EvoDev: Feature Map Gen → FW: <em>/new-feature + /split-feature</em></div>
+  </div>
+  <div class="step-card">
+    <span class="step-label waterfall">FDD 3</span>
+    <div class="step-body"><strong>Plan by Feature</strong> → EvoDev: Feature Map Gen → FW: <em>queue.yaml 依赖排序</em></div>
+  </div>
+  <div class="step-card">
+    <span class="step-label agile">FDD 4</span>
+    <div class="step-body"><strong>Design by Feature</strong> → EvoDev: Iterative Dev → FW: <em>spec.md 技术方案 + task.md</em></div>
+  </div>
+  <div class="step-card">
+    <span class="step-label agile">FDD 5</span>
+    <div class="step-body"><strong>Build by Feature</strong> → EvoDev: Iterative Dev → FW: <em>/implement-feature + /verify-feature</em></div>
+  </div>
+</div>
+<div class="key-point"><p><strong>映射关系：</strong>两者都遵循"先全局设计 → 再特性分解 → 按依赖迭代开发"的流程。FDD 每个阶段对应 Feature-Workflow 中的具体 skill 或文件。</p></div>
+</div>
+</div>
+
+<!-- Slide 12: Feature Map -->
+<div class="slide">
+<span class="section-num">10</span>
+<div class="slide-content">
+<span class="tag tag-section">Feature Map</span>
+<h2>Feature Map 结构对比</h2>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>EvoDev: 单一 DAG</h3>
+    <p>每节点含三层上下文，信息沿依赖边传播。</p>
+    <pre><code>Feature Set A ← Business + Design + Impl
+Feature Set B ← depends on A
+Feature Set C ← depends on A, B</code></pre>
+  </div>
+  <div class="col-card green-card">
+    <h3>FW: 三文件组合等价</h3>
+    <p>queue.yaml（动态 DAG 边）+ archive-log.yaml + spec.md</p>
+    <pre><code>queue.yaml:      pending/blocked/active
+archive-log.yaml: 55 completed nodes
+spec.md:         3-layer context</code></pre>
+  </div>
+</div>
+<p style="margin-top:0.8rem; font-size:0.88rem;"><strong>实际归档中的依赖 DAG：</strong></p>
+<pre><code>feat-redesign-system (设计令牌基础)
+  └→ feat-redesign-layout (全局布局)
+       ├→ feat-redesign-timeline    (Timeline)
+       ├→ feat-redesign-knowledge-map (知识图谱)
+       └→ feat-redesign-explorer    (浏览器)
+
+feat-p3-governance-engine (治理引擎)
+  └→ feat-p3-board-ecosystem (生态集成)
+       depends: [governance-engine, board-redesign]</code></pre>
+</div>
+</div>
+
+<!-- Slide 13: 3-Layer Context -->
+<div class="slide">
+<span class="section-num">11</span>
+<div class="slide-content">
+<span class="tag tag-section">上下文传播</span>
+<h2>三层上下文对比</h2>
+<div class="cols">
+  <div class="col-card accent-card">
+    <h3>EvoDev 论文</h3>
+    <ul>
+      <li><strong>Business-layer</strong>：功能范围 + 接口定义</li>
+      <li><strong>Design-layer</strong>：UI 组件 + 数据实体</li>
+      <li><strong>Implementation-layer</strong>：代码变更记录</li>
+      <li>信息沿依赖边自动传播</li>
+    </ul>
+  </div>
+  <div class="col-card green-card">
+    <h3>Feature-Workflow spec.md</h3>
+    <ul>
+      <li><strong>Description</strong> + User Value + Gherkin</li>
+      <li><strong>Technical Solution</strong> + Context Analysis</li>
+      <li><strong>Reference Code</strong> + Related Features + Archive Patterns</li>
+      <li>/start-feature 加载前置特性摘要</li>
+    </ul>
+  </div>
+</div>
+<div class="quote">
+<strong>实际案例（feat-redesign-layout 的 spec.md）：</strong><br>
+Related Features:<br>
+• feat-redesign-system（前置）— 提供 Bento Grid 设计令牌和 shadcn/ui 组件<br>
+• feat-p2-board-scaffold（已完成）— 建立了当前 layout.tsx，需完全重写<br>
+Archive Implementation Patterns:<br>
+• 当前布局: Sidebar 使用 <em>position: fixed w-60</em>
+</div>
+</div>
+</div>
+
+<!-- Slide 14: Multi-Agent -->
+<div class="slide">
+<span class="section-num">12</span>
+<div class="slide-content">
+<span class="tag tag-lesson">多智能体</span>
+<h2>多智能体协作对比</h2>
+<div class="vs-block">
+  <div class="vs-side red-side">
+    <h4>EvoDev: 6 个固定 Agent</h4>
+    <ul>
+      <li>Business Analyst → Architect</li>
+      <li>Feature Extractor → Planner</li>
+      <li>Chief Programmer → Programmer</li>
+      <li style="color:var(--text3);">顺序执行特性集</li>
+    </ul>
+  </div>
+  <div class="vs-divider"></div>
+  <div class="vs-side green-side">
+    <h4>FW: 1 SubAgent + 15 Skills</h4>
+    <ul>
+      <li>/dev-agent 调度层</li>
+      <li>DevSubAgent 独立 200k context</li>
+      <li>15 个原子 skill 可组合</li>
+      <li style="color:var(--text3);">物理隔离（worktree）+ 并行</li>
+    </ul>
+  </div>
+</div>
+<div class="icon-grid">
+  <div class="icon-card" style="border-left:3px solid var(--green);">
+    <h4>物理隔离</h4>
+    <p>每个特性独立 git worktree + 独立文件系统，比逻辑隔离更安全</p>
+  </div>
+  <div class="icon-card" style="border-left:3px solid var(--accent);">
+    <h4>并行开发</h4>
+    <p>多 SubAgent 并行执行，max_concurrent 控制并发数</p>
+  </div>
+  <div class="icon-card" style="border-left:3px solid var(--orange);">
+    <h4>容错恢复</h4>
+    <p>SubAgent 超时保护 + 自动重试 + /dev-agent --resume</p>
+  </div>
+  <div class="icon-card" style="border-left:3px solid var(--red);">
+    <h4>Skill 可组合</h4>
+    <p>15 个原子 skill 按需链式调用，比固定 agent 更灵活</p>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Slide 15: Conclusion -->
+<div class="slide">
+<span class="section-num">13</span>
+<div class="slide-content">
+<span class="tag tag-section">总结</span>
+<h2>FDD 驱动 AI Coding 的实践思考</h2>
+<div class="key-point" style="text-align:center;">
+  <p style="font-size:1.05rem;"><strong>FDD 方法论为 AI Coding 工作流提供了成熟的理论框架，Feature-Workflow 是其在工程中的一次完整实践。</strong></p>
+</div>
+<div class="cols" style="margin-top:1.2rem;">
+  <div class="col-card accent-card" style="text-align:center;">
+    <h3>理论启发</h3>
+    <p>FDD 五阶段 + Feature Map DAG + 三层上下文</p>
+  </div>
+  <div class="col-card green-card" style="text-align:center;">
+    <h3>工程实践</h3>
+    <p>55 个特性归档、worktree 隔离、插件化分发</p>
+  </div>
+</div>
+<div class="cols">
+  <div class="col-card orange-card" style="text-align:center;">
+    <h3>互相借鉴</h3>
+    <p>OpenSpec 规范先行 / BMad 角色分工 / Superpowers TDD</p>
+  </div>
+  <div class="col-card accent-card" style="text-align:center;">
+    <h3>持续演进</h3>
+    <p>工作流框架在理论和实践中不断迭代优化</p>
+  </div>
+</div>
+<div class="key-point"><p><strong>AI Coding 工作流还处于早期，各家框架互相借鉴、共同演进。</strong></p></div>
+</div>
+</div>
+
+<!-- Appendix A: FDD 五阶段详解 + 八大最佳实践 -->
+<div class="slide">
+<span class="section-num">A1</span>
+<div class="slide-content">
+<span class="tag tag-lesson">附录</span>
+<h2>FDD 五阶段详解</h2>
+<div class="steps">
+  <div class="step-card"><span class="step-label waterfall">1</span><div class="step-body"><strong>Develop Overall Object Model</strong> — 开发人员和领域专家协作，建立系统整体架构模型，确保对业务逻辑有统一认知</div></div>
+  <div class="step-card"><span class="step-label waterfall">2</span><div class="step-body"><strong>Build Feature List</strong> — 将需求拆解为特性列表。特性 = <动作> <结果> <对象>，如"验证 用户的 密码"</div></div>
+  <div class="step-card"><span class="step-label waterfall">3</span><div class="step-body"><strong>Plan By Feature</strong> — 按优先级、复杂度和依赖关系制定开发计划，分配特性小组</div></div>
+  <div class="step-card"><span class="step-label agile">4</span><div class="step-body"><strong>Design By Feature</strong> — 针对单个特性进行详细设计：设计评审、时序图、类定义</div></div>
+  <div class="step-card"><span class="step-label agile">5</span><div class="step-body"><strong>Build By Feature</strong> — 编码、单元测试、代码评审，通过后集成到主干</div></div>
+</div>
+<div class="key-point"><p><strong>八大最佳实践：</strong>领域对象建模 · 按特性开发 · 类负责人制 · 特性小组 · 代码评审 · 定期集成 · 配置管理 · 报告进度</p></div>
+</div>
+</div>
+
+<!-- Appendix B: FDD vs Scrum -->
+<div class="slide">
+<span class="section-num">A2</span>
+<div class="slide-content">
+<span class="tag tag-lesson">附录</span>
+<h2>FDD vs Scrum</h2>
+<table class="data-table">
+<thead><tr><th>维度</th><th>FDD（特性驱动）</th><th>Scrum（迭代驱动）</th></tr></thead>
+<tbody>
+<tr><td><strong>关注点</strong></td><td>工程实践、架构和代码质量</td><td>过程管理、团队协作和交付节奏</td></tr>
+<tr><td><strong>迭代单位</strong></td><td>特性（Features）</td><td>冲刺（Sprints）</td></tr>
+<tr><td><strong>代码归属</strong></td><td>明确的类负责人制</td><td>团队共同拥有代码</td></tr>
+<tr><td><strong>适用场景</strong></td><td>中大型项目，对架构要求较高</td><td>各种规模，强调快速反馈</td></tr>
+<tr><td><strong>设计方式</strong></td><td>先建模再按特性切分</td><td>按冲刺批量处理</td></tr>
+<tr><td><strong>进度可视</strong></td><td>特性完成进度（看板）</td><td>Burndown 图</td></tr>
+</tbody>
+</table>
+<div class="quote">FDD 更关注<em>怎么写好代码</em>，Scrum 更关注<em>怎么管理过程</em>。两者可以互补 — 用 Scrum 管节奏，用 FDD 管工程质量。</div>
+</div>
+</div>
+
+<!-- Slide 18: End -->
+<div class="slide slide-end">
+<div class="slide-content">
+<span class="tag tag-section">谢谢</span>
+<h2>FDD 驱动 AI Coding 工作流</h2>
+<div class="divider" style="margin:1.2rem auto;"></div>
+<p class="subtitle">从理论框架到工程实践</p>
+<p class="meta">分享人：杨正武 · 2026-05<br>基于 EvoDev (arXiv:2511.02399) · Feature-Workflow Plugin · 55 个特性归档</p>
+</div>
+</div>
+
+</div>
+</body>
+</html>

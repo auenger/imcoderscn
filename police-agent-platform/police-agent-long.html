@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>警务领域 Agent 平台设计分析</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #f4f4fb;
+      --bg2: #eaeaf4;
+      --surface: #ffffff;
+      --surface2: #f0f0fa;
+      --surface3: #e6e6f2;
+      --border: rgba(0,0,0,0.07);
+      --border-strong: rgba(0,0,0,0.12);
+      --text: #1a1a30;
+      --text2: #5a5a78;
+      --text3: #9898ac;
+      --accent: #5b4cc4;
+      --accent2: #7b6cf0;
+      --green: #009a7c;
+      --green-bg: rgba(0,154,124,0.06);
+      --green-border: rgba(0,154,124,0.18);
+      --red: #d44040;
+      --red-bg: rgba(212,64,64,0.06);
+      --red-border: rgba(212,64,64,0.18);
+      --orange: #b88020;
+      --orange-bg: rgba(184,128,32,0.06);
+      --orange-border: rgba(184,128,32,0.18);
+      --accent-bg: rgba(91,76,196,0.06);
+      --accent-border: rgba(91,76,196,0.15);
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+      --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+      --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+      --key-border: rgba(91,76,196,0.12);
+      --quote-bg: rgba(91,76,196,0.04);
+      --quote-border: var(--accent);
+    }
+
+    html { font-size: 16px; }
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .slides-container {
+      width: 1200px;
+      margin: 0 auto;
+    }
+
+    .slide {
+      min-height: 675px;
+      padding: 48px 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+    .slide:first-child { border-top: none; }
+    .slide-content { max-width: 920px; width: 100%; }
+
+    /* Cover */
+    .slide-cover {
+      text-align: center;
+      align-items: center;
+      min-height: 675px;
+      background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+    }
+    .slide-cover h1 {
+      font-size: 2.6rem;
+      font-weight: 900;
+      line-height: 1.35;
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.5rem;
+    }
+    .slide-cover .divider {
+      width: 60px; height: 2px; margin: 1.8rem auto;
+      background: var(--progress-bg); border-radius: 1px;
+    }
+    .slide-cover .subtitle {
+      font-size: 1.15rem; color: var(--text2);
+      font-weight: 400; line-height: 1.8;
+    }
+    .slide-cover .meta {
+      margin-top: 1.5rem; font-size: 0.85rem; color: var(--text3);
+    }
+
+    /* End */
+    .slide-end {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%);
+    }
+    .slide-end h2 {
+      font-size: 2rem; font-weight: 700;
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .slide-end .end-subtitle {
+      font-size: 1.1rem; color: var(--text2); margin-top: 1rem;
+    }
+
+    /* Tags */
+    .tag {
+      display: inline-block; padding: 4px 14px; border-radius: 20px;
+      font-size: 0.78rem; font-weight: 500; margin-bottom: 16px;
+      width: auto;
+    }
+    .tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+    .tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+    /* Headings */
+    h2 { font-size: 1.6rem; font-weight: 700; margin-bottom: 1.2rem; line-height: 1.4; }
+    h3 { font-size: 1.15rem; font-weight: 600; margin-bottom: 0.5rem; }
+    h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 0.4rem; }
+
+    p { font-size: 0.92rem; color: var(--text2); line-height: 1.7; }
+    ul, ol { padding-left: 1.2em; }
+    li { font-size: 0.92rem; color: var(--text2); line-height: 1.7; margin-bottom: 0.3em; }
+
+    /* Key point */
+    .key-point {
+      background: var(--key-bg);
+      border: 1px solid var(--key-border);
+      border-radius: 10px; padding: 16px 20px;
+      margin: 12px 0;
+    }
+    .key-point p { font-size: 0.92rem; color: var(--text); }
+
+    /* Quote */
+    .quote {
+      background: var(--quote-bg);
+      border-left: 3px solid var(--quote-border);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 20px; margin: 12px 0;
+      font-size: 0.92rem; color: var(--text2);
+    }
+    .quote em { color: var(--accent); font-weight: 600; font-style: normal; }
+
+    /* Cols */
+    .cols {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 16px; margin: 12px 0;
+    }
+    .col-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px; padding: 20px;
+    }
+    .col-card.green-card { border-color: var(--green-border); background: var(--green-bg); }
+    .col-card.red-card { border-color: var(--red-border); background: var(--red-bg); }
+    .col-card.orange-card { border-color: var(--orange-border); background: var(--orange-bg); }
+    .col-card.accent-card { border-color: var(--accent-border); background: var(--accent-bg); }
+    .col-card h3 { margin-bottom: 8px; }
+    .col-card p, .col-card li { font-size: 0.88rem; }
+    .col-card[style*="grid-column: span 2"] { grid-column: span 2; }
+
+    /* Flow */
+    .flow {
+      display: flex; align-items: center; gap: 8px;
+      margin: 12px 0; flex-wrap: wrap;
+    }
+    .flow-item {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 0.88rem; font-weight: 500;
+    }
+    .flow-item.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+    .flow-item.red { border-color: var(--red-border); background: var(--red-bg); color: var(--red); }
+    .flow-item.orange { border-color: var(--orange-border); background: var(--orange-bg); color: var(--orange); }
+    .flow-item.accent { border-color: var(--accent-border); background: var(--accent-bg); color: var(--accent); }
+    .flow-arrow { color: var(--text3); font-size: 1.2rem; }
+
+    /* Steps */
+    .steps { margin: 12px 0; }
+    .step-card {
+      display: flex; align-items: flex-start; gap: 12px;
+      margin-bottom: 10px;
+    }
+    .step-label {
+      display: inline-block; padding: 3px 10px; border-radius: 6px;
+      font-size: 0.75rem; font-weight: 600; white-space: nowrap;
+      background: var(--accent-bg); color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+    .step-label.green { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+    .step-label.orange { background: var(--orange-bg); color: var(--orange); border-color: var(--orange-border); }
+    .step-body { font-size: 0.92rem; color: var(--text2); line-height: 1.6; }
+    .step-body strong { color: var(--text); }
+
+    /* Challenge list */
+    .challenge-list { margin: 12px 0; }
+    .challenge-item {
+      display: flex; align-items: flex-start; gap: 14px;
+      margin-bottom: 12px;
+    }
+    .challenge-num {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--red); color: #fff;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.78rem; font-weight: 700; flex-shrink: 0;
+    }
+    .challenge-body { flex: 1; }
+    .challenge-body strong { display: block; margin-bottom: 2px; color: var(--text); }
+    .challenge-body p { font-size: 0.88rem; }
+
+    /* Data table */
+    .data-table {
+      width: 100%; border-collapse: collapse;
+      margin: 12px 0; font-size: 0.88rem;
+    }
+    .data-table th {
+      background: var(--accent-bg); color: var(--accent);
+      padding: 10px 14px; text-align: left; font-weight: 600;
+      border-bottom: 2px solid var(--accent-border);
+    }
+    .data-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+    .data-table tr:last-child td { border-bottom: none; }
+    .data-table td:first-child { font-weight: 500; color: var(--text); }
+
+    /* Icon grid */
+    .icon-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 12px; margin: 12px 0;
+    }
+    .icon-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; padding: 18px;
+    }
+    .icon-card h4 { margin-bottom: 6px; }
+    .icon-card p { font-size: 0.85rem; }
+
+    /* Pyramid */
+    .pyramid { margin: 12px auto; max-width: 700px; }
+    .pyramid-row {
+      display: flex; align-items: center; justify-content: center;
+      gap: 12px; padding: 10px 16px; margin: 4px auto; border-radius: 8px;
+    }
+    .pyramid-row .label { font-weight: 600; font-size: 0.88rem; }
+    .pyramid-row .desc { font-size: 0.85rem; color: var(--text2); }
+    .pyramid-row.l0 { width: 55%; background: var(--accent-bg); border: 1px solid var(--accent-border); }
+    .pyramid-row.l1 { width: 70%; background: var(--green-bg); border: 1px solid var(--green-border); }
+    .pyramid-row.l2 { width: 82%; background: var(--orange-bg); border: 1px solid var(--orange-border); }
+    .pyramid-row.l3 { width: 94%; background: var(--surface2); border: 1px solid var(--border); }
+
+    /* VS block */
+    .vs-block { display: flex; gap: 0; margin: 12px 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .vs-side { flex: 1; padding: 18px; }
+    .vs-side h4 { font-size: 0.95rem; margin-bottom: 8px; }
+    .vs-side ul { padding-left: 1.1em; }
+    .vs-side li { font-size: 0.85rem; }
+    .vs-divider { width: 1px; background: var(--border); }
+    .red-side { background: var(--red-bg); }
+    .red-side h4 { color: var(--red); }
+    .green-side { background: var(--green-bg); }
+    .green-side h4 { color: var(--green); }
+
+    /* Loop card */
+    .loop-card {
+      border-left: 3px solid var(--green);
+      background: var(--green-bg);
+      border-radius: 0 8px 8px 0;
+      padding: 14px 18px; margin: 10px 0;
+    }
+    .loop-card h4 { margin-bottom: 4px; }
+    .loop-card p { font-size: 0.88rem; }
+
+    /* Score bar */
+    .score-bar { display: flex; align-items: center; gap: 12px; margin: 6px 0; }
+    .score-label { font-size: 0.85rem; width: 100px; flex-shrink: 0; color: var(--text); font-weight: 500; }
+    .score-track { flex: 1; height: 8px; background: var(--surface3); border-radius: 4px; overflow: hidden; }
+    .score-fill {
+      height: 100%; border-radius: 4px;
+      background: var(--progress-bg);
+      display: flex; align-items: center; justify-content: flex-end;
+      padding-right: 8px; font-size: 0.72rem; font-weight: 600; color: #fff;
+    }
+    .score-fill.s3 { width: 30%; }
+    .score-fill.s5 { width: 50%; }
+    .score-fill.s6 { width: 60%; }
+    .score-fill.s7 { width: 70%; }
+    .score-fill.s8 { width: 80%; }
+    .score-fill.s9 { width: 90%; }
+    .score-fill.s10 { width: 100%; }
+
+    .accent-text { color: var(--accent); font-weight: 600; }
+    .green-text { color: var(--green); font-weight: 600; }
+    .red-text { color: var(--red); font-weight: 600; }
+    .orange-text { color: var(--orange); font-weight: 600; }
+    .text-sm { font-size: 0.85rem; }
+    .mt-1 { margin-top: 8px; }
+    .mt-2 { margin-top: 16px; }
+    .mb-1 { margin-bottom: 8px; }
+    .gap-sm { gap: 8px; }
+  </style>
+</head>
+<body>
+  <div class="slides-container">
+
+    <!-- Slide 1: Cover -->
+    <div class="slide slide-cover">
+      <div class="slide-content">
+        <h1>警务领域 Agent 平台<br>设计分析</h1>
+        <div class="divider"></div>
+        <p class="subtitle">
+          安全性 · 实时性 · 业务闭环<br>
+          面向警务场景的智能中枢架构设计
+        </p>
+        <p class="meta">关键功能模块 · 权限管控体系 · 核心风险清单 · 实施路线</p>
+      </div>
+    </div>
+
+    <!-- Slide 2: Architecture Overview -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-lesson">架构总览</span>
+        <h2>"1+N" 平台架构</h2>
+        <div class="key-point">
+          <p><strong>核心理念：</strong>1 个统一底座（权限 + 数据治理 + 模型调度）+ N 个专业 Agent（反诈研判 / 交通管理 / 社区警务助理 / ...）</p>
+        </div>
+        <div class="pyramid">
+          <div class="pyramid-row l0"><span class="label">N 个专业 Agent</span><span class="desc">反诈 · 交通 · 社区 · 禁毒 · 网安</span></div>
+          <div class="pyramid-row l1"><span class="label">Agent 编排引擎</span><span class="desc">低代码 Workflow + ReAct 思考链</span></div>
+          <div class="pyramid-row l2"><span class="label">安全与权限层</span><span class="desc">零信任 · 行列级管控 · 审计全链路</span></div>
+          <div class="pyramid-row l3"><span class="label">数据接入层 (Data Fabric)</span><span class="desc">多模态网关 · RAG 知识库 · 脱敏沙箱</span></div>
+        </div>
+        <div class="quote">
+          演进策略：前期 <em>Dify 式低代码配置</em> 快速产出 → 中后期转向 <em>Hermes / OpenCanvas 多 Agent 协同模式</em>，支持接警→查证→布控→派单全链路自动化。
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Data Layer -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">功能模块</span>
+        <h2>数据接入与治理 (Data Fabric)</h2>
+        <div class="cols">
+          <div class="col-card accent-card">
+            <h3>多模态数据网关</h3>
+            <ul>
+              <li><strong>结构化：</strong>户籍、前科、案件库</li>
+              <li><strong>非结构化：</strong>案情笔录、文书</li>
+              <li><strong>流式数据：</strong>卡口监控、实时警情</li>
+              <li><strong>外部接入：</strong>政务共享、运营商、金融风控</li>
+            </ul>
+          </div>
+          <div class="col-card green-card">
+            <h3>语义空间与安全</h3>
+            <ul>
+              <li><strong>RAG Layer：</strong>警务术语向量化 + 本地知识库</li>
+              <li><strong>脱敏沙箱：</strong>进入 Agent 前自动过滤/替换敏感 ID</li>
+              <li><strong>链路加密：</strong>国密算法端到端加密</li>
+              <li><strong>数据确权抽稀：</strong>敏感信息仅分析逻辑，不返回原始细节</li>
+            </ul>
+          </div>
+        </div>
+        <div class="flow">
+          <div class="flow-item">多源异构数据</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item accent">网关接入</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item accent">脱敏清洗</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item green">向量化索引</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item green">Agent 调用</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Agent Orchestration -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">功能模块</span>
+        <h2>Agent 编排与多形态适配</h2>
+        <table class="data-table">
+          <thead>
+            <tr><th>形态</th><th>适用场景</th><th>核心优势</th><th>警务适配</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>低代码配置 (Dify/Coze)</td>
+              <td>接警辅助、咨询问答</td>
+              <td>可视化编排、零代码</td>
+              <td>轻量场景快速上线</td>
+            </tr>
+            <tr>
+              <td>自主推理 (Hermes/ReAct)</td>
+              <td>案情研判、线索关联</td>
+              <td>推理-行动闭环、可解释</td>
+              <td>复杂多步任务</td>
+            </tr>
+            <tr>
+              <td>后台批处理 (Operator)</td>
+              <td>案件聚类、风险预警</td>
+              <td>声明式管理、高并发</td>
+              <td>离线分析任务</td>
+            </tr>
+            <tr>
+              <td>Chatbot + API 双模</td>
+              <td>多渠道触达</td>
+              <td>灵活对接钉钉/警务通</td>
+              <td>混合架构接入</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="key-point mt-2">
+          <p><strong>多 Agent 协同示例：</strong>接警 Agent 接报 → 自动触发搜索 Agent 查前科 → 调度 Agent 给附近巡逻车派单。全程 Human-in-the-loop 关键节点人工确认。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Channels -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">功能模块</span>
+        <h2>交付与交互终端 (Omni-Channel)</h2>
+        <div class="icon-grid">
+          <div class="icon-card">
+            <h4>移动端</h4>
+            <p>接入钉钉/飞书专网版，移动处警、现场反馈。支持离线+在线混合模式。</p>
+          </div>
+          <div class="icon-card">
+            <h4>指挥中心端</h4>
+            <p>大屏/PC 网页，线索研判、逻辑推导演示。类似 OpenCanvas 交互体验。</p>
+          </div>
+          <div class="icon-card">
+            <h4>语音交互</h4>
+            <p>对接单警装备（对讲机、执法仪），语音转文字指令触发，解放双手。</p>
+          </div>
+          <div class="icon-card">
+            <h4>外部渠道</h4>
+            <p>110 接警平台（语音+文本）、政务服务网、微信小程序（需脱敏+审计）。</p>
+          </div>
+        </div>
+        <div class="loop-card mt-2">
+          <h4>渠道管控策略</h4>
+          <p>渠道身份双向认证（数字证书+动态令牌） → 请求频次限流 + 异常行为检测 → 输出内容渠道差异化脱敏</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Permission Control -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-red">权限管控</span>
+        <h2>三层防护体系</h2>
+        <div class="cols">
+          <div class="col-card">
+            <h3>① 组织级隔离</h3>
+            <ul>
+              <li>按警种 / 辖区 / 职级划分租户</li>
+              <li>租户间数据物理 / 逻辑隔离</li>
+              <li>独立资源配额 + 计费审计</li>
+            </ul>
+          </div>
+          <div class="col-card">
+            <h3>② 数据级管控</h3>
+            <ul>
+              <li><strong>字段级：</strong>敏感字段动态脱敏</li>
+              <li><strong>行级：</strong>按辖区/案件归属过滤</li>
+              <li><strong>时间级：</strong>历史数据访问时效</li>
+              <li><strong>操作级：</strong>查询/导出/修改分离</li>
+            </ul>
+          </div>
+          <div class="col-card">
+            <h3>③ 场景级管控</h3>
+            <ul>
+              <li>基于任务上下文动态授权</li>
+              <li>高风险操作二次审批</li>
+              <li>紧急任务临时权限 + 自动回收</li>
+            </ul>
+          </div>
+          <div class="col-card accent-card">
+            <h3>零信任原则</h3>
+            <ul>
+              <li>统一身份认证（数字证书 + 生物特征）</li>
+              <li>最小权限：角色 = 岗位 + 任务 + 场景</li>
+              <li>短时令牌 + 操作心跳 + 异常登出</li>
+              <li>全链路审计：谁 + 何时 + 查了什么 + 输出什么</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Output Management -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-orange">产出物管理</span>
+        <h2>产出物全生命周期管控</h2>
+        <div class="cols">
+          <div class="col-card">
+            <h3>产出物类型</h3>
+            <ul>
+              <li><strong>分析类：</strong>案件报告、风险画像、关联图谱</li>
+              <li><strong>决策类：</strong>处置建议、预警等级、调度方案</li>
+              <li><strong>交互类：</strong>问答记录、操作日志、用户反馈</li>
+              <li><strong>模型类：</strong>微调参数、提示词模板、工具配置</li>
+            </ul>
+          </div>
+          <div class="col-card">
+            <h3>密级分级</h3>
+            <div class="steps">
+              <div class="step-card">
+                <span class="step-label green">公开级</span>
+                <div class="step-body">脱敏后统计结论，群众可查</div>
+              </div>
+              <div class="step-card">
+                <span class="step-label">内部级</span>
+                <div class="step-body">业务分析结果，本警种可见</div>
+              </div>
+              <div class="step-card">
+                <span class="step-label orange">敏感级</span>
+                <div class="step-body">涉案细节、人员信息，需审批</div>
+              </div>
+              <div class="step-card">
+                <span class="step-label" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border);">机密级</span>
+                <div class="step-body">侦查手段、技侦数据，物理隔离</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="flow mt-1">
+          <div class="flow-item">创建</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item accent">审核（人工+规则）</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item accent">发布</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item green">使用追踪</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item orange">版本归档</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item orange">定期复审</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: Risk Matrix - Critical -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-red">核心风险</span>
+        <h2>高风险项：数据与越权</h2>
+        <div class="challenge-list">
+          <div class="challenge-item">
+            <div class="challenge-num">1</div>
+            <div class="challenge-body">
+              <strong>数据泄露</strong>
+              <p>Agent 记忆缓存敏感信息、输出未脱敏。缓存中可能残留公民隐私数据。</p>
+              <p><span class="red-text">对策：</span>输出前强制脱敏引擎 + 记忆定期清理 + 敏感词实时拦截。合规依据：《数据安全法》《个人信息保护法》</p>
+            </div>
+          </div>
+          <div class="challenge-item">
+            <div class="challenge-num">2</div>
+            <div class="challenge-body">
+              <strong>越权访问</strong>
+              <p>低权限用户通过 Prompt 诱导 Agent 间接查询高敏数据（Jailbreak 攻击）。</p>
+              <p><span class="red-text">对策：</span>引入 Independent Guardrail 独立拦截层，Prompt 进入模型前合规扫描 + 查询重写 + 结果过滤 + 双因子审批</p>
+            </div>
+          </div>
+          <div class="challenge-item">
+            <div class="challenge-num">3</div>
+            <div class="challenge-body">
+              <strong>专网数据出域</strong>
+              <p>警务专网数据与公网大模型的物理隔离问题。数据一旦出专网即失控。</p>
+              <p><span class="red-text">对策：</span>必须私有化部署底座模型，数据不出专网。采用"联邦学习 + 本地部署"模式。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Risk Matrix - Medium -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-orange">核心风险</span>
+        <h2>中风险项：模型与安全</h2>
+        <div class="vs-block">
+          <div class="vs-side red-side">
+            <h4>模型幻觉</h4>
+            <ul>
+              <li>法律法规引用张冠李戴</li>
+              <li>案件定性出现偏差误导决策</li>
+              <li>法条引用无原文来源</li>
+            </ul>
+          </div>
+          <div class="vs-divider"></div>
+          <div class="vs-side green-side">
+            <h4>防控措施</h4>
+            <ul>
+              <li>关键结论人工复核</li>
+              <li>置信度标注 + 知识溯源</li>
+              <li>法条引用必须有原文数据库链接</li>
+              <li>结构化验证引擎</li>
+            </ul>
+          </div>
+        </div>
+        <div class="vs-block mt-2">
+          <div class="vs-side red-side">
+            <h4>提示注入攻击</h4>
+            <ul>
+              <li>恶意用户通过 Prompt 窃取数据</li>
+              <li>绕过权限访问控制</li>
+              <li>诱导生成违规内容</li>
+            </ul>
+          </div>
+          <div class="vs-divider"></div>
+          <div class="vs-side green-side">
+            <h4>防控措施</h4>
+            <ul>
+              <li>输入清洗 + 意图识别</li>
+              <li>安全护栏（Guardrail）</li>
+              <li>沙箱隔离执行</li>
+              <li>异常行为实时告警</li>
+            </ul>
+          </div>
+        </div>
+        <div class="key-point mt-2">
+          <p><strong>责任归属：</strong>Agent 生成的研判建议若出现偏差，法律责任难以界定。所有产出物强制关联操作人签名，建立"影子模式"测试。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: Risk - Operational -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-orange">核心风险</span>
+        <h2>运营与合规风险</h2>
+        <div class="cols">
+          <div class="col-card orange-card">
+            <h3>审计缺失</h3>
+            <p>Agent 决策过程黑盒，无法追责。等保三级"安全审计"要求全链路可追溯。</p>
+            <p class="mt-1"><span class="orange-text">对策：</span>全链路日志 + 思维链记录 + 关键节点快照。决策每一步留痕。</p>
+          </div>
+          <div class="col-card orange-card">
+            <h3>渠道风险</h3>
+            <p>外部渠道（小程序、政务服务网）成为攻击入口。接口暴露面大。</p>
+            <p class="mt-1"><span class="orange-text">对策：</span>渠道隔离网关 + 输出差异化脱敏 + 频率限制 + 异常检测。</p>
+          </div>
+          <div class="col-card">
+            <h3>资源消耗</h3>
+            <p>警务高并发场景下 Token 消耗过大导致系统响应延迟，影响紧急处警。</p>
+            <p class="mt-1"><span class="accent-text">对策：</span>任务优先级队列，紧急处警任务优先调度计算资源。</p>
+          </div>
+          <div class="col-card">
+            <h3>运维风险</h3>
+            <p>Agent 配置错误导致批量误操作，影响范围广。</p>
+            <p class="mt-1"><span class="accent-text">对策：</span>配置变更审批 + 灰度发布 + 一键回滚机制。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 11: Implementation -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">实施路线</span>
+        <h2>分阶段推进策略</h2>
+        <div class="steps">
+          <div class="step-card">
+            <span class="step-label green">Phase 1 · 1-3 月</span>
+            <div class="step-body">
+              <strong>基础能力建设</strong>
+              <p>搭建等保三级合规环境 + 统一身份认证 → 实现 1 个低敏场景（警务知识问答）+ 钉钉渠道 → 建立数据分级标准 + 基础审计日志</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <span class="step-label">Phase 2 · 4-6 月</span>
+            <div class="step-body">
+              <strong>能力扩展</strong>
+              <p>接入 2-3 类内部数据源 + 字段级脱敏 → 支持多 Agent 形态（Chatbot + API + 低代码）→ 完善权限引擎：动态策略 + 临时授权</p>
+            </div>
+          </div>
+          <div class="step-card">
+            <span class="step-label orange">Phase 3 · 7-12 月</span>
+            <div class="step-body">
+              <strong>深度赋能</strong>
+              <p>对接视频/图像等多模态数据 + 复杂推理场景 → 产出物全生命周期管理 + 智能风险预警 → 通过等保测评 + 形成可复制的警务 Agent 建设规范</p>
+            </div>
+          </div>
+        </div>
+        <div class="key-point mt-2">
+          <p><strong>核心原则：</strong>安全可控 > 智能高效。在警务场景下，宁可牺牲部分体验，也要确保数据安全和权责清晰。合规前置，早期引入安全团队参与架构设计。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 12: End -->
+    <div class="slide slide-end">
+      <div class="slide-content">
+        <h2>安全可控 · 智能赋能</h2>
+        <p class="end-subtitle">
+          警务 Agent 平台不是简单的 Chatbot<br>
+          而是一个高度集成的智能中枢
+        </p>
+        <div class="divider" style="width:60px;height:2px;margin:1.8rem auto;background:var(--progress-bg);border-radius:1px;"></div>
+        <div class="flow" style="justify-content:center;">
+          <div class="flow-item green">数据不出域</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item accent">权限最小化</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item orange">全链路审计</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item green">人工兜底</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

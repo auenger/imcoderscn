@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>半天训练营：AI 研发转型的五堂课</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  /* ========== Theme Tokens ========== */
+  [data-theme="dark"] {
+    --bg: #0b0b14;
+    --bg2: #0f0f1c;
+    --surface: #161628;
+    --surface2: #1c1c36;
+    --surface3: #22223e;
+    --border: rgba(255,255,255,0.06);
+    --border-strong: rgba(255,255,255,0.12);
+    --text: #e6e6f2;
+    --text2: #9090ac;
+    --text3: #606078;
+    --accent: #7b6cf0;
+    --accent2: #a8a0ff;
+    --green: #00d4aa;
+    --green-bg: rgba(0,212,170,0.08);
+    --green-border: rgba(0,212,170,0.2);
+    --red: #ff6b6b;
+    --red-bg: rgba(255,107,107,0.08);
+    --red-border: rgba(255,107,107,0.2);
+    --orange: #f0b848;
+    --orange-bg: rgba(240,184,72,0.08);
+    --orange-border: rgba(240,184,72,0.2);
+    --accent-bg: rgba(123,108,240,0.08);
+    --accent-border: rgba(123,108,240,0.18);
+    --code-bg: #111124;
+    --code-border: rgba(123,108,240,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 16px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+    --quote-bg: rgba(123,108,240,0.06);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+    --key-border: rgba(123,108,240,0.18);
+    --toggle-bg: rgba(255,255,255,0.08);
+    --toggle-hover: rgba(255,255,255,0.14);
+    --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+  }
+
+  [data-theme="light"] {
+    --bg: #f4f4fb;
+    --bg2: #eaeaf4;
+    --surface: #ffffff;
+    --surface2: #f0f0fa;
+    --surface3: #e6e6f2;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #1a1a30;
+    --text2: #5a5a78;
+    --text3: #9898ac;
+    --accent: #5b4cc4;
+    --accent2: #7b6cf0;
+    --green: #009a7c;
+    --green-bg: rgba(0,154,124,0.06);
+    --green-border: rgba(0,154,124,0.18);
+    --red: #d44040;
+    --red-bg: rgba(212,64,64,0.06);
+    --red-border: rgba(212,64,64,0.18);
+    --orange: #b88020;
+    --orange-bg: rgba(184,128,32,0.06);
+    --orange-border: rgba(184,128,32,0.18);
+    --accent-bg: rgba(91,76,196,0.06);
+    --accent-border: rgba(91,76,196,0.15);
+    --code-bg: #1a1a30;
+    --code-border: rgba(91,76,196,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+    --quote-bg: rgba(91,76,196,0.04);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+    --key-border: rgba(91,76,196,0.12);
+    --toggle-bg: rgba(0,0,0,0.06);
+    --toggle-hover: rgba(0,0,0,0.1);
+    --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+  }
+
+  /* ========== Global Transition ========== */
+  html, body, .slide, .progress, .slide-number, .nav-hint,
+  .col-card, .role-card, .model-card, .tip, pre, .quote,
+  .key-point, .flow-item, .tag, .theme-toggle, .tip-num,
+  .speaker-link, .back-to-main {
+    transition: background 0.4s ease, color 0.4s ease,
+                border-color 0.4s ease, box-shadow 0.4s ease,
+                opacity 0.4s ease;
+  }
+
+  /* ========== Base ========== */
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* ========== Progress Bar ========== */
+  .progress {
+    position: fixed; top: 0; left: 0;
+    height: 3px;
+    background: var(--progress-bg);
+    z-index: 100;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ========== Theme Toggle ========== */
+  .theme-toggle {
+    position: fixed;
+    bottom: 2.2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--toggle-bg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  .theme-toggle:hover { background: var(--toggle-hover); }
+  .theme-toggle svg { width: 20px; height: 20px; fill: var(--text2); }
+  [data-theme="dark"] .icon-sun { display: block; }
+  [data-theme="dark"] .icon-moon { display: none; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="light"] .icon-moon { display: block; }
+
+  /* ========== Slide Container ========== */
+  .slides { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 6vh 8vw;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    pointer-events: none;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .slide > * {
+    max-width: 860px; width: 100%;
+  }
+  /* Tags on content slides: left-aligned within centered column */
+  .slide > .tag { width: auto; }
+  .slide::-webkit-scrollbar { width: 4px; }
+  .slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+  /* ========== Footer UI ========== */
+  .slide-number {
+    position: fixed; bottom: 2.5vh; right: 3vw;
+    font-size: 0.82rem; color: var(--text3);
+    z-index: 50; font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+  .nav-hint {
+    position: fixed; bottom: 2.5vh; left: 3vw;
+    font-size: 0.72rem; color: var(--text3);
+    z-index: 50; opacity: 0.5;
+  }
+
+  /* ========== Typography ========== */
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 900; line-height: 1.15;
+    margin-bottom: 1.2rem; letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+    font-weight: 700; line-height: 1.25;
+    margin-bottom: 1rem; color: var(--accent2);
+  }
+  h3 {
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    font-weight: 600; line-height: 1.4;
+    margin-bottom: 0.6rem;
+  }
+  p, li {
+    font-size: clamp(0.92rem, 1.5vw, 1.12rem);
+    line-height: 1.8; color: var(--text);
+  }
+
+  /* ========== List ========== */
+  ul { list-style: none; padding-left: 0; }
+  ul li {
+    position: relative; padding-left: 1.6em;
+    margin-bottom: 0.5em;
+  }
+  ul li::before {
+    content: ''; position: absolute;
+    left: 0.2em; top: 0.7em;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  /* ========== Tag Badges ========== */
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.8rem; letter-spacing: 0.02em;
+  }
+  .tag-lesson {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .tag-section {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+
+  /* ========== Code Blocks ========== */
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin: 0.8rem 0;
+    overflow-x: auto;
+    font-size: clamp(0.72rem, 1.1vw, 0.88rem);
+    line-height: 1.75;
+    box-shadow: var(--shadow);
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    color: var(--code-text);
+  }
+
+  /* ========== Quote Block ========== */
+  .quote {
+    border-left: 3px solid var(--quote-border);
+    padding: 1rem 1.4rem;
+    margin: 1rem 0;
+    background: var(--quote-bg);
+    border-radius: 0 8px 8px 0;
+    font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+    line-height: 1.75; color: var(--accent2);
+    font-weight: 500;
+  }
+  .quote .attr {
+    display: block; margin-top: 0.4rem;
+    font-size: 0.78rem; color: var(--text3);
+    font-weight: 400;
+  }
+
+  /* ========== Key Point ========== */
+  .key-point {
+    background: var(--key-bg);
+    border: 1px solid var(--key-border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    margin-top: 1rem;
+  }
+  .key-point p {
+    font-size: clamp(0.92rem, 1.4vw, 1.05rem);
+    font-weight: 500; line-height: 1.75;
+  }
+  .key-point strong { color: var(--accent2); }
+
+  /* ========== Flow / Pipeline ========== */
+  .flow {
+    display: flex; align-items: center;
+    justify-content: center;
+    gap: 0.4rem; flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+  .flow-item {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 0.5rem 1rem; border-radius: 8px;
+    font-size: clamp(0.82rem, 1.3vw, 0.98rem);
+    font-weight: 500; white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .flow-arrow { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+  .flow-item.green { border-color: var(--green-border); color: var(--green); background: var(--green-bg); }
+  .flow-item.red { border-color: var(--red-border); color: var(--red); background: var(--red-bg); }
+
+  /* ========== Two-Column Cards ========== */
+  .cols {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.2rem; margin-top: 0.8rem;
+  }
+  .col-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .col-card h3 { margin-bottom: 0.7rem; }
+  .col-card.green-card h3 { color: var(--green); }
+  .col-card.orange-card h3 { color: var(--orange); }
+  .col-card.red-card h3 { color: var(--red); }
+  .col-card.accent-card h3 { color: var(--accent2); }
+  .col-card li {
+    font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+    margin-bottom: 0.4em; line-height: 1.65;
+  }
+
+  /* ========== Role Cards ========== */
+  .roles {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1rem; margin-top: 0.8rem;
+  }
+  .role-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    border-top: 3px solid var(--accent);
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .role-card .role-title {
+    font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+    font-weight: 800; color: var(--accent2);
+    margin-bottom: 0.2rem;
+  }
+  .role-card .role-sub {
+    font-size: clamp(0.72rem, 1vw, 0.82rem);
+    color: var(--text3); margin-bottom: 0.7rem;
+    text-transform: uppercase; letter-spacing: 0.08em;
+  }
+  .role-card p {
+    font-size: clamp(0.8rem, 1.15vw, 0.92rem);
+    line-height: 1.6;
+  }
+  .role-card .role-action {
+    color: var(--accent2); font-weight: 600;
+    margin-top: 0.3rem;
+  }
+
+  /* ========== Model Cards ========== */
+  .model-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 0.8rem; margin-top: 0.8rem;
+  }
+  .model-card {
+    background: var(--surface);
+    border-radius: 10px; padding: 1rem 1.2rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    box-shadow: var(--shadow);
+  }
+  .model-card h4 {
+    font-size: clamp(0.88rem, 1.3vw, 1rem);
+    font-weight: 600; margin-bottom: 0.4rem;
+    color: var(--accent2);
+  }
+  .model-card p {
+    font-size: clamp(0.78rem, 1.1vw, 0.88rem);
+    line-height: 1.6; color: var(--text2);
+  }
+
+  /* ========== Tips ========== */
+  .tips {
+    display: grid; grid-template-columns: 1fr;
+    gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .tip {
+    display: flex; align-items: flex-start;
+    gap: 0.9rem; background: var(--surface);
+    border-radius: 10px; padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .tip-num {
+    flex-shrink: 0; width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--progress-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700; color: #fff;
+  }
+  .tip-text {
+    font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+    line-height: 1.6;
+  }
+  .tip-text strong { color: var(--accent2); }
+
+  /* ========== Volume Cards (Playbook Roadmap) ========== */
+  .volume-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem 1.5rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .volume-card h3 {
+    font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+    font-weight: 600; margin-bottom: 0.4rem;
+  }
+  .volume-card p { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+  .volume-card.vol1 { border-left: 3px solid var(--accent); }
+  .volume-card.vol1 h3 { color: var(--accent2); }
+  .volume-card.vol2 { border-left: 3px solid var(--green); }
+  .volume-card.vol2 h3 { color: var(--green); }
+  .volume-card.vol3 { border-left: 3px solid var(--orange); }
+  .volume-card.vol3 h3 { color: var(--orange); }
+
+  /* ========== Cover Slide (Title page) ========== */
+  .slide-cover {
+    text-align: center; align-items: center;
+    background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+  }
+  .slide-cover h1 {
+    background: var(--progress-bg);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    font-size: clamp(2.2rem, 5.5vw, 4rem);
+  }
+  .slide-cover .subtitle {
+    font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+    color: var(--text2); font-weight: 300;
+    line-height: 1.7; max-width: 600px;
+    letter-spacing: 0.04em;
+  }
+  .slide-cover .meta {
+    margin-top: 2.5rem; font-size: 0.82rem;
+    color: var(--text3);
+  }
+  .slide-cover .divider {
+    width: 60px; height: 2px; margin: 1.8rem auto;
+    background: var(--progress-bg); border-radius: 1px;
+  }
+
+  /* ========== Lesson Watermark (fixed top-right) ========== */
+  .lesson-watermark {
+    position: fixed;
+    top: 2.5vh; right: 3vw;
+    font-size: clamp(5rem, 14vw, 10rem);
+    font-weight: 900; line-height: 1;
+    color: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 0.5s ease;
+  }
+  .lesson-watermark.show { opacity: 0.08; }
+
+  /* ========== Lesson Title Slides ========== */
+  .slide-lesson {
+    text-align: center; align-items: center;
+  }
+  .slide-lesson h1 {
+    background: var(--progress-bg);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.2rem;
+  }
+  .slide-lesson .subtitle {
+    font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+    color: var(--text2); font-weight: 300;
+    line-height: 1.6; max-width: 600px;
+  }
+
+  /* ========== Framework Slide ========== */
+  .slide-framework {
+    background: linear-gradient(180deg, var(--accent-bg), transparent 50%);
+  }
+
+  /* ========== Nav Arrows ========== */
+  .nav-arrow {
+    position: fixed;
+    top: 50%; transform: translateY(-50%);
+    z-index: 55;
+    width: 48px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease;
+  }
+  .nav-arrow:hover { opacity: 1 !important; }
+  .nav-arrow svg {
+    width: 28px; height: 28px;
+    fill: none; stroke: var(--text2);
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .nav-left {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg) 0%, transparent 100%);
+    border-radius: 0 8px 8px 0;
+  }
+  .nav-right {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg) 0%, transparent 100%);
+    border-radius: 8px 0 0 8px;
+  }
+  /* Show arrows briefly on slide change */
+  .nav-arrow.flash { opacity: 0.7; }
+
+  /* ========== End Slide ========== */
+  .slide-end { text-align: center; align-items: center; }
+  .slide-end h2 {
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--text); margin-bottom: 1.2rem;
+  }
+
+  /* ========== Speaker Link (fixed bottom) ========== */
+  .speaker-link {
+    position: fixed;
+    bottom: 2.2vh;
+    left: calc(50% + 40px);
+    z-index: 60;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    background: var(--orange-bg);
+    border: 1px solid var(--orange-border);
+    cursor: pointer;
+    font-size: 0.78rem; font-weight: 500;
+    color: var(--orange);
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    backdrop-filter: blur(8px);
+    white-space: nowrap;
+  }
+  .speaker-link:hover { background: rgba(240,184,72,0.15); border-color: var(--orange); }
+  .speaker-link.hidden { display: none; }
+
+  /* ========== Back to Main Button ========== */
+  .back-to-main {
+    position: fixed;
+    bottom: 2.2vh; left: 3vw;
+    z-index: 60;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    background: var(--toggle-bg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    font-size: 0.82rem; color: var(--text2);
+    font-family: 'Noto Sans SC', -apple-system, sans-serif;
+    display: none; align-items: center; gap: 0.3rem;
+    backdrop-filter: blur(8px);
+  }
+  .back-to-main:hover { background: var(--toggle-hover); }
+  .back-to-main.show { display: inline-flex; }
+
+  /* ========== Speaker Slide Title ========== */
+  .slide-speaker {
+    background: radial-gradient(ellipse at 50% 40%, rgba(240,184,72,0.06), transparent 70%);
+  }
+
+  /* ========== Responsive ========== */
+  @media (max-width: 768px) {
+    .slide { padding: 4vh 5vw; }
+    .cols { grid-template-columns: 1fr; }
+    .roles { grid-template-columns: 1fr; }
+    .model-grid { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow-arrow { transform: rotate(90deg); text-align: center; }
+    .nav-hint { display: none; }
+  }
+  @media (hover: none) { .nav-hint { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+<!-- Lesson Watermark -->
+<div class="lesson-watermark" id="lessonWatermark"></div>
+
+<!-- Nav Arrows -->
+<div class="nav-arrow nav-left flash" id="navLeft">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</div>
+<div class="nav-arrow nav-right flash" id="navRight">
+  <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+</div>
+
+<!-- Theme Toggle -->
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-3a1 1 0 011 1v1a1 1 0 01-2 0V5a1 1 0 011-1zm0 15a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zm9-7a1 1 0 01-1 1h-1a1 1 0 010-2h1a1 1 0 011 1zM5 12a1 1 0 01-1 1H3a1 1 0 010-2h1a1 1 0 011 1zm14.07-6.07a1 1 0 010 1.41l-.71.71a1 1 0 01-1.41-1.41l.71-.71a1 1 0 011.41 0zM7.05 17.95a1 1 0 010 1.41l-.71.71a1 1 0 01-1.41-1.41l.71-.71a1 1 0 011.41 0zm12.02 0a1 1 0 01-1.41 0l-.71-.71a1 1 0 011.41-1.41l.71.71a1 1 0 010 1.41zM7.05 6.05a1 1 0 01-1.41 0l-.71-.71a1 1 0 011.41-1.41l.71.71a1 1 0 010 1.41z"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+</button>
+
+<!-- Back to Main (shown on speaker slides) -->
+<button class="back-to-main" id="backToMain">← 返回课程</button>
+
+<!-- Speaker Link (always visible at bottom) -->
+<button class="speaker-link" id="speakerLink"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>嘉宾分享 · 刘诚忠</button>
+
+<div class="slides" id="slides">
+
+  <!-- Slide 1: Title -->
+  <div class="slide slide-cover active">
+    <span class="tag tag-section">基于 Harness Engineering Playbook</span>
+    <h1>半天训练营<br>AI 研发转型的五堂课</h1>
+    <div class="divider"></div>
+    <p class="subtitle">规约驱动开发 · 饱和式测试 · 模型选型 · 流程精简 · 组织重构</p>
+    <p class="meta">Harness Engineering Playbook / AgentsZone 社区</p>
+  </div>
+
+  <!-- Slide 2: 起因 -->
+  <div class="slide">
+    <span class="tag tag-section">背景</span>
+    <h2>起因</h2>
+    <p>很多团队买了 Cursor、上了 Copilot，发现程序员写代码确实快了。但一问交付数据，PR 堆积、review 排队、bug 率没降反升。</p>
+    <p style="margin-top:0.6rem;">1.5 倍工程师是普遍体感，离十倍百倍差得远。</p>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>AgentsZone 社区跟上百位开发者交流后得出了结论：<strong>差距在制度</strong>。用人类时代的旧流程指挥 Agent，就像用马车交规管高速公路。</p>
+    </div>
+  </div>
+
+  <!-- Slide 3: Playbook 路线图 -->
+  <div class="slide slide-framework">
+    <span class="tag tag-section">框架</span>
+    <h2>Harness Engineering Playbook 路线图</h2>
+    <div style="display:flex;flex-direction:column;gap:0.8rem;margin-top:1.2rem;">
+      <div class="volume-card vol1">
+        <h3>卷一：可靠的 Agent 编程（1 → 10x）</h3>
+        <p>规约将模糊变为确定 → 自动化验证闭合反馈回路</p>
+      </div>
+      <div class="volume-card vol2">
+        <h3>卷二：规模化 Agent 开发（10 → 100x）</h3>
+        <p>跨会话记忆与上下文工程 → 多 Agent 并行的隔离与集成</p>
+      </div>
+      <div class="volume-card vol3">
+        <h3>卷三：治理百倍速的组织</h3>
+        <p>团队结构为什么失效 → 新的角色分工和治理模式</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 4: 第一课标题 -->
+  <div class="slide slide-lesson" data-lesson="01">
+    <span class="tag tag-lesson">第一课</span>
+    <h1>用规约驱动 AI<br>改造功能和修 Bug</h1>
+    <p class="subtitle">从 Vibe Coding 到闭环工程</p>
+  </div>
+
+  <!-- Slide 5: Vibe Coding -->
+  <div class="slide">
+    <span class="tag tag-lesson">第一课</span>
+    <h2>Vibe Coding 为什么走不通</h2>
+    <p>凭感觉写 prompt，接受结果，觉得"看起来对"就过了。这是一个开环系统。</p>
+    <div class="flow" style="margin-top:1.2rem;">
+      <div class="flow-item">发出指令</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">接受产出</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item red">没有验证</div>
+    </div>
+    <div class="quote">
+      "代码生成速度彻底击穿了人类审查带宽。"
+      <span class="attr">—— 刘诚忠，衡石科技创始人</span>
+    </div>
+  </div>
+
+  <!-- Slide 6: 闭环解法 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第一课</span>
+    <h2>闭环：两个基本原则</h2>
+    <div class="cols">
+      <div class="col-card green-card">
+        <h3 style="font-size:1.15rem;">闭环</h3>
+        <p style="font-size:0.88rem;">规约定义"对"是什么，自动化验证检查产出，偏差即时发现并纠正。保证每一步可靠。</p>
+      </div>
+      <div class="col-card accent-card">
+        <h3 style="font-size:1.15rem;">演进</h3>
+        <p style="font-size:0.88rem;">Agent 会忠实复制已有模式，包括坏模式。规约、测试、流程都需要持续改进。保证系统越来越好。</p>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>执行者从人类变为 Agent，隐含前提全部失效。Agent 对模糊之处随机决策，任务规模一大质量断崖下降，记忆止于会话边界。执行者变了，制度必须跟着变。</p>
+    </div>
+  </div>
+
+  <!-- Slide 7: 修 Bug 规约 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第一课</span>
+    <h2>修 Bug 的正确姿势</h2>
+    <p>不要直接告诉 AI "修一下排序 bug"。你写"修一下排序"，Agent 可能改了排序、改了数据类型、还顺手重构了组件。</p>
+    <p style="margin-top:0.6rem;">正确做法：花两分钟把 bug 结构化成规约。</p>
+    <pre><code>## Bug: 订单列表排序错误
+
+**预期行为**: 金额字段按数值大小降序排列
+**当前行为**: 按字符串字典序排列（"99" 排在 "100" 前面）
+**影响范围**: src/components/OrderList.tsx 的 sortFunction
+**验证标准**:
+  - [100, 20, 3] 应排序为 [100, 20, 3]
+  - 修复后排序结果应为 [100, 20, 3]</code></pre>
+  </div>
+
+  <!-- Slide 8: 新功能 Spec -->
+  <div class="slide">
+    <span class="tag tag-lesson">第一课</span>
+    <h2>给现有功能加新逻辑</h2>
+    <pre><code>## Feature: 订单列表日期筛选
+
+**新增文件**: src/hooks/useDateFilter.ts
+**修改文件**: OrderList.tsx（仅筛选相关 props 和回调）
+**不动**: 排序逻辑、样式文件、API 调用层
+**验收标准**:
+  - 默认不筛选，显示全部订单
+  - 选择"最近 30 天"后只显示该范围内订单
+  - 清除筛选恢复全部显示</code></pre>
+    <div class="key-point">
+      <p>"新增文件"告诉 Agent 在哪里写代码。"修改文件"限定改动范围。"不动"防止过度修改。验收标准是最后的闸门。</p>
+    </div>
+  </div>
+
+  <!-- Slide 9: 第一课小结 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第一课 · 小结</span>
+    <h2>人的角色在变</h2>
+    <div class="flow" style="margin-top:1.5rem;">
+      <div class="flow-item red">写代码</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">写规约 + 验收产出</div>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <p>代码生成是最便宜的环节，设计和验证才值钱。</p>
+      <p style="margin-top:0.6rem;">Spec → Agent 执行 → 测试收口，这条链路跑通，你从 Vibe Coding 进入了工程模式。</p>
+    </div>
+  </div>
+
+  <!-- Slide 10: 第二课标题 -->
+  <div class="slide slide-lesson" data-lesson="02">
+    <span class="tag tag-lesson">第二课</span>
+    <h1>测试用例设计与<br>自动化验证</h1>
+    <p class="subtitle">饱和式测试：用 AI 补齐 100% 甚至冗余的测试用例</p>
+  </div>
+
+  <!-- Slide 11: 测试成了唯一解法 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第二课</span>
+    <h2>为什么测试成了唯一的解法</h2>
+    <p>AI 产出速度太快，人类 review 成为瓶颈。传统靠人肉 review 保质量的路走不通了。</p>
+    <div class="quote">
+      饱和式测试——用 AI 补齐 100% 甚至冗余的测试用例来驾驭复杂度。
+      <span class="attr">—— 刘诚忠</span>
+    </div>
+    <div class="key-point">
+      <p>Playbook 卷一的核心概念：<strong>测试基建前置</strong>。把 spec 变成可执行的约束，在代码还没写的时候就把验证标准定好。</p>
+    </div>
+  </div>
+
+  <!-- Slide 12: AI 生成测试用例 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第二课</span>
+    <h2>AI + 人：两份清单合并才完整</h2>
+    <div class="cols">
+      <div class="col-card green-card">
+        <h3>AI 擅长</h3>
+        <ul>
+          <li>空值、undefined、超长字符串</li>
+          <li>代码层面的边界值覆盖</li>
+          <li>异常输入和极端 case</li>
+        </ul>
+      </div>
+      <div class="col-card orange-card">
+        <h3>人擅长</h3>
+        <ul>
+          <li>跨时区：服务器时间 vs 用户本地时间</li>
+          <li>筛选 + 翻页交互的边界</li>
+          <li>空状态的业务展示逻辑</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>让 AI 读 spec 生成测试场景清单，人 review 补上业务盲区，确认后交给 AI 写成测试代码。</p>
+    </div>
+  </div>
+
+  <!-- Slide 13: 验证闭环 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第二课</span>
+    <h2>验证闭环</h2>
+    <div class="flow" style="margin-top:1.5rem;">
+      <div class="flow-item">Spec</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">测试用例清单</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">测试代码</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">CI 自动执行</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">回归拦截</div>
+    </div>
+    <div style="margin-top:1.5rem;">
+      <p>这条链路一断，Agent 就会积累错误。Agent 会忠实复制代码库里已有的模式，包括坏模式。合并后的代码成为后续生成的参考集。</p>
+      <p style="margin-top:0.6rem;">没有持续验证，系统会自我强化地滑向退化。</p>
+    </div>
+    <div class="key-point">
+      <p>验证链路必须有，而且要持续运转。这是整个方法论的地基。</p>
+    </div>
+  </div>
+
+  <!-- Slide 14: 第三课标题 -->
+  <div class="slide slide-lesson" data-lesson="03">
+    <span class="tag tag-lesson">第三课</span>
+    <h1>模型选型</h1>
+    <p class="subtitle">没有哪个模型在所有场景都碾压，但有明确的选择逻辑</p>
+  </div>
+
+  <!-- Slide 15: 模型选型详情 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第三课</span>
+    <h2>各场景的选择逻辑</h2>
+    <div class="model-grid">
+      <div class="model-card">
+        <h4>代码生成和重构（含前端）</h4>
+        <p>Claude Opus/Sonnet 稳定性最好。GPT-4o 创意性更强。差别 10-15%。别纠结，先跑通流程。</p>
+      </div>
+      <div class="model-card">
+        <h4>产品设计和需求分析</h4>
+        <p>PRD 结构化、模糊需求拆成可执行 spec，Claude 更稳，输出更一致。</p>
+      </div>
+      <div class="model-card">
+        <h4>体验设计和交互</h4>
+        <p>多模型协作。大模型结构化旅程，视觉模型生成设计稿，代码模型转组件。</p>
+      </div>
+      <div class="model-card">
+        <h4>视觉设计</h4>
+        <p>图像用 Midjourney / DALL-E 3，设计系统和组件规范用 Claude/GPT 维护。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 16: 第四课标题 -->
+  <div class="slide slide-lesson" data-lesson="04">
+    <span class="tag tag-lesson">第四课</span>
+    <h1>AI 研发流程<br>哪些能砍</h1>
+    <p class="subtitle">传统流程里有一堆环节是为人类执行者设计的，Agent 不需要</p>
+  </div>
+
+  <!-- Slide 17: 能砍 vs 砍不了 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第四课</span>
+    <h2>流程精简</h2>
+    <div class="cols">
+      <div class="col-card green-card">
+        <h3>能砍的</h3>
+        <ul>
+          <li>站会——Agent 进度在 .status 文件里</li>
+          <li>迭代计划会议——给 spec 就按顺序执行</li>
+          <li>详细任务分配——Agent 端到端走完</li>
+          <li>格式和风格 review——交给 linter 和 CI</li>
+        </ul>
+      </div>
+      <div class="col-card red-card">
+        <h3>砍不了的</h3>
+        <ul>
+          <li>需求定义——模糊需求 = 随机决策</li>
+          <li>验收标准——没标准的 spec 是空白支票</li>
+          <li>架构决策——Agent 不能替你定方向</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:1.2rem;">
+      "现在的瓶颈已经不在代码生成，需求供给跟不上 Agent 的进度，变成 TO 每天追着 CPO 要需求。"
+    </div>
+  </div>
+
+  <!-- Slide 18: 第五课标题 -->
+  <div class="slide slide-lesson" data-lesson="05">
+    <span class="tag tag-lesson">第五课</span>
+    <h1>组织调整与<br>一把手怎么跟上</h1>
+    <p class="subtitle">团队结构正在瓦解，新的角色分工已经出现</p>
+  </div>
+
+  <!-- Slide 19: 团队结构瓦解 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第五课</span>
+    <h2>团队结构正在瓦解</h2>
+    <div class="quote">
+      "Leader 已经没办法 Leader 下属了，因为 Leader 可能还没下属会用 AI。"
+      <span class="attr">—— 刘诚忠</span>
+    </div>
+    <p style="margin-top:0.8rem;">前端、后端、QA、产品各自负责一块的模式正在瓦解。一个人 + Agent 就能打通全流程。衡石内部设立 AI Pod，不受传统管理约束，以代码提交强度和结果为准。</p>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>银行流水分类引擎案例：<strong>4.5 人替代了 63 人</strong>。送走外包团队和无法驾驭 Agent 的初级分析师，聘请能定义问题的资深精英。</p>
+    </div>
+  </div>
+
+  <!-- Slide 20: 三角色模型 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第五课</span>
+    <h2>三角色分工模型</h2>
+    <p style="margin-bottom:1.2rem;">这三个人都不写代码。核心工作是定义问题、验收结果、编排流程。</p>
+    <div class="roles">
+      <div class="role-card">
+        <div class="role-title">PO</div>
+        <div class="role-sub">产品负责人</div>
+        <p>写高质量、自包含的 PRD</p>
+        <p class="role-action">定义"做什么"</p>
+      </div>
+      <div class="role-card">
+        <div class="role-title">QO</div>
+        <div class="role-sub">质量负责人</div>
+        <p>定义验收标准和 Benchmark</p>
+        <p class="role-action">确保"什么是对的"</p>
+      </div>
+      <div class="role-card">
+        <div class="role-title">TO</div>
+        <div class="role-sub">技术负责人</div>
+        <p>编排 Agent 工作流</p>
+        <p class="role-action">负责"怎么做"</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 21: 黑灯工厂 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第五课</span>
+    <h2>最大的坑：黑灯工厂</h2>
+    <p>完全无人化的 AI 协作会导致代码风格不一致、理解偏差产生垃圾产出。看起来每个人都在省事，实际上系统在失控。</p>
+    <div class="quote" style="margin-top:1.2rem;">
+      "不要相信'挂机写代码'的鬼话，工程永远是一件难受且充满对抗的事情。"
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>AI Coding 并没有发明新东西，它只是用极低的成本落地了那些早就知道、却因太贵而没执行的最佳工程实践。</p>
+    </div>
+  </div>
+
+  <!-- Slide 22: 一把手怎么办 -->
+  <div class="slide">
+    <span class="tag tag-lesson">第五课</span>
+    <h2>一把手怎么办</h2>
+    <div class="tips">
+      <div class="tip">
+        <div class="tip-num">1</div>
+        <div class="tip-text"><strong>自己用。</strong>用 AI 做日常的事，体感不用不会有。不需要成为程序员，但需要理解"跟 AI 协作"意味着什么。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">2</div>
+        <div class="tip-text"><strong>看交付物，不看过程。</strong>管理重心从站会、周报转向 spec 质量和测试覆盖率。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">3</div>
+        <div class="tip-text"><strong>投资测试基建。</strong>性价比最高的投入。测试基建差，Agent 产得越多债务积累越快。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">4</div>
+        <div class="tip-text"><strong>找到你的 AI Pod。</strong>划出小团队跑通流程，再把经验扩散到其他团队。</div>
+      </div>
+      <div class="tip">
+        <div class="tip-num">5</div>
+        <div class="tip-text"><strong>关注决策智能。</strong>结构化记忆解决 AI 碎片化，也适用于组织内部知识管理。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Slide 23: 收尾 -->
+  <div class="slide slide-end">
+    <h2>收尾</h2>
+    <div style="margin-bottom:1.5rem;text-align:left;max-width:580px;">
+      <ul>
+        <li>跟 AI 协作的核心工作是定义问题</li>
+        <li>闭环比开环可靠，规约和验证必须配对</li>
+        <li>测试基建是地基，没有地基别盖楼</li>
+        <li>组织要适配新的工作方式</li>
+      </ul>
+    </div>
+    <p style="font-size:0.88rem;color:var(--text2);margin-top:1.2rem;">回去后用 Playbook 卷一深入学习，先把规约和验证做到位。</p>
+    <div class="quote" style="margin-top:1.5rem;text-align:center;">
+      "现在是最坏的 AI 创业时代，因为每个人手里拿的都是加农炮，只能互轰。"
+      <span class="attr">—— 刘诚忠</span>
+    </div>
+    <p style="margin-top:1.2rem;color:var(--green);font-weight:600;">加农炮也得有人会瞄准。这套课程教的，就是瞄准。</p>
+  </div>
+
+  <!-- ===== 嘉宾分享：刘诚忠 ===== -->
+
+  <!-- Speaker Slide 1: Title -->
+  <div class="slide slide-lesson slide-speaker" data-lesson="嘉宾">
+    <span class="tag tag-section">嘉宾分享</span>
+    <h1>当前的 AI 技术进展<br>已碾压组织形态</h1>
+    <div class="divider" style="width:40px;height:2px;margin:1rem auto;background:var(--orange);border-radius:1px;"></div>
+    <p class="subtitle" style="color:var(--orange);">刘诚忠 · 衡石科技创始人</p>
+  </div>
+
+  <!-- Speaker Slide 2: 管理失效 -->
+  <div class="slide">
+    <span class="tag tag-section">嘉宾分享</span>
+    <h2>管理失效：传统协作模式正在瓦解</h2>
+    <p>2026 年，软件工程传统管理模式在 AI 浪潮下全面失效。传统基于角色协作的模式——前端、后端、QA、产品各自负责一块——正在瓦解。AI 帮助下，一个人就能打通全流程。</p>
+    <div class="quote" style="margin-top:1rem;">
+      "代码生成速度彻底击穿了人类审查带宽。"
+      <span class="attr">—— 刘诚忠</span>
+    </div>
+    <div class="key-point">
+      <p>传统站会、迭代计划、任务分配的管理手段正在失去意义。代码产出速度远超人类审查能力，整个管理框架需要重新设计。</p>
+    </div>
+  </div>
+
+  <!-- Speaker Slide 3: AI Pod -->
+  <div class="slide">
+    <span class="tag tag-section">嘉宾分享</span>
+    <h2>AI Pod：反脆弱的小型精英组织</h2>
+    <p>衡石内部设立了 AI Pod，里面的人不受传统管理约束，以代码提交强度和结果为准。</p>
+    <div class="cols" style="margin-top:1rem;">
+      <div class="col-card orange-card">
+        <h3>传统模式</h3>
+        <ul>
+          <li>前后端 QA 产品各管一块</li>
+          <li>站会、评审会同步进度</li>
+          <li>Leader 管控下属</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>AI Pod 模式</h3>
+        <ul>
+          <li>一人 + Agent 打通全流程</li>
+          <li>以代码提交强度和结果为准</li>
+          <li>不受传统管理约束</li>
+        </ul>
+      </div>
+    </div>
+    <div class="quote" style="margin-top:1rem;">
+      "Leader 已经没办法 Leader 下属了，因为 Leader 可能还没下属会用 AI。"
+      <span class="attr">—— 刘诚忠</span>
+    </div>
+    <div class="key-point">
+      <p><strong>如果你想唤醒那些聪明但懒惰的员工，就让他去独立搞一条产品线。</strong>AI Pod 形成了一种"反脆弱"的小型精英组织。</p>
+    </div>
+  </div>
+
+  <!-- Speaker Slide 4: Jarvis 决策中枢 -->
+  <div class="slide">
+    <span class="tag tag-section">嘉宾分享</span>
+    <h2>决策智能与"病历本"模式</h2>
+    <p>AI 记忆碎片化是一个实际问题。衡石通过 Jarvis 决策中枢，建立了面向 Agent 的产品决策系统。</p>
+    <div class="cols" style="margin-top:1rem;">
+      <div class="col-card red-card">
+        <h3>问题：记忆碎片化</h3>
+        <p style="font-size:0.88rem;">AI 的记忆止于会话边界。跨会话协作时上下文丢失，决策准确度下降，每次都要重新解释背景。</p>
+      </div>
+      <div class="col-card green-card">
+        <h3>解法：结构化记忆</h3>
+        <p style="font-size:0.88rem;">通过文档、代码、历史问题合集建立共识。让 AI 知道"病历本和历史"，提升决策准确度并节省 Token。</p>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>Jarvis 把产品决策过程结构化：需求文档、技术方案、历史问题、决策记录形成一个"病历本"，Agent 每次开工前先读病历。</p>
+    </div>
+  </div>
+
+  <!-- Speaker Slide 5: 驾驭复杂度 -->
+  <div class="slide">
+    <span class="tag tag-section">嘉宾分享</span>
+    <h2>驾驭复杂度：饱和式测试</h2>
+    <p>AI 产出速度极快，人类 Review 成为瓶颈。唯一的解法是加强测试保障体系。</p>
+    <div class="flow" style="margin-top:1.2rem;">
+      <div class="flow-item">AI 高频产出</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item red">人类 Review 瓶颈</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">饱和式测试</div>
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>用 AI 补齐 100% 甚至冗余的测试用例来驾驭复杂度。衡石的实践：<strong>测试基建前置</strong>，在代码还没写的时候就把验证标准定好。</p>
+    </div>
+    <div class="quote" style="margin-top:1rem;">
+      "如果你想驾驭复杂度，就得让 AI 自己产出的东西能被 AI 自己验证。人类审查的带宽已经不够了。"
+      <span class="attr">—— 刘诚忠</span>
+    </div>
+  </div>
+
+  <!-- Speaker Slide 6: 核心金句 -->
+  <div class="slide slide-end">
+    <h2>核心金句</h2>
+    <div style="display:flex;flex-direction:column;gap:0.7rem;margin-top:1rem;text-align:left;max-width:640px;">
+      <div class="quote" style="margin:0;">
+        "代码生成速度彻底击穿了人类审查带宽。"
+        <span class="attr">—— 刘诚忠</span>
+      </div>
+      <div class="quote" style="margin:0;">
+        "Leader 已经没办法 Leader 下属了，因为 Leader 可能还没下属会用 AI。"
+        <span class="attr">—— 刘诚忠</span>
+      </div>
+      <div class="quote" style="margin:0;">
+        "如果你想唤醒那些聪明但懒惰的员工，就让他去独立搞一条产品线。"
+        <span class="attr">—— 刘诚忠</span>
+      </div>
+      <div class="quote" style="margin:0;">
+        "现在是最坏的 AI 创业时代，因为每个人手里拿的都是加农炮，只能互轰。"
+        <span class="attr">—— 刘诚忠</span>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const progress = document.getElementById('progress');
+const slideNum = document.getElementById('slideNum');
+const themeToggle = document.getElementById('themeToggle');
+let current = 0;
+let isAnimating = false;
+const total = slides.length;
+
+// Theme toggle
+themeToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('slide-theme', next);
+});
+
+// Restore theme
+(function() {
+  const saved = localStorage.getItem('slide-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
+// Nav arrows
+const navLeft = document.getElementById('navLeft');
+const navRight = document.getElementById('navRight');
+const watermark = document.getElementById('lessonWatermark');
+let flashTimer = null;
+
+// Lesson ranges: slide index → lesson number
+function getLesson(idx) {
+  if (idx >= 3 && idx <= 8) return '01';
+  if (idx >= 9 && idx <= 12) return '02';
+  if (idx >= 13 && idx <= 14) return '03';
+  if (idx >= 15 && idx <= 16) return '04';
+  if (idx >= 17 && idx <= 21) return '05';
+  if (idx >= 23 && idx <= 28) return '嘉宾';
+  return '';
+}
+
+function flashArrows() {
+  navLeft.classList.add('flash');
+  navRight.classList.add('flash');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => {
+    navLeft.classList.remove('flash');
+    navRight.classList.remove('flash');
+  }, 1200);
+}
+
+navLeft.addEventListener('click', e => {
+  e.stopPropagation();
+  updateSlide(current - 1, 'prev');
+});
+navRight.addEventListener('click', e => {
+  e.stopPropagation();
+  updateSlide(current + 1, 'next');
+});
+
+// Speaker navigation
+const speakerLink = document.getElementById('speakerLink');
+const backToMain = document.getElementById('backToMain');
+let returnIndex = 2;
+
+speakerLink.addEventListener('click', e => {
+  e.stopPropagation();
+  returnIndex = current;
+  updateSlide(23, 'next');
+});
+backToMain.addEventListener('click', e => {
+  e.stopPropagation();
+  updateSlide(returnIndex, 'prev');
+});
+
+// Slide navigation
+function updateSlide(newIdx, direction) {
+  if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+  isAnimating = true;
+
+  const oldSlide = slides[current];
+  const newSlide = slides[newIdx];
+
+  const exitX = direction === 'next' ? '-60px' : '60px';
+  const enterX = direction === 'next' ? '60px' : '-60px';
+
+  oldSlide.classList.remove('active');
+  newSlide.style.transition = 'none';
+  newSlide.style.transform = 'translateX(' + enterX + ')';
+  newSlide.classList.add('active');
+
+  void newSlide.offsetWidth;
+  newSlide.style.transition = '';
+  newSlide.style.transform = '';
+  oldSlide.style.transform = 'translateX(' + exitX + ')';
+
+  current = newIdx;
+  updateUI();
+  flashArrows();
+
+  setTimeout(() => {
+    oldSlide.style.transform = '';
+    isAnimating = false;
+  }, 460);
+}
+
+function updateUI() {
+  progress.style.width = ((current + 1) / total * 100) + '%';
+  slideNum.textContent = (current + 1) + ' / ' + total;
+  navLeft.style.display = current === 0 ? 'none' : '';
+  navRight.style.display = current === total - 1 ? 'none' : '';
+  // Watermark
+  const lesson = getLesson(current);
+  watermark.textContent = lesson;
+  watermark.classList.toggle('show', !!lesson);
+  // Speaker slides: show back, hide speaker link
+  const isSpeaker = current >= 23;
+  backToMain.classList.toggle('show', isSpeaker);
+  speakerLink.classList.toggle('hidden', isSpeaker);
+  document.querySelector('.nav-hint').style.display = isSpeaker ? 'none' : '';
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); updateSlide(current + 1, 'next'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); updateSlide(current - 1, 'prev'); }
+});
+
+// Touch
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < 0) updateSlide(current + 1, 'next');
+    else updateSlide(current - 1, 'prev');
+  }
+}, { passive: true });
+
+// Click (skip toggle & arrows)
+document.addEventListener('click', e => {
+  if (e.target.closest('.theme-toggle') || e.target.closest('.nav-arrow')) return;
+  const x = e.clientX / window.innerWidth;
+  const y = e.clientY / window.innerHeight;
+  if (y > 0.88) return;
+  if (x > 0.65) updateSlide(current + 1, 'next');
+  else if (x < 0.35) updateSlide(current - 1, 'prev');
+});
+
+updateUI();
+// Initial flash
+flashArrows();
+</script>
+</body>
+</html>

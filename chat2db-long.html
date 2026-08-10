@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat2DB 新版体验 — 长截图</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  [data-theme="light"] {
+    --bg: #f4f4fb;
+    --bg2: #eaeaf4;
+    --surface: #ffffff;
+    --surface2: #f0f0fa;
+    --surface3: #e6e6f2;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #1a1a30;
+    --text2: #5a5a78;
+    --text3: #9898ac;
+    --accent: #5b4cc4;
+    --accent2: #7b6cf0;
+    --green: #009a7c;
+    --green-bg: rgba(0,154,124,0.06);
+    --green-border: rgba(0,154,124,0.18);
+    --red: #d44040;
+    --red-bg: rgba(212,64,64,0.06);
+    --red-border: rgba(212,64,64,0.18);
+    --orange: #b88020;
+    --orange-bg: rgba(184,128,32,0.06);
+    --orange-border: rgba(184,128,32,0.18);
+    --accent-bg: rgba(91,76,196,0.06);
+    --accent-border: rgba(91,76,196,0.15);
+    --code-bg: #1a1a30;
+    --code-border: rgba(91,76,196,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+    --quote-bg: rgba(91,76,196,0.04);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+    --key-border: rgba(91,76,196,0.12);
+    --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+  }
+
+  html, body {
+    width: 100%;
+    overflow-x: hidden;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .slides-container {
+    width: 1200px;
+    margin: 0 auto;
+    padding: 40px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .slide {
+    position: relative;
+    width: 1200px;
+    min-height: 675px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 96px;
+    background: var(--bg);
+    box-sizing: border-box;
+  }
+  .slide + .slide {
+    border-top: 1px solid var(--border);
+  }
+  .slide > * { max-width: 920px; width: 100%; }
+  .slide > .tag { width: auto; }
+
+  h1 {
+    font-size: 3rem;
+    font-weight: 900; line-height: 1.15;
+    margin-bottom: 1.2rem; letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: 2rem;
+    font-weight: 700; line-height: 1.25;
+    margin-bottom: 1rem; color: var(--accent2);
+  }
+  h3 {
+    font-size: 1.2rem;
+    font-weight: 600; line-height: 1.4;
+    margin-bottom: 0.6rem;
+  }
+  p, li {
+    font-size: 1.05rem;
+    line-height: 1.8; color: var(--text);
+  }
+
+  ul { list-style: none; padding-left: 0; }
+  ul li {
+    position: relative; padding-left: 1.6em;
+    margin-bottom: 0.5em;
+  }
+  ul li::before {
+    content: ''; position: absolute;
+    left: 0.2em; top: 0.7em;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.8rem; letter-spacing: 0.02em;
+  }
+  .tag-lesson {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .tag-section {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+  .tag-red {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid var(--red-border);
+  }
+  .tag-orange {
+    background: var(--orange-bg);
+    color: var(--orange);
+    border: 1px solid var(--orange-border);
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin: 0.8rem 0;
+    overflow-x: auto;
+    font-size: 0.88rem;
+    line-height: 1.75;
+    box-shadow: var(--shadow);
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    color: var(--code-text);
+  }
+
+  .quote {
+    border-left: 3px solid var(--quote-border);
+    padding: 1rem 1.4rem;
+    margin: 1rem 0;
+    background: var(--quote-bg);
+    border-radius: 0 8px 8px 0;
+    font-size: 1.05rem;
+    line-height: 1.75; color: var(--accent2);
+    font-weight: 500;
+  }
+
+  .key-point {
+    background: var(--key-bg);
+    border: 1px solid var(--key-border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    margin-top: 1rem;
+  }
+  .key-point p {
+    font-size: 1rem;
+    font-weight: 500; line-height: 1.75;
+  }
+  .key-point strong { color: var(--accent2); }
+
+  .flow {
+    display: flex; align-items: center;
+    justify-content: center;
+    gap: 0.5rem; flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+  .flow-item {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 0.5rem 1rem; border-radius: 8px;
+    font-size: 0.92rem;
+    font-weight: 500; white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .flow-arrow { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+  .flow-item.green { border-color: var(--green-border); color: var(--green); background: var(--green-bg); }
+  .flow-item.accent { border-color: var(--accent-border); color: var(--accent2); background: var(--accent-bg); }
+
+  .cols {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.2rem; margin-top: 0.8rem;
+  }
+  .col-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .col-card h3 { margin-bottom: 0.7rem; }
+  .col-card.green-card h3 { color: var(--green); }
+  .col-card.orange-card h3 { color: var(--orange); }
+  .col-card.red-card h3 { color: var(--red); }
+  .col-card.accent-card h3 { color: var(--accent2); }
+  .col-card li {
+    font-size: 0.92rem;
+    margin-bottom: 0.4em; line-height: 1.65;
+  }
+
+  .slide-cover {
+    text-align: center; align-items: center;
+    background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+  }
+  .slide-cover h1 {
+    background: var(--progress-bg);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    font-size: 3.4rem;
+    line-height: 1.35;
+  }
+  .slide-cover .subtitle {
+    font-size: 1.2rem;
+    color: var(--text2); font-weight: 300;
+    line-height: 1.7; max-width: 600px;
+    letter-spacing: 0.04em;
+  }
+  .slide-cover .meta {
+    margin-top: 2.5rem; font-size: 0.82rem;
+    color: var(--text3);
+  }
+  .slide-cover .divider {
+    width: 60px; height: 2px; margin: 1.8rem auto;
+    background: var(--progress-bg); border-radius: 1px;
+  }
+
+  .slide-end { text-align: center; align-items: center; }
+
+  .slide-badge {
+    position: absolute;
+    top: 20px; right: 28px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--text3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .steps {
+    display: flex; flex-direction: column;
+    gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .step-card {
+    background: var(--surface);
+    border-radius: 10px; padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    display: flex; gap: 0.9rem; align-items: flex-start;
+  }
+  .step-label {
+    flex-shrink: 0;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .step-label.waterfall {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .step-label.agile {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+  .step-body {
+    font-size: 0.92rem;
+    line-height: 1.65;
+  }
+  .step-body strong { color: var(--accent2); }
+
+  .db-grid {
+    display: flex; flex-wrap: wrap;
+    gap: 0.5rem; margin-top: 0.8rem;
+  }
+  .db-badge {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 0.4rem 0.9rem;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    box-shadow: var(--shadow);
+  }
+  .db-badge.highlight {
+    border-color: var(--green-border);
+    color: var(--green);
+    background: var(--green-bg);
+    font-weight: 600;
+  }
+
+  .highlight-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.8rem; margin-top: 0.8rem;
+  }
+  .hl-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.1rem 1.3rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    border-left: 3px solid var(--green);
+  }
+  .hl-card h4 {
+    font-size: 0.95rem; font-weight: 600;
+    color: var(--green); margin-bottom: 0.4rem;
+  }
+  .hl-card p {
+    font-size: 0.88rem; color: var(--text2);
+    line-height: 1.6;
+  }
+
+  /* Scene diagram */
+  .scene { position: relative; margin-top: 0.8rem; }
+  .scene-row { display: flex; align-items: center; justify-content: center; gap: 1.6rem; }
+  .scene-box {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 1rem 1.3rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    min-width: 140px;
+  }
+  .scene-box .scene-icon { font-size: 1.6rem; margin-bottom: 0.3rem; display: block; }
+  .scene-box .scene-title { font-size: 0.88rem; font-weight: 700; color: var(--text); margin-bottom: 0.15rem; }
+  .scene-box .scene-desc { font-size: 0.75rem; color: var(--text2); line-height: 1.5; }
+  .scene-box.accent-box { border-color: var(--accent-border); background: var(--accent-bg); }
+  .scene-box.accent-box .scene-title { color: var(--accent2); }
+  .scene-box.green-box { border-color: var(--green-border); background: var(--green-bg); }
+  .scene-box.green-box .scene-title { color: var(--green); }
+  .scene-box.orange-box { border-color: var(--orange-border); background: var(--orange-bg); }
+  .scene-box.orange-box .scene-title { color: var(--orange); }
+
+  .scene-arrow {
+    display: flex; flex-direction: column; align-items: center; gap: 0.1rem;
+    color: var(--accent); font-size: 1.3rem; font-weight: 700;
+  }
+  .scene-arrow-label { font-size: 0.65rem; color: var(--text3); font-weight: 500; white-space: nowrap; }
+
+  .scene-chat {
+    background: var(--surface);
+    border-radius: 14px;
+    padding: 1rem 1.2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    width: 320px;
+    flex-shrink: 0;
+  }
+  .scene-chat-header {
+    font-size: 0.72rem; font-weight: 600; color: var(--text3);
+    margin-bottom: 0.6rem; padding-bottom: 0.4rem;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 0.4rem;
+  }
+  .chat-bubble {
+    padding: 0.6rem 0.9rem;
+    border-radius: 12px;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    margin-bottom: 0.5rem;
+    max-width: 260px;
+  }
+  .chat-bubble.user {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    margin-left: auto;
+    border: 1px solid var(--accent-border);
+  }
+  .chat-bubble.agent {
+    background: var(--green-bg);
+    color: var(--text);
+    border: 1px solid var(--green-border);
+  }
+  .chat-bubble .bubble-name {
+    font-size: 0.68rem; font-weight: 600; margin-bottom: 0.2rem;
+    color: var(--text3);
+  }
+
+  .scene-flow-right {
+    display: flex; flex-direction: column; align-items: center; gap: 0.4rem;
+    flex-shrink: 0;
+  }
+  .scene-flow-h {
+    display: flex; align-items: center; gap: 1.2rem;
+  }
+  .scene-col {
+    display: flex; flex-direction: column; align-items: center; gap: 0.6rem;
+  }
+  .scene-label-tag {
+    font-size: 0.65rem; font-weight: 600;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    letter-spacing: 0.03em;
+  }
+  .scene-label-tag.user-tag { background: var(--accent-bg); color: var(--accent2); }
+  .scene-label-tag.agent-tag { background: var(--green-bg); color: var(--green); }
+  .scene-label-tag.data-tag { background: var(--orange-bg); color: var(--orange); }
+
+  .end-cols {
+    display: grid;
+    grid-template-columns: 1fr 380px;
+    gap: 2.5rem;
+    width: 100%;
+    max-width: 920px;
+    align-items: center;
+  }
+  .end-left { text-align: left; }
+  .end-right {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+  .qr-card {
+    background: var(--surface);
+    border-radius: 16px;
+    padding: 1.8rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    text-align: center;
+    width: 100%;
+  }
+  .qr-card canvas { border-radius: 8px; }
+  .qr-card .qr-label {
+    margin-top: 0.8rem;
+    font-size: 0.82rem;
+    color: var(--text3);
+    line-height: 1.5;
+  }
+  .qr-card .qr-url {
+    font-size: 0.88rem;
+    color: var(--accent2);
+    font-weight: 600;
+    margin-top: 0.3rem;
+  }
+</style>
+</head>
+<body>
+
+<div class="slides-container">
+
+  <!-- ====== Slide 1: 封面 ====== -->
+  <div class="slide slide-cover">
+    <span class="slide-badge">1 / 8</span>
+    <span class="tag tag-lesson">Chat2DB 新版发布会 · 用户分享</span>
+    <h1>Chat2DB Local 版<br>我的日常数据库工具</h1>
+    <div class="divider"></div>
+    <p class="subtitle">Text2SQL · 国产数据库全支持 · 智能看板</p>
+    <p class="meta">Local 付费版实际使用体验</p>
+  </div>
+
+  <!-- ====== Slide 2: 为什么选它 ====== -->
+  <div class="slide">
+    <span class="slide-badge">2 / 8</span>
+    <span class="tag tag-section">选择理由</span>
+    <h2>为什么用 Chat2DB 替掉了之前的工具</h2>
+    <p style="margin-bottom:0.8rem;">之前 Navicat 管 MySQL，DBeaver 管 PostgreSQL，Redis 用 Another Redis Desktop Manager，MongoDB 用 Robo 3T。四个工具来回切，快捷键都不一样。换 Chat2DB 的理由很简单：一个客户端全搞定。</p>
+    <div class="cols">
+      <div class="col-card accent-card">
+        <h3>Text2SQL 是杀手锏</h3>
+        <ul>
+          <li>用中文描述查询需求，AI 自动生成 SQL</li>
+          <li>简单查询准确率很高，省掉大量手写时间</li>
+          <li>在数据集里定义业务术语，AI 理解更准</li>
+          <li>Local 版 AI 开箱即用，不用自己配 API Key</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>Local 版完整功能</h3>
+        <ul>
+          <li>数据迁移、结构同步、导入导出全覆盖</li>
+          <li>AI 智能编辑器、AI 建表、AI 数据集</li>
+          <li>代码生成、查询结果直接改</li>
+          <li>数据全在本地处理，不上传云端</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>Local 版 AI、迁移、看板、代码生成全开，装完直接用，不用折腾配置。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 3: Text2SQL ====== -->
+  <div class="slide">
+    <span class="slide-badge">3 / 8</span>
+    <span class="tag tag-lesson">核心功能</span>
+    <h2>Text2SQL：说人话就能查数据</h2>
+    <p style="margin-bottom:0.6rem;">这是我用得最多的功能。在对话框里用中文描述想查什么，AI 生成 SQL，确认后直接执行。</p>
+    <div class="flow" style="margin-top:0.8rem;">
+      <div class="flow-item">自然语言提问</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item accent">AI 生成 SQL</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">确认执行</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">结果 + 图表</div>
+    </div>
+    <pre style="margin-top:1rem;"><code>你说的：查一下上个月销量前十的商品，带分类和库存
+
+AI 生成的 SQL：
+SELECT p.name, p.category, SUM(oi.quantity) AS total_sold,
+       p.stock_count
+FROM order_items oi
+JOIN products p ON oi.product_id = p.id
+JOIN orders o ON oi.order_id = o.id
+WHERE o.created_at >= DATE_SUB(CURDATE(), INTERVAL 1 MONTH)
+GROUP BY p.id
+ORDER BY total_sold DESC
+LIMIT 10</code></pre>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p>日常 80% 的查询都能自动生成。复杂多表 JOIN 偶尔需要手动调一下，但起手速度比从零写快太多。AI 读表结构和字段注释理解业务语境，在数据集里配上术语之后准确度更高。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 4: 国产数据库 ====== -->
+  <div class="slide">
+    <span class="slide-badge">4 / 8</span>
+    <span class="tag tag-section">国产生态</span>
+    <h2>国产数据库支持到位</h2>
+    <p style="margin-bottom:0.6rem;">这一点在国内用特别关键。很多项目已经被要求迁移到国产数据库了，客户端工具跟不上就很麻烦。Chat2DB 对国产库的支持在同类型工具里算覆盖最全的。</p>
+    <div class="db-grid" style="margin-top:0.8rem;">
+      <span class="db-badge highlight">达梦 DM</span>
+      <span class="db-badge highlight">OceanBase</span>
+      <span class="db-badge highlight">人大金仓 KingBase</span>
+      <span class="db-badge highlight">Presto</span>
+      <span class="db-badge">MySQL</span>
+      <span class="db-badge">PostgreSQL</span>
+      <span class="db-badge">Oracle</span>
+      <span class="db-badge">SQL Server</span>
+      <span class="db-badge">ClickHouse</span>
+      <span class="db-badge">MongoDB</span>
+      <span class="db-badge">Redis</span>
+      <span class="db-badge">Hive</span>
+      <span class="db-badge">MariaDB</span>
+      <span class="db-badge">Snowflake</span>
+      <span class="db-badge">SQLite</span>
+      <span class="db-badge">H2</span>
+      <span class="db-badge">DB2</span>
+    </div>
+    <div class="highlight-grid" style="margin-top:1rem;">
+      <div class="hl-card">
+        <h4>信创迁移友好</h4>
+        <p>从 Oracle/MySQL 迁移到达梦或 OceanBase，Chat2DB 同时连新旧库，结构同步 + 数据迁移一条龙。不用再单独装迁移工具。</p>
+      </div>
+      <div class="hl-card">
+        <h4>Local 版目标支持 100+ 数据源</h4>
+        <p>社区版 16+ 种，Local 版和 Pro 版目标是 100+ 种。国产数据库在持续增加中，版本迭代很快。</p>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>做信创项目的团队，一个客户端同时管 Oracle 和达梦，数据迁移不用再折腾第三方工具。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 5: 看板功能 ====== -->
+  <div class="slide">
+    <span class="slide-badge">5 / 8</span>
+    <span class="tag tag-lesson">看板功能</span>
+    <h2>智能仪表盘：查询结果直接变看板</h2>
+    <p style="margin-bottom:0.6rem;">查完数据手动做图表的时代过去了。Chat2DB 的 Dashboard 功能让查询结果直接生成可视化看板，保存下来就是持续更新的数据面板。</p>
+    <div class="steps" style="margin-top:0.5rem;">
+      <div class="step-card">
+        <span class="step-label waterfall">1</span>
+        <div class="step-body"><strong>写查询或用 Text2SQL</strong> — 自然语言提问或手写 SQL，执行拿到结果集。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label waterfall">2</span>
+        <div class="step-body"><strong>一键生成图表</strong> — 折线图、柱状图、饼图、数据表格，AI 根据数据特征自动推荐合适的图表类型。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">3</span>
+        <div class="step-body"><strong>保存为 Dashboard</strong> — 把多个图表组合成一个看板，支持自动刷新。团队成员打开链接就能看最新数据。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">4</span>
+        <div class="step-step-body"><strong>分享和协作</strong> — Pro 版支持跨设备使用，Dashboard 通过链接分享给团队，不用再每周手工出报表。</div>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>以前周报数据要跑 SQL → 导出 Excel → 做图表 → 贴进文档。现在查完直接存 Dashboard，下次打开就是最新的。给老板和业务同事分享链接就行。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 6: Agent 生态 ====== -->
+  <div class="slide">
+    <span class="slide-badge">6 / 8</span>
+    <span class="tag tag-orange">愿景</span>
+    <h2>Chat2DB Agent：通用型 Agent 和数据库之间的桥梁</h2>
+    <p style="margin-bottom:0.6rem;">飞书做了 CLI 化让 Agent 可以操作企业协作工具，微信开放了 ClawBot 接口。Agent 生态正在成型。但通用型 Agent 想拿到企业数据，中间还缺一环。</p>
+    <div class="flow" style="margin-top:0.8rem;">
+      <div class="flow-item">通用型 Agent</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item accent">Chat2DB Agent</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">数据库集群</div>
+    </div>
+    <div class="cols" style="margin-top:1rem;">
+      <div class="col-card accent-card">
+        <h3>为什么是 Chat2DB</h3>
+        <ul>
+          <li>数据集、连接配置、权限都在 Chat2DB 里收口</li>
+          <li>通用 Agent 不需要知道底层数据库类型和连接信息</li>
+          <li>Text2SQL + 数据集的业务术语，Agent 查数据比手写 SQL 更准</li>
+          <li>数据安全在 Chat2DB 层统一管控，不暴露给上游 Agent</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>Agent2Agent 协作场景</h3>
+        <ul>
+          <li>日程 Agent 查飞书日历 → 调 Chat2DB Agent 拉相关数据 → 自动出会前报告</li>
+          <li>业务 Agent 接到数据需求 → 调 Chat2DB Agent 执行查询 → 结果回传 Dashboard</li>
+          <li>运维 Agent 监控异常 → 调 Chat2DB Agent 查日志表 → 自动分析根因</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>通用型 Agent 擅长编排工作流，但不擅长直连数据库。Chat2DB Agent 把连接管理、数据集定义、安全管控全部收口，让通用 Agent 用自然语言就能拿到数据。Agent 生态里天然的"数据层 Agent"。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 7: 场景图 ====== -->
+  <div class="slide">
+    <span class="slide-badge">7 / 8</span>
+    <span class="tag tag-orange">场景</span>
+    <h2>在飞书里一句话查生产数据</h2>
+    <div class="scene" style="margin-top:0.5rem;">
+      <div class="scene-flow-h">
+        <!-- Left: Chat -->
+        <div class="scene-col">
+          <span class="scene-label-tag user-tag">用户</span>
+          <div class="scene-chat">
+            <div class="scene-chat-header"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> 飞书 / 钉钉 / 微信</div>
+            <div class="chat-bubble user">
+              <div class="bubble-name">我</div>
+              @YouClaw 帮我看看最近生产服务器的数据怎么样
+            </div>
+            <div class="chat-bubble agent">
+              <div class="bubble-name">YouClaw</div>
+              好的，我调 Chat2DB 拉一下最近 7 天的请求量和错误率……
+            </div>
+            <div class="chat-bubble agent">
+              <div class="bubble-name">YouClaw</div>
+              生产环境过去 7 天数据已分析完，详情见下方图表
+            </div>
+          </div>
+        </div>
+
+        <div class="scene-flow-right">
+          <span class="scene-arrow-label">自然语言</span>
+          <div class="scene-arrow">→</div>
+          <span class="scene-arrow-label">意图识别</span>
+        </div>
+
+        <!-- Center: YouClaw Agent -->
+        <div class="scene-col">
+          <span class="scene-label-tag agent-tag">通用型 Agent</span>
+          <div class="scene-box accent-box">
+            <span class="scene-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><circle cx="12" cy="5" r="3"/><path d="M8 16h0M16 16h0"/><path d="M9 11V9a3 3 0 0 1 6 0v2"/></svg></span>
+            <div class="scene-title">YouClaw Agent</div>
+            <div class="scene-desc">理解意图<br>编排工作流</div>
+          </div>
+        </div>
+
+        <div class="scene-flow-right">
+          <span class="scene-arrow-label">调 Agent</span>
+          <div class="scene-arrow">→</div>
+          <span class="scene-arrow-label">拿数据</span>
+        </div>
+
+        <!-- Center-right: Chat2DB Agent -->
+        <div class="scene-col">
+          <span class="scene-label-tag agent-tag">数据层 Agent</span>
+          <div class="scene-box green-box">
+            <span class="scene-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
+            <div class="scene-title">Chat2DB Agent</div>
+            <div class="scene-desc">Text2SQL 生成查询<br>数据集 + 权限收口</div>
+          </div>
+        </div>
+
+        <div class="scene-flow-right">
+          <span class="scene-arrow-label">SQL 执行</span>
+          <div class="scene-arrow">→</div>
+          <span class="scene-arrow-label">返回结果</span>
+        </div>
+
+        <!-- Right: Database -->
+        <div class="scene-col">
+          <span class="scene-label-tag data-tag">数据源</span>
+          <div class="scene-box orange-box">
+            <span class="scene-icon"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--orange)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></span>
+            <div class="scene-title">生产数据库</div>
+            <div class="scene-desc">MySQL / 达梦<br>OceanBase / Redis</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom: A2UI rendering -->
+      <div style="display:flex;align-items:center;justify-content:center;gap:0.8rem;margin-top:1rem;">
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <span class="scene-arrow-label">分析结果</span>
+          <div class="scene-arrow">↓</div>
+        </div>
+      </div>
+      <div style="display:flex;justify-content:center;margin-top:0.3rem;">
+        <div class="scene-box" style="border-left:3px solid var(--green);min-width:440px;text-align:left;">
+          <div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/></svg>
+            <span style="font-size:0.85rem;font-weight:700;color:var(--green);">A2UI 即时渲染</span>
+            <span style="font-size:0.7rem;color:var(--text3);margin-left:auto;">图表直接展示在对话里</span>
+          </div>
+          <div style="display:flex;gap:0.6rem;">
+            <div style="flex:1;background:var(--green-bg);border:1px solid var(--green-border);border-radius:8px;padding:0.5rem 0.7rem;">
+              <div style="font-size:0.68rem;color:var(--text3);margin-bottom:0.3rem;">请求量趋势</div>
+              <div style="font-size:0.82rem;font-weight:600;color:var(--green);">↑ 12.3%<span style="font-size:0.68rem;color:var(--text3);font-weight:400;margin-left:0.3rem;">日均 84 万</span></div>
+            </div>
+            <div style="flex:1;background:var(--accent-bg);border:1px solid var(--accent-border);border-radius:8px;padding:0.5rem 0.7rem;">
+              <div style="font-size:0.68rem;color:var(--text3);margin-bottom:0.3rem;">错误率</div>
+              <div style="font-size:0.82rem;font-weight:600;color:var(--accent2);">0.03%<span style="font-size:0.68rem;color:var(--text3);font-weight:400;margin-left:0.3rem;">正常范围</span></div>
+            </div>
+            <div style="flex:1;background:var(--orange-bg);border:1px solid var(--orange-border);border-radius:8px;padding:0.5rem 0.7rem;">
+              <div style="font-size:0.68rem;color:var(--text3);margin-bottom:0.3rem;">P99 延迟</div>
+              <div style="font-size:0.82rem;font-weight:600;color:var(--orange);">186ms<span style="font-size:0.68rem;color:var(--text3);font-weight:400;margin-left:0.3rem;">↓ 8%</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 8: 收尾 ====== -->
+  <div class="slide slide-end">
+    <span class="slide-badge">8 / 8</span>
+      <div class="end-left">
+        <p style="font-size:1.1rem;line-height:1.9;font-weight:500;">Chat2DB 已经是我日常唯一的数据库客户端了。Text2SQL 解决了重复查询的体力活，国产数据库支持让信创迁移不再折腾，Dashboard 看板让数据分享变简单。新版本在 AI 能力和数据源覆盖上迭代很快，值得持续关注。</p>
+        <p style="margin-top:1.8rem;font-size:1.05rem;font-weight:600;color:var(--accent2);line-height:1.8;">期待后续看到 Chat2DB 以 Agent 形态接入通用型 Agent 生态，成为 Agent2Agent 协作里那个天然的"数据层 Agent"。</p>
+      </div>
+      <div class="end-right">
+        <div class="qr-card">
+          <canvas id="qrCanvas" width="200" height="200"></canvas>
+          <p class="qr-url">chat2db.ai</p>
+          <p class="qr-label">扫码访问 Chat2DB 官网<br>下载 Local 版体验完整功能</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode-generator@1.4.4/qrcode.min.js"></script>
+<script>
+(function() {
+  var qr = qrcode(0, 'M');
+  qr.addData('https://chat2db.ai/');
+  qr.make();
+  var canvas = document.getElementById('qrCanvas');
+  var ctx = canvas.getContext('2d');
+  var count = qr.getModuleCount();
+  var size = 200;
+  var cell = size / count;
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, size, size);
+  ctx.fillStyle = '#1a1a30';
+  for (var r = 0; r < count; r++) {
+    for (var c = 0; c < count; c++) {
+      if (qr.isDark(r, c)) {
+        ctx.fillRect(c * cell, r * cell, cell + 0.5, cell + 0.5);
+      }
+    }
+  }
+})();
+</script>
+</body>
+</html>

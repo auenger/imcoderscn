@@ -1,0 +1,159 @@
+      <section class="section" id="delivery-defense">
+        <h2>实施方交付防守重点</h2>
+        <p class="section-intro">Agent 项目最容易被挑战的原因不是功能完全不可用，而是客户对“智能化”的理解与合同验收标准不一致。实施方必须把模糊期待转化为可测量、可追溯、附带前置条件的交付承诺。</p>
+
+        <div class="callout" style="margin-top:18px">
+          <h3>核心原则：不承诺抽象智能，只承诺限定条件下的业务能力</h3>
+          <p>不要使用“准确理解所有问题”“自动完成智能排产”“预测设备故障”“像专家一样分析”等无法封闭验收的表述。所有能力必须绑定指定用户、指定数据、指定问题类型、指定输出和指定验收样本。</p>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px">
+          <div class="panel">
+            <span class="tag out">高风险承诺</span>
+            <h3 style="margin-top:12px">必须避免写入合同或汇报</h3>
+            <ul class="clean-list muted">
+              <li>Agent 能回答所有生产经营问题</li>
+              <li>预测准确率长期固定且不受数据变化影响</li>
+              <li>计划结果一定优于人工计划</li>
+              <li>所有 MES 数据无需治理即可直接使用</li>
+              <li>客户可任意增加 Agent、用户、工厂和连接器</li>
+              <li>大模型升级后效果只会提升、不会退化</li>
+              <li>第三方 IM、模型和接口长期稳定可用</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <span class="tag must">可交付承诺</span>
+            <h3 style="margin-top:12px">建议使用的责任表述</h3>
+            <ul class="clean-list muted">
+              <li>支持约定清单内的问题类型与分析维度</li>
+              <li>基于双方确认的数据集和时间窗口验收</li>
+              <li>输出候选计划、约束说明和人工确认点</li>
+              <li>对数据质量问题进行识别、标记和告警</li>
+              <li>新增范围通过变更单评估工期与费用</li>
+              <li>模型版本冻结，升级前执行回归测试</li>
+              <li>第三方能力按其官方 SLA 和接口限制执行</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>客户最可能提出的挑战</h2>
+        <div style="overflow-x:auto">
+          <table class="scope-table">
+            <thead><tr><th>客户挑战</th><th>产生原因</th><th>实施方提前准备</th><th>建议验收证据</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><strong>“为什么这个问题回答不出来”</strong></td>
+                <td>客户将 Agent 理解为无限范围通用助手</td>
+                <td>冻结意图清单、问题示例、拒答范围和转人工机制</td>
+                <td>场景覆盖矩阵、标准问法与边界问法测试记录</td>
+              </tr>
+              <tr>
+                <td><strong>“数据和 MES 报表不一致”</strong></td>
+                <td>指标口径、时间边界、过滤条件或数据延迟不同</td>
+                <td>建立指标字典、数据血缘、截止时间和对账样本</td>
+                <td>SQL 或 API 版本、样本明细、双方签字的对账结果</td>
+              </tr>
+              <tr>
+                <td><strong>“分析结论不够智能”</strong></td>
+                <td>“智能”没有验收定义，客户预期不断提高</td>
+                <td>把智能拆为趋势、异常、原因候选、建议和依据</td>
+                <td>固定测试集、专家评分表、基线方案对比</td>
+              </tr>
+              <tr>
+                <td><strong>“预测不准，所以项目失败”</strong></td>
+                <td>未约定预测对象、周期、误差指标和数据稳定性</td>
+                <td>定义基线、容差、置信区间、适用条件和重训触发器</td>
+                <td>滚动验证报告、误差分布、异常期间剔除规则</td>
+              </tr>
+              <tr>
+                <td><strong>“计划不能直接执行”</strong></td>
+                <td>忽略隐性规则、临时插单和现场经验</td>
+                <td>定位为候选计划，明确约束覆盖率与人工调整点</td>
+                <td>约束清单、冲突解释、计划员确认与调整记录</td>
+              </tr>
+              <tr>
+                <td><strong>“钉钉能聊，为什么不能完成所有操作”</strong></td>
+                <td>把渠道入口误认为完整业务系统</td>
+                <td>定义 IM 支持的消息类型、操作清单和 Web 跳转边界</td>
+                <td>渠道能力清单、消息模板、异常和超时测试</td>
+              </tr>
+              <tr>
+                <td><strong>“新增需求应该包含在 Agent 里”</strong></td>
+                <td>Agent 的自然语言形态让需求看起来只需改提示词</td>
+                <td>将新增意图、工具、数据源、角色和报告视为范围变更</td>
+                <td>需求基线、变更单、工作量评估和版本发布记录</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>实施方必须锁定的八类文件</h2>
+        <div class="grid-2">
+          <div class="panel"><h3>范围基线</h3><p class="muted">Agent 清单、用户角色、工厂范围、数据源、问题类型、输出形式、语言、终端和并发规模。</p></div>
+          <div class="panel"><h3>数据责任清单</h3><p class="muted">字段、口径、历史周期、刷新频率、质量要求、缺失处理、客户数据负责人和问题关闭时限。</p></div>
+          <div class="panel"><h3>场景测试集</h3><p class="muted">正常问题、边界问题、错误输入、越权问题和拒答问题。测试集须由双方确认并版本冻结。</p></div>
+          <div class="panel"><h3>验收指标表</h3><p class="muted">正确性、覆盖率、引用可追溯、响应时间、稳定性、权限隔离及人工评价的计算方式。</p></div>
+          <div class="panel"><h3>客户配合清单</h3><p class="muted">账号、网络、接口、样本、专家时间、测试环境、业务确认人和反馈时限。延迟应触发计划顺延。</p></div>
+          <div class="panel"><h3>变更控制单</h3><p class="muted">新增数据源、连接器、Agent、意图、报表、用户范围、模型和部署要求都需重新评估。</p></div>
+          <div class="panel"><h3>上线与回退方案</h3><p class="muted">模型和提示版本、发布审批、灰度范围、故障降级、人工入口、回滚条件和责任联系人。</p></div>
+          <div class="panel"><h3>运行证据包</h3><p class="muted">版本记录、测试结果、调用日志、权限日志、数据快照、问题单、培训签到与验收签字。</p></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>建议写入合同的责任边界</h2>
+        <div class="grid-asym">
+          <div class="panel">
+            <h3>客户责任</h3>
+            <ul class="clean-list muted">
+              <li>保证提供的数据、接口、账号和业务规则合法、真实、完整且按期可用</li>
+              <li>指定有决策权的业务负责人确认指标口径、样本和验收结论</li>
+              <li>负责 MES 源数据修复、现场流程执行和最终生产决策</li>
+              <li>按约定提供网络、服务器、安全策略和第三方平台授权</li>
+              <li>在规定时间内反馈，超期未反馈的处理机制需在合同中约定</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>实施方责任</h3>
+            <ul class="clean-list muted">
+              <li>按冻结范围完成配置、集成、测试、培训和上线</li>
+              <li>对平台缺陷和约定范围内的问题提供修复</li>
+              <li>对模型输出提供来源、限制和必要的风险提示</li>
+              <li>落实最小权限、日志审计和敏感操作确认</li>
+              <li>对新增需求提供评估，不默认无偿纳入</li>
+            </ul>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px">
+          <h3>必须明确的免责与限制</h3>
+          <p>Agent 输出属于辅助分析，不构成未经人工确认的生产指令。因源数据错误、客户未披露规则、第三方服务中断、客户越权配置、未经批准的模型或提示修改造成的结果偏差，不应认定为实施方交付缺陷。具体措辞应由法务结合项目合同确认。</p>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>项目过程中的交付门禁</h2>
+        <div class="phase">
+          <div class="phase-name">启动门禁</div>
+          <div><h3>前置条件没有满足，不进入开发</h3><p class="muted">范围、数据接口、负责人、环境、样本和验收口径至少形成书面基线。缺少关键输入时提交风险告知和计划影响。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">数据门禁</div>
+          <div><h3>数据没有对账，不开始评价 Agent 效果</h3><p class="muted">先证明数据查询与 MES 一致，再评价模型分析。数据问题与 Agent 问题必须使用不同的问题分类。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">效果门禁</div>
+          <div><h3>固定版本、固定测试集、固定评价人</h3><p class="muted">验收期间冻结模型、提示、工具和数据快照。客户临时问题可以记录，但不能替代正式测试集。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">上线门禁</div>
+          <div><h3>权限、回退和人工兜底必须可用</h3><p class="muted">未完成越权测试、审计检查、故障降级和用户培训，不建议开放生产用户。</p></div>
+        </div>
+        <div class="phase">
+          <div class="phase-name">验收门禁</div>
+          <div><h3>按证据逐项签署，不接受无限期试用</h3><p class="muted">验收按功能包或里程碑拆分。问题按缺陷、数据问题、优化项和新增需求分类，不让优化项阻塞已完成范围验收。</p></div>
+        </div>
+      </section>

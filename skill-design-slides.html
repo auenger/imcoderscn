@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skill 设计模式借鉴</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  [data-theme="dark"] {
+    --bg: #0b0b14; --bg2: #0f0f1c; --surface: #161628; --surface2: #1c1c36; --surface3: #22223e;
+    --border: rgba(255,255,255,0.06); --border-strong: rgba(255,255,255,0.12);
+    --text: #e6e6f2; --text2: #9090ac; --text3: #606078;
+    --accent: #7b6cf0; --accent2: #a8a0ff;
+    --green: #00d4aa; --green-bg: rgba(0,212,170,0.08); --green-border: rgba(0,212,170,0.2);
+    --red: #ff6b6b; --red-bg: rgba(255,107,107,0.08); --red-border: rgba(255,107,107,0.2);
+    --orange: #f0b848; --orange-bg: rgba(240,184,72,0.08); --orange-border: rgba(240,184,72,0.2);
+    --accent-bg: rgba(123,108,240,0.08); --accent-border: rgba(123,108,240,0.18);
+    --code-bg: #111124; --code-border: rgba(123,108,240,0.12); --code-text: #00d4aa;
+    --shadow: 0 2px 16px rgba(0,0,0,0.4); --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+    --quote-bg: rgba(123,108,240,0.06); --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+    --key-border: rgba(123,108,240,0.18);
+    --toggle-bg: rgba(255,255,255,0.08); --toggle-hover: rgba(255,255,255,0.14);
+    --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+  }
+  [data-theme="light"] {
+    --bg: #f4f4fb; --bg2: #eaeaf4; --surface: #ffffff; --surface2: #f0f0fa; --surface3: #e6e6f2;
+    --border: rgba(0,0,0,0.07); --border-strong: rgba(0,0,0,0.12);
+    --text: #1a1a30; --text2: #5a5a78; --text3: #9898ac;
+    --accent: #5b4cc4; --accent2: #7b6cf0;
+    --green: #009a7c; --green-bg: rgba(0,154,124,0.06); --green-border: rgba(0,154,124,0.18);
+    --red: #d44040; --red-bg: rgba(212,64,64,0.06); --red-border: rgba(212,64,64,0.18);
+    --orange: #b88020; --orange-bg: rgba(184,128,32,0.06); --orange-border: rgba(184,128,32,0.18);
+    --accent-bg: rgba(91,76,196,0.06); --accent-border: rgba(91,76,196,0.15);
+    --code-bg: #1a1a30; --code-border: rgba(91,76,196,0.12); --code-text: #00d4aa;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06); --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+    --quote-bg: rgba(91,76,196,0.04); --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+    --key-border: rgba(91,76,196,0.12);
+    --toggle-bg: rgba(0,0,0,0.06); --toggle-hover: rgba(0,0,0,0.1);
+    --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+  }
+
+  html, body, .slide, .progress, .slide-number, .nav-hint,
+  .col-card, .tip, pre, .quote, .key-point, .flow-item, .tag,
+  .theme-toggle, .tip-num, .loop-card, .step-card, .challenge-item,
+  .score-bar, .icon-card, .pyramid-row {
+    transition: background 0.4s ease, color 0.4s ease, border-color 0.4s ease, box-shadow 0.4s ease, opacity 0.4s ease;
+  }
+
+  html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); }
+
+  .progress { position: fixed; top: 0; left: 0; height: 3px; background: var(--progress-bg); z-index: 100; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  .theme-toggle { position: fixed; bottom: 2.2vh; left: 50%; transform: translateX(-50%); z-index: 60; width: 44px; height: 44px; border-radius: 50%; background: var(--toggle-bg); border: 1px solid var(--border-strong); cursor: pointer; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(8px); }
+  .theme-toggle:hover { background: var(--toggle-hover); }
+  .theme-toggle svg { width: 20px; height: 20px; fill: var(--text2); }
+  [data-theme="dark"] .icon-sun { display: block; } [data-theme="dark"] .icon-moon { display: none; }
+  [data-theme="light"] .icon-sun { display: none; } [data-theme="light"] .icon-moon { display: block; }
+
+  .slides { width: 100%; height: 100%; position: relative; }
+  .slide { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; padding: 6vh 8vw; opacity: 0; transform: translateX(60px); transition: opacity 0.45s ease, transform 0.45s ease; pointer-events: none; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--border-strong) transparent; }
+  .slide > * { max-width: 860px; width: 100%; }
+  .slide > .tag { width: auto; }
+  .slide::-webkit-scrollbar { width: 4px; }
+  .slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+  .slide-number { position: fixed; bottom: 2.5vh; right: 3vw; font-size: 0.82rem; color: var(--text3); z-index: 50; font-variant-numeric: tabular-nums; font-weight: 500; }
+  .nav-hint { position: fixed; bottom: 2.5vh; left: 3vw; font-size: 0.72rem; color: var(--text3); z-index: 50; opacity: 0.5; }
+
+  h1 { font-size: clamp(2rem, 5vw, 3.6rem); font-weight: 900; line-height: 1.15; margin-bottom: 1.2rem; letter-spacing: -0.02em; }
+  h2 { font-size: clamp(1.4rem, 3.2vw, 2.4rem); font-weight: 700; line-height: 1.25; margin-bottom: 1rem; color: var(--accent2); }
+  h3 { font-size: clamp(1rem, 2vw, 1.35rem); font-weight: 600; line-height: 1.4; margin-bottom: 0.6rem; }
+  p, li { font-size: clamp(0.92rem, 1.5vw, 1.12rem); line-height: 1.8; color: var(--text); }
+
+  ul { list-style: none; padding-left: 0; }
+  ul li { position: relative; padding-left: 1.6em; margin-bottom: 0.5em; }
+  ul li::before { content: ''; position: absolute; left: 0.2em; top: 0.7em; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+
+  .tag { display: inline-block; padding: 0.2rem 0.7rem; border-radius: 20px; font-size: 0.78rem; font-weight: 600; margin-bottom: 0.8rem; letter-spacing: 0.02em; }
+  .tag-lesson { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+  .tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+  .tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+  pre { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 1.4rem 1.6rem; margin: 0.8rem 0; overflow-x: auto; font-size: clamp(0.72rem, 1.1vw, 0.88rem); line-height: 1.75; box-shadow: var(--shadow); }
+  code { font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; color: var(--code-text); }
+
+  .quote { border-left: 3px solid var(--quote-border); padding: 1rem 1.4rem; margin: 1rem 0; background: var(--quote-bg); border-radius: 0 8px 8px 0; font-size: clamp(0.95rem, 1.6vw, 1.15rem); line-height: 1.75; color: var(--text2); font-weight: 500; }
+  .quote em { color: var(--accent2); font-style: normal; font-weight: 700; }
+
+  .key-point { background: var(--key-bg); border: 1px solid var(--key-border); border-radius: 10px; padding: 1.2rem 1.4rem; margin-top: 1rem; }
+  .key-point p { font-size: clamp(0.92rem, 1.4vw, 1.05rem); font-weight: 500; line-height: 1.75; }
+  .key-point strong { color: var(--accent2); }
+
+  .flow { display: flex; align-items: center; justify-content: center; gap: 0.4rem; flex-wrap: wrap; margin: 1.2rem 0; }
+  .flow-item { background: var(--surface); border: 1px solid var(--border-strong); padding: 0.5rem 1rem; border-radius: 8px; font-size: clamp(0.82rem, 1.3vw, 0.98rem); font-weight: 500; white-space: nowrap; box-shadow: var(--shadow); }
+  .flow-arrow { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+  .flow-item.green { border-color: var(--green-border); color: var(--green); background: var(--green-bg); }
+  .flow-item.accent { border-color: var(--accent-border); color: var(--accent2); background: var(--accent-bg); }
+
+  .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; margin-top: 0.8rem; }
+  .col-card { background: var(--surface); border-radius: 12px; padding: 1.3rem; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .col-card h3 { margin-bottom: 0.7rem; }
+  .col-card.green-card h3 { color: var(--green); } .col-card.green-card { border-color: var(--green-border); }
+  .col-card.accent-card h3 { color: var(--accent2); } .col-card.accent-card { border-color: var(--accent-border); }
+  .col-card li { font-size: clamp(0.82rem, 1.2vw, 0.95rem); margin-bottom: 0.4em; line-height: 1.65; }
+  .col-card p { font-size: clamp(0.82rem, 1.2vw, 0.95rem); color: var(--text2); line-height: 1.65; }
+
+  .steps { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.8rem; }
+  .step-card { background: var(--surface); border-radius: 10px; padding: 0.9rem 1.2rem; border: 1px solid var(--border); box-shadow: var(--shadow); display: flex; gap: 0.9rem; align-items: flex-start; }
+  .step-label { flex-shrink: 0; padding: 0.2rem 0.6rem; border-radius: 6px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; }
+  .step-label.waterfall { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+  .step-label.agile { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+  .step-body { font-size: clamp(0.85rem, 1.2vw, 0.95rem); line-height: 1.65; }
+  .step-body strong { color: var(--accent2); }
+
+  .pyramid { display: flex; flex-direction: column; align-items: center; gap: 4px; margin: 1.2rem 0; }
+  .pyramid-row { display: flex; align-items: center; justify-content: center; padding: 10px 18px; border-radius: 8px; font-size: clamp(0.82rem, 1.3vw, 0.95rem); font-weight: 500; text-align: center; }
+  .pyramid-row.l0 { width: 40%; background: var(--accent-bg); border: 1px solid var(--accent-border); color: var(--accent2); }
+  .pyramid-row.l1 { width: 55%; background: rgba(123,108,240,0.08); border: 1px solid rgba(123,108,240,0.12); color: var(--accent2); }
+  .pyramid-row.l2 { width: 70%; background: var(--green-bg); border: 1px solid var(--green-border); color: var(--green); }
+  .pyramid-row.l3 { width: 85%; background: var(--surface); border: 1px solid var(--border); color: var(--text2); }
+  .pyramid-row .label { font-weight: 600; }
+  .pyramid-row .desc { font-size: clamp(0.7rem, 1vw, 0.82rem); opacity: 0.8; margin-left: 8px; }
+
+  .icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.8rem; }
+  .icon-card { background: var(--surface); border-radius: 12px; padding: 1.2rem; border: 1px solid var(--border); box-shadow: var(--shadow); }
+  .icon-card h4 { font-size: clamp(0.88rem, 1.3vw, 1rem); font-weight: 600; margin-bottom: 0.4rem; color: var(--accent2); }
+  .icon-card p { font-size: clamp(0.82rem, 1.15vw, 0.92rem); color: var(--text2); line-height: 1.6; }
+
+  .slide-cover { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%); }
+  .slide-cover h1 { background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 1.5rem; font-size: clamp(2.2rem, 5.5vw, 4rem); }
+  .slide-cover .subtitle { font-size: clamp(0.95rem, 1.8vw, 1.3rem); color: var(--text2); font-weight: 300; line-height: 1.7; max-width: 600px; letter-spacing: 0.04em; }
+  .slide-cover .meta { margin-top: 2.5rem; font-size: 0.82rem; color: var(--text3); }
+  .slide-cover .divider { width: 60px; height: 2px; margin: 1.8rem auto; background: var(--progress-bg); border-radius: 1px; }
+
+  .slide-end { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%); }
+
+  .nav-arrow { position: fixed; top: 50%; transform: translateY(-50%); z-index: 55; width: 48px; height: 80px; display: flex; align-items: center; justify-content: center; cursor: pointer; opacity: 0; transition: opacity 0.3s ease, background 0.3s ease; }
+  .nav-arrow:hover { opacity: 1 !important; }
+  .nav-arrow svg { width: 28px; height: 28px; fill: none; stroke: var(--text2); stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .nav-left { left: 0; background: linear-gradient(90deg, var(--bg), transparent); border-radius: 0 8px 8px 0; }
+  .nav-right { right: 0; background: linear-gradient(270deg, var(--bg), transparent); border-radius: 8px 0 0 8px; }
+  .nav-arrow.flash { opacity: 0.7; }
+
+  @media (max-width: 768px) {
+    .slide { padding: 4vh 5vw; }
+    .cols { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; } .flow-arrow { transform: rotate(90deg); text-align: center; }
+    .icon-grid { grid-template-columns: 1fr; }
+    .nav-hint { display: none; }
+  }
+  @media (hover: none) { .nav-hint { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+<div class="nav-arrow nav-left flash" id="navLeft"><svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg></div>
+<div class="nav-arrow nav-right flash" id="navRight"><svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg></div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-3a1 1 0 011 1v1a1 1 0 01-2 0V5a1 1 0 011-1zm0 15a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zm9-7a1 1 0 01-1 1h-1a1 1 0 010-2h1a1 1 0 011 1zM5 12a1 1 0 01-1 1H3a1 1 0 010-2h1a1 1 0 011 1zm14.07-6.07a1 1 0 010 1.41l-.71.71a1 1 0 01-1.41-1.41l.71-.71a1 1 0 011.41 0zM7.05 17.95a1 1 0 010 1.41l-.71.71a1 1 0 01-1.41-1.41l.71-.71a1 1 0 011.41 0zm12.02 0a1 1 0 01-1.41 0l-.71-.71a1 1 0 011.41-1.41l.71.71a1 1 0 010 1.41zM7.05 6.05a1 1 0 01-1.41 0l-.71-.71a1 1 0 011.41-1.41l.71.71a1 1 0 010 1.41z"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+</button>
+
+<div class="slides" id="slides">
+
+  <!-- 1: Cover -->
+  <div class="slide slide-cover active">
+    <span class="tag tag-section">Skill Design</span>
+    <h1>Skill 设计模式<br>借鉴指南</h1>
+    <div class="divider"></div>
+    <p class="subtitle">从 UI-UX-Pro-Max 提炼可复用的 Skill 设计模式</p>
+    <p class="meta">数据分离 · 领域索引 · 合成推理 · 有状态持久化 · 渐进式加载</p>
+  </div>
+
+  <!-- 2: Architecture Pattern -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 1</span>
+    <h2>四层分离架构</h2>
+    <p>把 skill 知识按加载时机分四层，每层职责清晰。</p>
+    <div class="pyramid" style="margin-top:1.2rem">
+      <div class="pyramid-row l0"><span class="label">Layer 0: Frontmatter</span><span class="desc">~200 tokens · 触发判断</span></div>
+      <div class="pyramid-row l1"><span class="label">Layer 1: 决策框架</span><span class="desc">~500 tokens · 流程骨架 + 工作流</span></div>
+      <div class="pyramid-row l2"><span class="label">Layer 2: 关键约束</span><span class="desc">~1K tokens · 不可违反的硬规则</span></div>
+      <div class="pyramid-row l3"><span class="label">Layer 3: 数据层</span><span class="desc">CSV/JSON · 按需脚本检索</span></div>
+    </div>
+    <div class="cols" style="margin-top:1.2rem">
+      <div class="col-card accent-card">
+        <h3>核心思想</h3>
+        <p>SKILL.md 只放「路由和红线」，详细知识全部外置到数据层。触发时加载轻量框架，按需检索细节。</p>
+      </div>
+      <div class="col-card green-card">
+        <h3>收益</h3>
+        <ul>
+          <li>上下文占用从 44KB 降到 5-8KB</li>
+          <li>数据层可独立更新，不污染 SKILL.md</li>
+          <li>不同场景只加载需要的知识</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3: BM25 Search -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 2</span>
+    <h2>零依赖 BM25 检索引擎</h2>
+    <p>用纯 Python 标准库实现 BM25 文本搜索，k1=1.5, b=0.75。无需 pip install，`python3` 即可运行。</p>
+    <pre><code>class BM25:
+    def __init__(self, k1=1.5, b=0.75): ...
+    def fit(self, documents): ...      # 建索引
+    def score(self, query): ...        # 打分排序
+
+def search(query, domain=None, max_results=3):
+    """自动检测 domain → 加载 CSV → BM25 排序"""
+    domain = detect_domain(query)      # 关键词匹配
+    config = CSV_CONFIG[domain]        # 搜索列/输出列
+    return _search_csv(filepath, config, query)</code></pre>
+    <div class="key-point">
+      <p><strong>借鉴价值：</strong>Skill 不需要向量数据库。BM25 对结构化知识的文本检索精度足够，部署零摩擦。每个 domain 配置独立的 search_cols 和 output_cols，做到按需检索、按需输出。</p>
+    </div>
+  </div>
+
+  <!-- 4: Domain Index -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 3</span>
+    <h2>领域驱动的数据索引</h2>
+    <div class="icon-grid">
+      <div class="icon-card">
+        <h4>11 个搜索域</h4>
+        <p>style / color / typography / chart / ux / product / landing / google-fonts / icons / react / web</p>
+      </div>
+      <div class="icon-card">
+        <h4>独立配置</h4>
+        <p>每个 domain 有自己的 CSV 文件、search_cols、output_cols。新增 domain 只需加一条配置。</p>
+      </div>
+      <div class="icon-card">
+        <h4>自动检测</h4>
+        <p>用户输入 "glassmorphism dark" → 自动路由到 style 域。"saas dashboard" → product 域。</p>
+      </div>
+      <div class="icon-card">
+        <h4>可扩展</h4>
+        <p>新增领域只需：1) 添加 CSV 2) 在 CSV_CONFIG 加配置 3) 在 domain_keywords 加映射。无需改代码。</p>
+      </div>
+    </div>
+    <div class="quote">
+      <em>领域划分</em>让 skill 从「一个大搜索框」变成「结构化的知识路由」。AI 不需要读完全部数据，直接命中目标域。
+    </div>
+  </div>
+
+  <!-- 5: Design System Generator -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 4</span>
+    <h2>合成推理器：不止搜索</h2>
+    <p>`--design-system` 不是简单搜索，而是聚合多个 domain + reasoning 规则的<em>合成操作</em>。</p>
+    <div class="flow" style="margin-top:1rem">
+      <div class="flow-item accent">用户输入<br>"SaaS 定价页"</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">并行搜索<br>5 个 domain</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">Reasoning<br>推理规则匹配</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">合成输出<br>完整设计系统</div>
+    </div>
+    <div class="cols" style="margin-top:1rem">
+      <div class="col-card accent-card">
+        <h3>五域并行</h3>
+        <ul>
+          <li>product → 产品类型推荐</li>
+          <li>style → UI 风格 + 效果</li>
+          <li>color → 色彩方案</li>
+          <li>landing → 页面结构 + CTA</li>
+          <li>typography → 字体搭配</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>Reasoning 层</h3>
+        <ul>
+          <li>ui-reasoning.csv 定义决策规则</li>
+          <li>根据产品类型匹配推理链</li>
+          <li>输出 style_priority + anti_patterns</li>
+          <li>结果比单域搜索更有结构</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6: Priority System -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 5</span>
+    <h2>优先级分层：让 AI 知道轻重</h2>
+    <p>不是所有规则都同等重要。用 CRITICAL → HIGH → MEDIUM → LOW 四级让 AI 知道哪些是红线。</p>
+    <div class="steps" style="margin-top:1rem">
+      <div class="step-card">
+        <span class="step-label waterfall" style="background:var(--red-bg);color:var(--red);border-color:var(--red-border)">CRITICAL</span>
+        <div class="step-body"><strong>无障碍 · 触摸交互</strong> — 违反即事故：对比度 4.5:1、触控区 44pt、焦点环可见</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label waterfall">HIGH</span>
+        <div class="step-body"><strong>性能 · 布局 · 导航 · 风格</strong> — 影响体验：懒加载、mobile-first、底部导航 ≤5 项</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">MEDIUM</span>
+        <div class="step-body"><strong>排版 · 动画 · 表单</strong> — 锦上添花：line-height 1.5、动画 150-300ms、inline validation</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile" style="background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border)">LOW</span>
+        <div class="step-body"><strong>图表 · 数据可视化</strong> — 特定场景：legend 可见、tooltip 可达、不用颜色单独传达含义</div>
+      </div>
+    </div>
+    <div class="key-point">
+      <p><strong>借鉴价值：</strong>给 AI 一套「什么能违反什么不能」的决策框架。没有优先级的规则列表，AI 会同等对待所有条目。</p>
+    </div>
+  </div>
+
+  <!-- 7: Persistence -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 6</span>
+    <h2>Master + Overrides 有状态持久化</h2>
+    <p>用 `--persist` 把一次设计决策持久化到文件系统，后续 session 可复用。</p>
+    <pre><code>design-system/
+├── MASTER.md          ← 全局 Source of Truth
+└── pages/
+    ├── dashboard.md   ← 页面级 override
+    └── checkout.md    ← 页面级 override</code></pre>
+    <div class="cols" style="margin-top:0.8rem">
+      <div class="col-card green-card">
+        <h3>层级检索逻辑</h3>
+        <ul>
+          <li>构建 dashboard 页 → 先查 pages/dashboard.md</li>
+          <li>如果存在，override 优先于 MASTER</li>
+          <li>如果不存在，直接用 MASTER 规则</li>
+          <li>一次生成，多次复用</li>
+        </ul>
+      </div>
+      <div class="col-card accent-card">
+        <h3>适用场景</h3>
+        <ul>
+          <li>跨 session 保持设计一致性</li>
+          <li>多页面项目的统一设计语言</li>
+          <li>设计决策可追溯、可审计</li>
+          <li>新成员 onboarding 有参考</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8: Progressive Loading -->
+  <div class="slide">
+    <span class="tag tag-lesson">模式 7</span>
+    <h2>渐进式加载：按需逐步展开</h2>
+    <div class="flow" style="margin-bottom:1rem">
+      <div class="flow-item accent"><strong>Step 1</strong> SKILL.md 加载<br>~5KB 决策框架</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green"><strong>Step 2</strong> --design-system<br>返回推荐方案</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green"><strong>Step 3</strong> --domain ux<br>补充细节规则</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green"><strong>Step 4</strong> --persist<br>持久化决策</div>
+    </div>
+    <div class="quote">
+      每一步只加载<em>当前需要的知识</em>。Token 消耗与场景复杂度成正比，而不是一次性全量灌入。
+    </div>
+    <div class="cols" style="margin-top:0.8rem">
+      <div class="col-card accent-card">
+        <h3>设计原则</h3>
+        <p>SKILL.md 是<strong>索引器和决策路由</strong>，不是百科全书。它告诉 AI「先做什么、去哪里找答案」，而不是把所有答案写出来。</p>
+      </div>
+      <div class="col-card green-card">
+        <h3>Token 效率</h3>
+        <p>简单任务：~2KB 就够。复杂项目：渐进加载到 ~10KB。而不是每次都花 ~44KB 的固定开销。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- 9: Summary -->
+  <div class="slide">
+    <span class="tag tag-section">总结</span>
+    <h2>七个可借鉴的设计模式</h2>
+    <div class="steps">
+      <div class="step-card"><span class="step-label waterfall">架构</span><div class="step-body"><strong>四层分离</strong> — Frontmatter + 决策框架 + 关键约束 + 数据层。SKILL.md 只放路由和红线。</div></div>
+      <div class="step-card"><span class="step-label waterfall">检索</span><div class="step-body"><strong>零依赖 BM25</strong> — 纯标准库，无需 pip。对结构化知识够用，部署零摩擦。</div></div>
+      <div class="step-card"><span class="step-label waterfall">索引</span><div class="step-body"><strong>领域驱动索引</strong> — 11 domain 独立配置，自动检测路由，新增 domain 只加配置。</div></div>
+      <div class="step-card"><span class="step-label agile">合成</span><div class="step-body"><strong>合成推理器</strong> — 多域并行 + reasoning 规则，输出比单域搜索更有结构的推荐。</div></div>
+      <div class="step-card"><span class="step-label agile">分层</span><div class="step-body"><strong>优先级分层</strong> — CRITICAL → LOW，让 AI 知道哪些规则不能违反。</div></div>
+      <div class="step-card"><span class="step-label agile">状态</span><div class="step-body"><strong>Master + Overrides</strong> — 跨 session 持久化，层级 override，设计决策可追溯。</div></div>
+      <div class="step-card"><span class="step-label agile">加载</span><div class="step-body"><strong>渐进式加载</strong> — 按需逐步展开，Token 与复杂度成正比。</div></div>
+    </div>
+  </div>
+
+  <!-- 10: End -->
+  <div class="slide slide-end">
+    <h2>核心理念</h2>
+    <div class="key-point" style="text-align:center;max-width:680px">
+      <p style="font-size:clamp(1.1rem,2vw,1.4rem);font-weight:700">好的 Skill 是高效的索引器和决策路由，不是百科全书。</p>
+    </div>
+    <div class="quote" style="text-align:left;max-width:680px;margin-top:1.2rem">
+      把知识外置到数据层，把路由和红线留在 SKILL.md。<em>按需检索</em>替代全量加载，<em>合成推理</em>替代简单搜索，<em>有状态持久化</em>替代无状态重复。
+    </div>
+    <div style="margin-top:2rem;display:flex;gap:0.6rem;justify-content:center;flex-wrap:wrap">
+      <span class="tag tag-lesson">四层分离</span>
+      <span class="tag tag-section">领域索引</span>
+      <span class="tag tag-orange">合成推理</span>
+      <span class="tag tag-section">优先级分层</span>
+      <span class="tag tag-lesson">有状态持久化</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const progress = document.getElementById('progress');
+const slideNum = document.getElementById('slideNum');
+const themeToggle = document.getElementById('themeToggle');
+let current = 0, isAnimating = false;
+const total = slides.length;
+
+themeToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('slide-theme', next);
+});
+(function() { const s = localStorage.getItem('slide-theme'); if (s) document.documentElement.setAttribute('data-theme', s); })();
+
+const navLeft = document.getElementById('navLeft'), navRight = document.getElementById('navRight');
+let flashTimer;
+function flashArrows() { navLeft.classList.add('flash'); navRight.classList.add('flash'); clearTimeout(flashTimer); flashTimer = setTimeout(() => { navLeft.classList.remove('flash'); navRight.classList.remove('flash'); }, 1200); }
+navLeft.addEventListener('click', e => { e.stopPropagation(); updateSlide(current - 1, 'prev'); });
+navRight.addEventListener('click', e => { e.stopPropagation(); updateSlide(current + 1, 'next'); });
+
+function updateSlide(n, dir) {
+  if (isAnimating || n < 0 || n >= total || n === current) return;
+  isAnimating = true;
+  const old = slides[current], nw = slides[n];
+  const ex = dir === 'next' ? '-60px' : '60px', en = dir === 'next' ? '60px' : '-60px';
+  old.classList.remove('active');
+  nw.style.transition = 'none'; nw.style.transform = 'translateX(' + en + ')';
+  nw.classList.add('active'); void nw.offsetWidth;
+  nw.style.transition = ''; nw.style.transform = '';
+  old.style.transform = 'translateX(' + ex + ')';
+  current = n; updateUI(); flashArrows();
+  setTimeout(() => { old.style.transform = ''; isAnimating = false; }, 460);
+}
+
+function updateUI() {
+  progress.style.width = ((current + 1) / total * 100) + '%';
+  slideNum.textContent = (current + 1) + ' / ' + total;
+  navLeft.style.display = current === 0 ? 'none' : '';
+  navRight.style.display = current === total - 1 ? 'none' : '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); updateSlide(current + 1, 'next'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); updateSlide(current - 1, 'prev'); }
+});
+
+let tx = 0;
+document.addEventListener('touchstart', e => { tx = e.changedTouches[0].screenX; }, { passive: true });
+document.addEventListener('touchend', e => { const dx = e.changedTouches[0].screenX - tx; if (Math.abs(dx) > 50) { dx < 0 ? updateSlide(current + 1, 'next') : updateSlide(current - 1, 'prev'); } }, { passive: true });
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.theme-toggle') || e.target.closest('.nav-arrow')) return;
+  const x = e.clientX / window.innerWidth;
+  if (e.clientY / window.innerHeight > 0.88) return;
+  if (x > 0.65) updateSlide(current + 1, 'next');
+  else if (x < 0.35) updateSlide(current - 1, 'prev');
+});
+
+updateUI(); flashArrows();
+</script>
+</body>
+</html>

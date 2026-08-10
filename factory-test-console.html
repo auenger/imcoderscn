@@ -1,0 +1,1137 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EQP-EAP 工厂测试操作台</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary:#2563EB;--primary-light:#3B82F6;--primary-bg:#EFF6FF;
+  --success:#16A34A;--success-bg:#F0FDF4;
+  --warning:#D97706;--warning-bg:#FFFBEB;
+  --danger:#DC2626;--danger-bg:#FEF2F2;
+  --pending:#6B7280;--pending-bg:#F3F4F6;
+  --bg:#F8FAFC;--surface:#FFF;--text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --border:#E2E8F0;--border2:#F1F5F9;
+  --r:8px;--rs:6px;
+  --shadow:0 1px 3px rgba(0,0,0,.1);
+  --font:'Fira Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Fira Code','SF Mono',monospace;
+  --tr:200ms ease;
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html{font-size:16px}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ===== HEADER ===== */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
+.header-left{display:flex;align-items:center;gap:14px;cursor:pointer}
+.header-logo{width:34px;height:34px;background:var(--primary);border-radius:var(--rs);display:flex;align-items:center;justify-content:center}
+.header-logo svg{width:18px;height:18px;color:#fff}
+.header-title{font-size:16px;font-weight:700}
+.header-sub{font-size:12px;color:var(--text2);margin-top:1px}
+.header-right{display:flex;align-items:center;gap:10px}
+.breadcrumb{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--text2)}
+.breadcrumb a{color:var(--primary);text-decoration:none;cursor:pointer;font-weight:500}
+.breadcrumb a:hover{text-decoration:underline}
+.breadcrumb span.sep{color:var(--text3)}
+.device-badge{display:flex;align-items:center;gap:5px;padding:5px 10px;background:var(--success-bg);border:1px solid #BBF7D0;border-radius:16px;font-size:12px;font-weight:500;color:var(--success)}
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--success);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.clock{font-family:var(--mono);font-size:13px;color:var(--text2)}
+
+/* ===== BUTTONS ===== */
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 14px;font-size:13px;font-weight:600;font-family:var(--font);border:1px solid var(--border);border-radius:var(--rs);background:var(--surface);color:var(--text);cursor:pointer;transition:all var(--tr);white-space:nowrap}
+.btn:hover{background:var(--bg);border-color:#CBD5E1}
+.btn:active{transform:scale(.97)}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--primary);border-color:var(--primary);color:#fff}
+.btn-primary:hover{background:var(--primary-light);border-color:var(--primary-light)}
+.btn-success{background:var(--success);border-color:var(--success);color:#fff}
+.btn-success:hover{background:#15803D}
+.btn-danger{background:var(--danger);border-color:var(--danger);color:#fff}
+.btn-danger:hover{background:#B91C1C}
+.btn:disabled{opacity:.45;cursor:not-allowed;transform:none}
+.btn-sm{padding:5px 10px;font-size:12px}
+.btn-sm svg{width:12px;height:12px}
+.btn-ghost{border:none;background:transparent;color:var(--text2)}
+.btn-ghost:hover{background:var(--bg);color:var(--text)}
+
+/* ===== MAIN LAYOUT ===== */
+.main{max-width:1360px;margin:0 auto;padding:20px 24px 80px}
+.view{display:none}
+.view.active{display:block}
+
+/* ===== DASHBOARD ===== */
+.dash-hero{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px}
+.dash-hero h2{font-size:20px;font-weight:700}
+.dash-hero p{font-size:13px;color:var(--text2);margin-top:2px}
+
+.snap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:14px}
+.snap-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px;transition:border-color var(--tr);cursor:pointer}
+.snap-card:hover{border-color:#CBD5E1;box-shadow:var(--shadow)}
+.snap-card-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.snap-card-name{font-size:15px;font-weight:700}
+.snap-card-ver{font-family:var(--mono);font-size:11px;color:var(--primary);background:var(--primary-bg);padding:2px 8px;border-radius:10px}
+.snap-card-meta{display:flex;gap:16px;font-size:12px;color:var(--text2);margin-bottom:12px}
+.snap-card-meta svg{width:12px;height:12px;vertical-align:-2px;margin-right:3px}
+.snap-card-stats{display:flex;gap:6px}
+.stat-chip{padding:3px 8px;border-radius:4px;font-size:11px;font-weight:600;font-family:var(--mono)}
+.stat-chip.upload{background:#EFF6FF;color:var(--primary)}
+.stat-chip.download{background:#FFF7ED;color:#EA580C}
+.stat-chip.custom{background:#F5F3FF;color:#7C3AED}
+.snap-card-actions{display:flex;gap:6px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border2)}
+
+.empty-state{text-align:center;padding:80px 20px;color:var(--text2)}
+.empty-state svg{width:48px;height:48px;color:var(--text3);margin-bottom:12px}
+.empty-state h3{font-size:16px;color:var(--text);margin-bottom:4px}
+.empty-state p{font-size:13px}
+
+/* ===== CREATE SNAPSHOT ===== */
+.create-layout{display:grid;grid-template-columns:1fr 340px;gap:20px}
+.lib-panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden}
+.lib-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center}
+.lib-header h3{font-size:14px;font-weight:700}
+.lib-search{padding:10px 16px;border-bottom:1px solid var(--border2)}
+.lib-search input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:var(--font);outline:none}
+.lib-search input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+.lib-group{padding:8px 0}
+.lib-group-title{padding:6px 16px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;color:var(--text3)}
+.lib-item{display:flex;align-items:center;gap:10px;padding:8px 16px;transition:background var(--tr)}
+.lib-item:hover{background:var(--bg)}
+.lib-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--primary);cursor:pointer}
+.lib-item-id{font-family:var(--mono);font-size:11px;color:var(--primary);min-width:100px;font-weight:600}
+.lib-item-name{font-size:13px;flex:1}
+.lib-item-dir{font-size:10px;font-weight:600;padding:2px 6px;border-radius:3px}
+.lib-item-dir.eqp-eap{background:#DBEAFE;color:#1D4ED8}
+.lib-item-dir.eap-eqp{background:#FFEDD5;color:#C2410C}
+
+/* Selected panel */
+.sel-panel{position:sticky;top:72px}
+.sel-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:14px}
+.sel-card h3{font-size:14px;font-weight:700;margin-bottom:12px}
+.sel-card h3 small{font-size:11px;color:var(--text3);font-weight:400;margin-left:6px}
+.sel-list{max-height:200px;overflow-y:auto;font-size:12px}
+.sel-item{display:flex;align-items:center;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border2)}
+.sel-item:last-child{border-bottom:none}
+.sel-item span{font-family:var(--mono);font-size:11px;color:var(--text2)}
+.sel-item button{border:none;background:none;color:var(--danger);cursor:pointer;font-size:12px;padding:2px}
+
+.form-group{margin-bottom:12px}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--text2);margin-bottom:4px}
+.form-input{width:100%;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-size:13px;font-family:var(--font);outline:none}
+.form-input:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+textarea.form-input{min-height:60px;resize:vertical;font-size:12px}
+
+/* ===== SNAPSHOT DETAIL / TEST ===== */
+.detail-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.detail-info h2{font-size:18px;font-weight:700}
+.detail-info p{font-size:12px;color:var(--text2);margin-top:2px}
+.detail-actions{display:flex;gap:8px}
+
+/* Summary row */
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.summary-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;display:flex;align-items:center;gap:10px}
+.summary-icon{width:36px;height:36px;border-radius:var(--rs);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.summary-icon svg{width:18px;height:18px}
+.summary-icon.total{background:var(--primary-bg);color:var(--primary)}
+.summary-icon.pass{background:var(--success-bg);color:var(--success)}
+.summary-icon.fail{background:var(--danger-bg);color:var(--danger)}
+.summary-icon.pending{background:var(--pending-bg);color:var(--pending)}
+.summary-label{font-size:11px;color:var(--text2)}
+.summary-value{font-size:22px;font-weight:700;font-family:var(--mono)}
+
+/* Progress */
+.progress-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:16px}
+.progress-head{display:flex;justify-content:space-between;margin-bottom:6px;font-size:13px}
+.progress-head span:last-child{font-family:var(--mono);color:var(--text2)}
+.progress-track{height:6px;background:var(--bg);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .5s ease}
+
+/* Tabs */
+.tab-bar{display:flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:3px;margin-bottom:14px}
+.tab-btn{flex:1;padding:10px 16px;font-size:13px;font-weight:600;font-family:var(--font);border:none;background:0;color:var(--text2);cursor:pointer;border-radius:var(--rs);transition:all var(--tr);display:flex;align-items:center;justify-content:center;gap:6px}
+.tab-btn:hover{color:var(--text)}
+.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 1px 2px rgba(37,99,235,.3)}
+.tab-btn svg{width:14px;height:14px}
+.tab-count{min-width:20px;height:20px;padding:0 5px;border-radius:10px;font-size:10px;font-weight:700;font-family:var(--mono);display:inline-flex;align-items:center;justify-content:center}
+.tab-btn.active .tab-count{background:rgba(255,255,255,.2);color:#fff}
+.tab-btn:not(.active) .tab-count{background:var(--border);color:var(--text2)}
+.tab-content{display:none}.tab-content.active{display:block}
+
+/* Section */
+.sec-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.sec-title{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.sec-title svg{width:14px;height:14px;color:var(--text2)}
+
+/* Test list */
+.test-list{display:flex;flex-direction:column;gap:6px;margin-bottom:16px}
+.test-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px 14px;display:grid;grid-template-columns:28px 1fr 130px 80px 130px;align-items:center;gap:10px;transition:border-color var(--tr)}
+.test-item:hover{border-color:#CBD5E1}
+.test-item.st-pass{border-left:3px solid var(--success)}
+.test-item.st-fail{border-left:3px solid var(--danger)}
+.test-item.st-running{border-left:3px solid var(--primary)}
+.test-item.st-pending{border-left:3px solid var(--pending)}
+.test-seq{font-family:var(--mono);font-size:11px;font-weight:600;color:var(--text3);width:28px;height:28px;display:flex;align-items:center;justify-content:center;background:var(--bg);border-radius:var(--rs)}
+.test-info{min-width:0}
+.test-name{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.test-endpoint{font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.test-status{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:14px;font-size:11px;font-weight:600;white-space:nowrap}
+.test-status.pass{background:var(--success-bg);color:var(--success)}
+.test-status.fail{background:var(--danger-bg);color:var(--danger)}
+.test-status.running{background:var(--primary-bg);color:var(--primary)}
+.test-status.pending{background:var(--pending-bg);color:var(--pending)}
+.test-status svg{width:11px;height:11px}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{animation:spin 1s linear infinite}
+.test-time{font-family:var(--mono);font-size:11px;color:var(--text2);text-align:center}
+.test-actions{display:flex;gap:5px;justify-content:flex-end}
+
+.test-detail{grid-column:1/-1;margin-top:6px;padding-top:8px;border-top:1px dashed var(--border);display:none}
+.test-detail.visible{display:block}
+.error-ta{width:100%;min-height:48px;padding:8px 10px;font-family:var(--mono);font-size:11px;line-height:1.5;border:1px solid var(--border);border-radius:var(--rs);resize:vertical;color:var(--text);background:#FAFAFA;outline:none}
+.error-ta:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.08)}
+.error-ta::placeholder{color:var(--text3)}
+.detail-row{display:flex;align-items:flex-start;gap:10px;margin-bottom:6px}
+.detail-lbl{font-size:11px;font-weight:600;color:var(--text2);min-width:60px;padding-top:7px}
+
+/* ===== ADD CUSTOM INTERFACE MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center}
+.modal-overlay.visible{display:flex}
+.modal{background:var(--surface);border-radius:var(--r);width:92%;max-width:520px;max-height:80vh;overflow-y:auto;padding:24px;box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+.modal-title{font-size:16px;font-weight:700;margin-bottom:16px}
+.modal-actions{display:flex;gap:8px;justify-content:flex-end;margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+
+/* ===== REPORT MODAL ===== */
+.report-modal{max-width:860px}
+.report-stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px}
+.report-stat{text-align:center;padding:14px;background:var(--bg);border-radius:var(--rs)}
+.report-stat-val{font-size:26px;font-weight:700;font-family:var(--mono)}
+.report-stat-lbl{font-size:11px;color:var(--text2);margin-top:2px}
+.report-sec-title{font-size:13px;font-weight:700;color:var(--text);margin:18px 0 8px;padding-bottom:6px;border-bottom:2px solid var(--primary);display:inline-block}
+.report-table{width:100%;border-collapse:collapse;font-size:12px}
+.report-table th{text-align:left;padding:8px 10px;background:var(--bg);font-weight:600;color:var(--text2);border-bottom:1px solid var(--border);font-size:11px;text-transform:uppercase;letter-spacing:.4px}
+.report-table td{padding:8px 10px;border-bottom:1px solid var(--border2);vertical-align:top}
+.report-table tr:last-child td{border-bottom:none}
+.report-table .mono{font-family:var(--mono);font-size:11px}
+
+/* ===== TOAST ===== */
+.toast-box{position:fixed;top:68px;right:20px;z-index:300;display:flex;flex-direction:column;gap:6px}
+.toast{padding:10px 14px;border-radius:var(--rs);font-size:13px;font-weight:500;box-shadow:var(--shadow);display:flex;align-items:center;gap:6px;animation:tin .3s ease;max-width:340px}
+.toast svg{width:14px;height:14px;flex-shrink:0}
+.toast.success{background:var(--success);color:#fff}
+.toast.error{background:var(--danger);color:#fff}
+.toast.info{background:var(--primary);color:#fff}
+@keyframes tin{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:translateX(0)}}
+
+/* ===== FOOTER ===== */
+.footer{position:fixed;bottom:0;left:0;right:0;height:52px;background:var(--surface);border-top:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;z-index:50}
+.footer-info{font-size:12px;color:var(--text3);font-family:var(--mono)}
+.footer-actions{display:flex;gap:8px}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:1024px){
+  .create-layout{grid-template-columns:1fr}
+  .sel-panel{position:static}
+  .test-item{grid-template-columns:28px 1fr auto}
+  .test-time,.test-status{display:none}
+  .summary-row{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left" onclick="navigate('dashboard')">
+    <div class="header-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    </div>
+    <div>
+      <div class="header-title">EQP-EAP 工厂测试操作台</div>
+      <div class="header-sub">Factory Interface Testing Console</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div id="breadcrumb" class="breadcrumb"></div>
+    <div class="device-badge"><span class="dot-live"></span><span>在线</span><span style="margin-left:3px;font-family:var(--mono);font-size:10px;opacity:.65">PAD-FC-07</span></div>
+    <div class="clock" id="clock">--:--:--</div>
+  </div>
+</header>
+
+<main class="main">
+  <!-- ===== VIEW: Dashboard ===== -->
+  <div class="view active" id="view-dashboard">
+    <div class="dash-hero">
+      <div>
+        <h2>测试快照</h2>
+        <p>从标准接口库创建设备测试快照，管理测试版本</p>
+      </div>
+      <button class="btn btn-primary" onclick="navigate('create')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        新建快照
+      </button>
+    </div>
+    <div id="snapGrid" class="snap-grid"></div>
+    <div id="emptyState" class="empty-state" style="display:none">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+      <h3>暂无测试快照</h3>
+      <p>点击「新建快照」从标准接口库创建第一个测试方案</p>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: Create Snapshot ===== -->
+  <div class="view" id="view-create">
+    <div class="detail-head">
+      <div class="detail-info">
+        <h2>新建测试快照</h2>
+        <p>从标准接口库中选择接口，组合为一个设备测试方案</p>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button class="btn" onclick="navigate('dashboard')">取消</button>
+        <button class="btn btn-primary" onclick="saveSnapshot()">保存快照</button>
+      </div>
+    </div>
+    <div class="create-layout">
+      <div class="lib-panel">
+        <div class="lib-header">
+          <h3>标准接口库</h3>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-sm btn-ghost" onclick="selectAll('upload')">全选上报</button>
+            <button class="btn btn-sm btn-ghost" onclick="selectAll('download')">全选下发</button>
+            <button class="btn btn-sm btn-ghost" onclick="clearAll()">清空</button>
+          </div>
+        </div>
+        <div class="lib-search">
+          <input type="text" placeholder="搜索接口编号或名称..." id="libSearch" oninput="filterLibrary()">
+        </div>
+        <div style="max-height:520px;overflow-y:auto">
+          <div class="lib-group">
+            <div class="lib-group-title">EQP → EAP 上报接口 (28项)</div>
+            <div id="libUpload"></div>
+          </div>
+          <div class="lib-group">
+            <div class="lib-group-title">EAP → EQP 下发接口 (8项)</div>
+            <div id="libDownload"></div>
+          </div>
+        </div>
+      </div>
+      <div class="sel-panel">
+        <div class="sel-card">
+          <h3>快照信息</h3>
+          <div class="form-group">
+            <label class="form-label">快照名称 *</label>
+            <input class="form-input" id="snapName" placeholder="如：钻孔机-A线-首件测试">
+          </div>
+          <div class="form-group">
+            <label class="form-label">设备型号</label>
+            <input class="form-input" id="snapDevice" placeholder="如：DS-800C">
+          </div>
+          <div class="form-group">
+            <label class="form-label">备注</label>
+            <textarea class="form-input" id="snapNote" placeholder="可选：版本说明、测试范围等"></textarea>
+          </div>
+        </div>
+        <div class="sel-card">
+          <h3>已选接口 <small id="selCount">0 项</small></h3>
+          <div class="sel-list" id="selList">
+            <div style="text-align:center;color:var(--text3);font-size:12px;padding:20px 0">从左侧勾选接口</div>
+          </div>
+        </div>
+        <button class="btn" style="width:100%" onclick="showAddCustom()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          新增自定义接口
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== VIEW: Snapshot Detail (Test) ===== -->
+  <div class="view" id="view-detail">
+    <div class="detail-head">
+      <div class="detail-info">
+        <h2 id="detailTitle">--</h2>
+        <p id="detailMeta">--</p>
+      </div>
+      <div class="detail-actions">
+        <button class="btn" onclick="duplicateSnapshot()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          新版本
+        </button>
+        <button class="btn" onclick="navigate('dashboard')">返回列表</button>
+      </div>
+    </div>
+
+    <div class="summary-row" id="detailSummary"></div>
+
+    <div class="progress-bar">
+      <div class="progress-head">
+        <span style="font-weight:600">整体测试进度</span>
+        <span id="progressText">0 / 0</span>
+      </div>
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    </div>
+
+    <div class="tab-bar" id="detailTabs">
+      <button class="tab-btn active" data-tab="upload" onclick="switchDetailTab('upload')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        设备接口上报
+        <span class="tab-count" id="tabUploadCount">0</span>
+      </button>
+      <button class="tab-btn" data-tab="download" onclick="switchDetailTab('download')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 16 12 12 8 16"/><line x1="12" y1="12" x2="12" y2="21"/><path d="M20.39 18.39A5 5 0 0 0 18 9h-1.26A8 8 0 1 0 3 16.3"/></svg>
+        数据接口下发
+        <span class="tab-count" id="tabDownloadCount">0</span>
+      </button>
+    </div>
+
+    <div class="sec-head">
+      <div class="sec-title" id="secTitle">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>接口测试列表</span>
+      </div>
+      <div style="display:flex;gap:6px">
+        <button class="btn btn-sm" onclick="runAllCurrent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          全部测试
+        </button>
+        <button class="btn btn-sm" onclick="resetCurrent()">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          重置
+        </button>
+      </div>
+    </div>
+
+    <div class="tab-content active" id="dt-upload"><div class="test-list" id="dtUploadList"></div></div>
+    <div class="tab-content" id="dt-download"><div class="test-list" id="dtDownloadList"></div></div>
+  </div>
+</main>
+
+<footer class="footer" id="footer">
+  <div class="footer-info" id="footerInfo">就绪</div>
+  <div class="footer-actions" id="footerActions"></div>
+</footer>
+
+<div class="toast-box" id="toastBox"></div>
+
+<!-- Add Custom Interface Modal -->
+<div class="modal-overlay" id="customModal">
+  <div class="modal">
+    <div class="modal-title">新增自定义接口</div>
+    <div class="form-group">
+      <label class="form-label">接口编号 *</label>
+      <input class="form-input" id="customId" placeholder="如：CUSTOM-001">
+    </div>
+    <div class="form-group">
+      <label class="form-label">接口名称 *</label>
+      <input class="form-input" id="customName" placeholder="如：自定义温度采集上报">
+    </div>
+    <div class="form-group">
+      <label class="form-label">方向 *</label>
+      <select class="form-input" id="customDir">
+        <option value="upload">EQP → EAP (上报)</option>
+        <option value="download">EAP → EQP (下发)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">端点路径</label>
+      <input class="form-input" id="customEndpoint" placeholder="如：POST /api/v1/custom/temp">
+    </div>
+    <div class="form-group">
+      <label class="form-label">描述</label>
+      <textarea class="form-input" id="customDesc" placeholder="接口功能描述"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeCustomModal()">取消</button>
+      <button class="btn btn-primary" onclick="addCustomInterface()">添加</button>
+    </div>
+  </div>
+</div>
+
+<!-- Report Modal -->
+<div class="modal-overlay" id="reportOverlay">
+  <div class="modal report-modal">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <div style="font-size:18px;font-weight:700">测试报告</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px" id="reportMeta"></div>
+      </div>
+      <button class="btn-ghost" style="border:none;background:var(--bg);width:30px;height:30px;border-radius:var(--rs);cursor:pointer;display:flex;align-items:center;justify-content:center" onclick="closeReport()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div id="reportContent"></div>
+    <div style="margin-top:20px;padding-top:12px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="closeReport()">关闭</button>
+      <button class="btn btn-primary" onclick="window.print()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        打印
+      </button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STANDARD LIBRARY =====
+const STANDARD_LIBRARY = [
+  // EQP -> EAP 上报
+  {id:'EQP-EAP-001',name:'连线检查',dir:'upload',endpoint:'POST /api/v1/eqp/connect-check',desc:'设备与EAP建立通讯连接状态检查'},
+  {id:'EQP-EAP-002',name:'设备状态上报',dir:'upload',endpoint:'POST /api/v1/eqp/status',desc:'设备当前运行状态上报'},
+  {id:'EQP-EAP-003',name:'设备当前控制模式上报',dir:'upload',endpoint:'POST /api/v1/eqp/control-mode',desc:'本地/远程控制模式状态上报'},
+  {id:'EQP-EAP-004',name:'设备警报上报',dir:'upload',endpoint:'POST /api/v1/eqp/alarm',desc:'设备告警/报警信息实时上报'},
+  {id:'EQP-EAP-005',name:'设备任务进展信息上报',dir:'upload',endpoint:'POST /api/v1/eqp/task-progress',desc:'当前执行任务的进度状态上报'},
+  {id:'EQP-EAP-006',name:'设备上下料端口状态上报',dir:'upload',endpoint:'POST /api/v1/eqp/port-status',desc:'LoadPort/UnloadPort状态上报'},
+  {id:'EQP-EAP-007',name:'设备读PNL码上报',dir:'upload',endpoint:'POST /api/v1/eqp/pnl-scan',desc:'Panel条码读取结果上报'},
+  {id:'EQP-EAP-008',name:'PNL绑定信息上报',dir:'upload',endpoint:'POST /api/v1/eqp/pnl-bind',desc:'Panel绑定关系信息上报'},
+  {id:'EQP-EAP-009',name:'设备制程/量测数据报告',dir:'upload',endpoint:'POST /api/v1/eqp/process-data',desc:'制程参数和量测数据上报'},
+  {id:'EQP-EAP-010',name:'扫码枪扫描二维码信息上报',dir:'upload',endpoint:'POST /api/v1/eqp/qrcode-scan',desc:'扫码枪扫描二维码结果上报'},
+  {id:'EQP-EAP-011',name:'底盘或治具身份信息上报',dir:'upload',endpoint:'POST /api/v1/eqp/carrier-id',desc:'底盘/治具ID识别结果上报'},
+  {id:'EQP-EAP-012',name:'打靶机上报涨缩信息',dir:'upload',endpoint:'POST /api/v1/eqp/target-scale',desc:'打靶机涨缩量测数据上报'},
+  {id:'EQP-EAP-013',name:'By飞靶上报每个药水槽进出时间',dir:'upload',endpoint:'POST /api/v1/eqp/flight-target-tank',desc:'飞靶药水槽进出时间信息上报'},
+  {id:'EQP-EAP-014',name:'内外层PanelID绑定关系上报',dir:'upload',endpoint:'POST /api/v1/eqp/layer-bind',desc:'内层与外层PanelID绑定关系'},
+  {id:'EQP-EAP-015',name:'上报PNL获取Set/Pcs',dir:'upload',endpoint:'POST /api/v1/eqp/pnl-set-pcs',desc:'上报PNL获取对应的Set/Pcs信息'},
+  {id:'EQP-EAP-016',name:'小板件读码上报',dir:'upload',endpoint:'POST /api/v1/eqp/small-board-scan',desc:'小板件条码读取结果上报'},
+  {id:'EQP-EAP-017',name:'设备请求身份信息',dir:'upload',endpoint:'POST /api/v1/eqp/identity-request',desc:'设备请求获取物料身份信息'},
+  {id:'EQP-EAP-018',name:'钻机读铝片码上报',dir:'upload',endpoint:'POST /api/v1/eqp/drill-aluminum-scan',desc:'钻机读取铝片码结果上报'},
+  {id:'EQP-EAP-019',name:'检测信息上报',dir:'upload',endpoint:'POST /api/v1/eqp/inspection-result',desc:'AOI/AVI等检测结果数据上报'},
+  {id:'EQP-EAP-020',name:'读内层码请求外层码',dir:'upload',endpoint:'POST /api/v1/eqp/inner-to-outer',desc:'通过内层码请求对应外层码'},
+  {id:'EQP-EAP-021',name:'药水添加信息上报',dir:'upload',endpoint:'POST /api/v1/eqp/chemical-add',desc:'药水/化学品添加记录上报'},
+  {id:'EQP-EAP-022',name:'询问是否允许投板',dir:'upload',endpoint:'POST /api/v1/eqp/board-allow',desc:'设备询问EAP是否允许投板操作'},
+  {id:'EQP-EAP-023',name:'裁切任务完成',dir:'upload',endpoint:'POST /api/v1/eqp/cut-complete',desc:'裁切工序完成结果上报'},
+  {id:'EQP-EAP-024',name:'询问是否管控有效期',dir:'upload',endpoint:'POST /api/v1/eqp/expiry-check',desc:'询问物料是否在管控有效期内'},
+  {id:'EQP-EAP-025',name:'压膜机扫描物料标签上报',dir:'upload',endpoint:'POST /api/v1/eqp/laminator-scan',desc:'压膜机扫描物料标签信息上报'},
+  {id:'EQP-EAP-026',name:'料号校验',dir:'upload',endpoint:'POST /api/v1/eqp/part-verify',desc:'设备上料时料号校验请求'},
+  {id:'EQP-EAP-027',name:'设备人员登录验证',dir:'upload',endpoint:'POST /api/v1/eqp/operator-login',desc:'操作人员刷卡/登录验证请求'},
+  {id:'EQP-EAP-028',name:'喷码单片上报',dir:'upload',endpoint:'POST /api/v1/eqp/inkjet-board',desc:'喷码机单片喷码信息上报'},
+  // EAP -> EQP 下发
+  {id:'EAP-EQP-001',name:'初始化状态请求',dir:'download',endpoint:'POST /api/v1/eap/init-request',desc:'EAP请求设备初始化状态'},
+  {id:'EAP-EQP-002',name:'时间同步',dir:'download',endpoint:'POST /api/v1/eap/time-sync',desc:'EAP下发时间同步指令'},
+  {id:'EAP-EQP-003',name:'远程控制模式下发',dir:'download',endpoint:'POST /api/v1/eap/remote-mode',desc:'远程/本地控制模式切换指令'},
+  {id:'EAP-EQP-004',name:'远程信息下发',dir:'download',endpoint:'POST /api/v1/eap/remote-info',desc:'远程参数/配置信息下发'},
+  {id:'EAP-EQP-005',name:'远程控制指令下发',dir:'download',endpoint:'POST /api/v1/eap/remote-cmd',desc:'启停/复位/校准等远程控制指令'},
+  {id:'EAP-EQP-006',name:'询问设备关键参数',dir:'download',endpoint:'POST /api/v1/eap/query-params',desc:'EAP查询设备关键运行参数'},
+  {id:'EAP-EQP-007',name:'任务信息下发',dir:'download',endpoint:'POST /api/v1/eap/task-dispatch',desc:'生产任务/工单信息下发'},
+  {id:'EAP-EQP-008',name:'通知',dir:'download',endpoint:'POST /api/v1/eap/notification',desc:'EAP下发通知/广播消息'},
+];
+
+// ===== LOCAL STORAGE HELPERS =====
+const LS_KEY = 'factory_test_console';
+function loadData() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || { snapshots: [], customInterfaces: [] }; }
+  catch { return { snapshots: [], customInterfaces: [] }; }
+}
+function saveData(d) { localStorage.setItem(LS_KEY, JSON.stringify(d)); }
+
+// ===== STATE =====
+let currentView = 'dashboard';
+let currentSnapshotId = null;
+let currentDetailTab = 'upload';
+let selectedInterfaces = new Set(); // for create view
+let customInterfaces = []; // temp custom interfaces for create view
+
+// ===== NAVIGATION =====
+function navigate(view, snapId) {
+  currentView = view;
+  if (snapId) currentSnapshotId = snapId;
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  const el = document.getElementById('view-' + view);
+  if (el) el.classList.add('active');
+
+  // Breadcrumb
+  const bc = document.getElementById('breadcrumb');
+  if (view === 'dashboard') {
+    bc.innerHTML = '';
+    currentSnapshotId = null;
+    renderDashboard();
+  } else if (view === 'create') {
+    bc.innerHTML = '<a onclick="navigate(\'dashboard\')">快照列表</a><span class="sep">/</span>新建快照';
+    selectedInterfaces.clear();
+    customInterfaces = [];
+    renderCreateView();
+  } else if (view === 'detail') {
+    const data = loadData();
+    const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+    if (!snap) return navigate('dashboard');
+    bc.innerHTML = `<a onclick="navigate('dashboard')">快照列表</a><span class="sep">/</span>${snap.name}`;
+    currentDetailTab = 'upload';
+    renderDetailView();
+  }
+  updateFooter();
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const data = loadData();
+  const grid = document.getElementById('snapGrid');
+  const empty = document.getElementById('emptyState');
+
+  if (data.snapshots.length === 0) {
+    grid.innerHTML = '';
+    empty.style.display = '';
+    return;
+  }
+  empty.style.display = 'none';
+
+  grid.innerHTML = data.snapshots.map(s => {
+    const upCount = s.interfaces.filter(i => i.dir === 'upload').length;
+    const dnCount = s.interfaces.filter(i => i.dir === 'download').length;
+    const custCount = s.interfaces.filter(i => i.custom).length;
+    const total = s.interfaces.length;
+    const tests = s.tests || {};
+    const pass = Object.values(tests).filter(t => t.status === 'pass').length;
+    const fail = Object.values(tests).filter(t => t.status === 'fail').length;
+    const done = pass + fail;
+
+    let statusHtml = '';
+    if (done === total && total > 0) {
+      statusHtml = fail > 0 ? '<span style="color:var(--danger);font-weight:600;font-size:12px">测试完成 - 有失败项</span>' : '<span style="color:var(--success);font-weight:600;font-size:12px">测试全部通过</span>';
+    } else if (done > 0) {
+      statusHtml = `<span style="color:var(--primary);font-weight:600;font-size:12px">测试中 ${done}/${total}</span>`;
+    } else {
+      statusHtml = '<span style="color:var(--text3);font-size:12px">待测试</span>';
+    }
+
+    return `<div class="snap-card" onclick="navigate('detail','${s.id}')">
+      <div class="snap-card-head">
+        <div class="snap-card-name">${esc(s.name)}</div>
+        <div class="snap-card-ver">v${s.version}</div>
+      </div>
+      <div class="snap-card-meta">
+        <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>${s.createdAt?.slice(0,10) || '--'}</span>
+        <span>${s.device ? esc(s.device) : '未指定设备'}</span>
+      </div>
+      <div style="margin-bottom:8px">${statusHtml}</div>
+      <div class="snap-card-stats">
+        <span class="stat-chip upload">上报 ${upCount}</span>
+        <span class="stat-chip download">下发 ${dnCount}</span>
+        ${custCount ? `<span class="stat-chip custom">自定义 ${custCount}</span>` : ''}
+      </div>
+      <div class="snap-card-actions" onclick="event.stopPropagation()">
+        <button class="btn btn-sm btn-ghost" onclick="duplicateSnapshot('${s.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          新版本
+        </button>
+        <button class="btn btn-sm btn-ghost" style="color:var(--danger)" onclick="deleteSnapshot('${s.id}')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+          删除
+        </button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteSnapshot(id) {
+  if (!confirm('确认删除此快照？')) return;
+  const data = loadData();
+  data.snapshots = data.snapshots.filter(s => s.id !== id);
+  saveData(data);
+  renderDashboard();
+  toast('快照已删除', 'info');
+}
+
+function duplicateSnapshot(id) {
+  const data = loadData();
+  const src = data.snapshots.find(s => s.id === (id || currentSnapshotId));
+  if (!src) return;
+  const newSnap = JSON.parse(JSON.stringify(src));
+  newSnap.id = 'snap_' + Date.now();
+  newSnap.name = src.name + ' (副本)';
+  newSnap.version = src.version + 1;
+  newSnap.createdAt = new Date().toISOString();
+  newSnap.tests = {};
+  newSnap.interfaces.forEach(i => { i.status = 'pending'; });
+  data.snapshots.push(newSnap);
+  saveData(data);
+  toast('已创建新版本快照 v' + newSnap.version, 'success');
+  if (currentView === 'dashboard') renderDashboard();
+  else navigate('detail', newSnap.id);
+}
+
+// ===== CREATE VIEW =====
+function renderCreateView() {
+  document.getElementById('snapName').value = '';
+  document.getElementById('snapDevice').value = '';
+  document.getElementById('snapNote').value = '';
+  renderLibrary();
+  renderSelectedPanel();
+}
+
+function renderLibrary() {
+  const search = (document.getElementById('libSearch')?.value || '').toLowerCase();
+  const allLib = [...STANDARD_LIBRARY, ...customInterfaces];
+
+  const uploads = allLib.filter(i => i.dir === 'upload' && matchSearch(i, search));
+  const downloads = allLib.filter(i => i.dir === 'download' && matchSearch(i, search));
+
+  document.getElementById('libUpload').innerHTML = uploads.map(i => libItemHtml(i)).join('') || '<div style="padding:8px 16px;font-size:12px;color:var(--text3)">无匹配</div>';
+  document.getElementById('libDownload').innerHTML = downloads.map(i => libItemHtml(i)).join('') || '<div style="padding:8px 16px;font-size:12px;color:var(--text3)">无匹配</div>';
+}
+
+function matchSearch(i, q) {
+  if (!q) return true;
+  return i.id.toLowerCase().includes(q) || i.name.toLowerCase().includes(q);
+}
+
+function libItemHtml(i) {
+  const checked = selectedInterfaces.has(i.id) ? 'checked' : '';
+  const dirClass = i.dir === 'upload' ? 'eqp-eap' : 'eap-eqp';
+  const dirLabel = i.dir === 'upload' ? 'EQP→EAP' : 'EAP→EQP';
+  return `<div class="lib-item">
+    <input type="checkbox" ${checked} onchange="toggleSelect('${i.id}',this.checked)">
+    <span class="lib-item-id">${i.id}</span>
+    <span class="lib-item-name">${esc(i.name)}</span>
+    <span class="lib-item-dir ${dirClass}">${dirLabel}</span>
+  </div>`;
+}
+
+function toggleSelect(id, checked) {
+  if (checked) selectedInterfaces.add(id); else selectedInterfaces.delete(id);
+  renderSelectedPanel();
+}
+
+function selectAll(dir) {
+  const allLib = [...STANDARD_LIBRARY, ...customInterfaces];
+  allLib.filter(i => i.dir === dir).forEach(i => selectedInterfaces.add(i.id));
+  renderLibrary();
+  renderSelectedPanel();
+}
+
+function clearAll() {
+  selectedInterfaces.clear();
+  renderLibrary();
+  renderSelectedPanel();
+}
+
+function filterLibrary() { renderLibrary(); }
+
+function renderSelectedPanel() {
+  const allLib = [...STANDARD_LIBRARY, ...customInterfaces];
+  const selected = allLib.filter(i => selectedInterfaces.has(i.id));
+  document.getElementById('selCount').textContent = selected.length + ' 项';
+
+  if (selected.length === 0) {
+    document.getElementById('selList').innerHTML = '<div style="text-align:center;color:var(--text3);font-size:12px;padding:20px 0">从左侧勾选接口</div>';
+    return;
+  }
+
+  document.getElementById('selList').innerHTML = selected.map(i => {
+    const dirLabel = i.dir === 'upload' ? '↑上报' : '↓下发';
+    return `<div class="sel-item">
+      <span>${i.id}</span>
+      <span style="flex:1;color:var(--text);font-size:12px">${esc(i.name)}</span>
+      <span style="font-size:10px;color:var(--text3)">${dirLabel}</span>
+      <button onclick="toggleSelect('${i.id}',false);renderLibrary()">&times;</button>
+    </div>`;
+  }).join('');
+}
+
+// Custom interface
+function showAddCustomModal() {
+  document.getElementById('customModal').classList.add('visible');
+  document.getElementById('customId').value = '';
+  document.getElementById('customName').value = '';
+  document.getElementById('customEndpoint').value = '';
+  document.getElementById('customDesc').value = '';
+}
+const showAddCustom = showAddCustomModal;
+function closeCustomModal() { document.getElementById('customModal').classList.remove('visible'); }
+
+function addCustomInterface() {
+  const id = document.getElementById('customId').value.trim();
+  const name = document.getElementById('customName').value.trim();
+  const dir = document.getElementById('customDir').value;
+  const endpoint = document.getElementById('customEndpoint').value.trim() || 'POST /api/v1/custom/' + id.toLowerCase();
+  const desc = document.getElementById('customDesc').value.trim();
+  if (!id || !name) return toast('编号和名称为必填', 'error');
+
+  const allLib = [...STANDARD_LIBRARY, ...customInterfaces];
+  if (allLib.find(i => i.id === id)) return toast('编号已存在', 'error');
+
+  customInterfaces.push({ id, name, dir, endpoint, desc, custom: true });
+  selectedInterfaces.add(id);
+  closeCustomModal();
+  renderLibrary();
+  renderSelectedPanel();
+  toast('自定义接口已添加', 'success');
+}
+
+function saveSnapshot() {
+  const name = document.getElementById('snapName').value.trim();
+  if (!name) return toast('请输入快照名称', 'error');
+  const allLib = [...STANDARD_LIBRARY, ...customInterfaces];
+  const interfaces = allLib.filter(i => selectedInterfaces.has(i.id)).map(i => ({...i}));
+  if (interfaces.length === 0) return toast('请至少选择一个接口', 'error');
+
+  const data = loadData();
+  const snap = {
+    id: 'snap_' + Date.now(),
+    name,
+    device: document.getElementById('snapDevice').value.trim(),
+    note: document.getElementById('snapNote').value.trim(),
+    version: 1,
+    interfaces,
+    tests: {},
+    createdAt: new Date().toISOString(),
+  };
+  data.snapshots.push(snap);
+
+  // Persist custom interfaces globally too
+  customInterfaces.forEach(ci => {
+    if (!data.customInterfaces) data.customInterfaces = [];
+    if (!data.customInterfaces.find(c => c.id === ci.id)) data.customInterfaces.push(ci);
+  });
+  saveData(data);
+  toast('快照已保存', 'success');
+  navigate('detail', snap.id);
+}
+
+// ===== DETAIL VIEW =====
+function renderDetailView() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return navigate('dashboard');
+
+  document.getElementById('detailTitle').textContent = snap.name;
+  document.getElementById('detailMeta').textContent = `v${snap.version} | ${snap.device || '未指定设备'} | 创建于 ${snap.createdAt?.slice(0,16) || '--'}`;
+
+  renderDetailTabs();
+  renderDetailTestList();
+  updateDetailSummary();
+}
+
+function renderDetailTabs() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+
+  const upTests = snap.interfaces.filter(i => i.dir === 'upload');
+  const dnTests = snap.interfaces.filter(i => i.dir === 'download');
+
+  const upDone = upTests.filter(i => (snap.tests[i.id]?.status || 'pending') !== 'pending').length;
+  const dnDone = dnTests.filter(i => (snap.tests[i.id]?.status || 'pending') !== 'pending').length;
+
+  document.getElementById('tabUploadCount').textContent = `${upDone}/${upTests.length}`;
+  document.getElementById('tabDownloadCount').textContent = `${dnDone}/${dnTests.length}`;
+
+  document.querySelectorAll('#detailTabs .tab-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.tab === currentDetailTab);
+  });
+  document.getElementById('dt-upload').classList.toggle('active', currentDetailTab === 'upload');
+  document.getElementById('dt-download').classList.toggle('active', currentDetailTab === 'download');
+
+  document.getElementById('secTitle').querySelector('span').textContent =
+    currentDetailTab === 'upload' ? '设备接口上报测试列表' : '数据接口下发测试列表';
+}
+
+function switchDetailTab(tab) {
+  currentDetailTab = tab;
+  renderDetailTabs();
+  renderDetailTestList();
+}
+
+function renderDetailTestList() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+
+  const items = snap.interfaces.filter(i => i.dir === currentDetailTab);
+  const listId = currentDetailTab === 'upload' ? 'dtUploadList' : 'dtDownloadList';
+
+  document.getElementById(listId).innerHTML = items.length === 0
+    ? '<div style="text-align:center;padding:40px;color:var(--text3);font-size:13px">此方向无接口</div>'
+    : items.map((t, idx) => testItemHtml(t, idx, snap)).join('');
+}
+
+function testItemHtml(t, idx, snap) {
+  const s = snap.tests[t.id] || { status: 'pending', time: null, error: '' };
+  const st = s.status;
+  const statusIcons = {
+    pending: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>',
+    running: '<svg class="spinner" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>',
+    pass: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+    fail: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+  };
+  const statusLabels = { pending: '待测试', running: '测试中', pass: '通过', fail: '失败' };
+  const timeStr = s.time ? s.time + 'ms' : '--';
+
+  let detailHtml = '';
+  if (st === 'fail') {
+    detailHtml = `<div class="test-detail visible" id="detail-${t.id}">
+      <div class="detail-row"><span class="detail-lbl">描述</span><span style="font-size:11px;color:var(--text2);padding-top:7px">${esc(t.desc || '')}</span></div>
+      <div class="detail-row"><span class="detail-lbl">异常信息</span>
+        <textarea class="error-ta" placeholder="请描述异常现象..." oninput="updateTestError('${t.id}',this.value)">${esc(s.error || '')}</textarea>
+      </div>
+    </div>`;
+  } else if (st === 'pass') {
+    detailHtml = `<div class="test-detail" id="detail-${t.id}">
+      <span style="font-size:11px;color:var(--success);display:flex;align-items:center;gap:4px;padding:4px 0">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polyline points="20 6 9 17 4 12"/></svg>
+        测试通过，无异常
+      </span>
+    </div>`;
+  } else if (st === 'pending') {
+    detailHtml = `<div class="test-detail" id="detail-${t.id}">
+      <div class="detail-row"><span class="detail-lbl">描述</span><span style="font-size:11px;color:var(--text2);padding-top:7px">${esc(t.desc || '')}</span></div>
+    </div>`;
+  }
+
+  return `<div class="test-item st-${st}" id="item-${t.id}">
+    <div class="test-seq">${String(idx+1).padStart(2,'0')}</div>
+    <div class="test-info">
+      <div class="test-name"><span style="color:var(--primary);font-family:var(--mono);font-size:11px;margin-right:4px">${t.id}</span> ${esc(t.name)}</div>
+      <div class="test-endpoint">${t.endpoint || ''}</div>
+    </div>
+    <span class="test-status ${st}">${statusIcons[st]} ${statusLabels[st]}</span>
+    <div class="test-time">${timeStr}</div>
+    <div class="test-actions">
+      <button class="btn btn-sm btn-ghost" onclick="toggleTestDetail('${t.id}')" title="详情">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <button class="btn btn-sm btn-primary" onclick="runSingle('${t.id}')" ${st==='running'?'disabled':''}>
+        ${st==='running'?'测试中':'测试'}
+      </button>
+    </div>
+    ${detailHtml}
+  </div>`;
+}
+
+function toggleTestDetail(id) {
+  const el = document.getElementById('detail-' + id);
+  if (el) el.classList.toggle('visible');
+}
+
+function updateTestError(id, value) {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+  if (!snap.tests[id]) snap.tests[id] = { status: 'pending', time: null, error: '' };
+  snap.tests[id].error = value;
+  saveData(data);
+}
+
+function updateDetailSummary() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+
+  const total = snap.interfaces.length;
+  const tests = snap.tests || {};
+  const all = Object.values(tests);
+  const pass = all.filter(t => t.status === 'pass').length;
+  const fail = all.filter(t => t.status === 'fail').length;
+  const pending = total - pass - fail;
+  const done = pass + fail;
+
+  document.getElementById('detailSummary').innerHTML = `
+    <div class="summary-card"><div class="summary-icon total"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/></svg></div><div><div class="summary-label">总接口数</div><div class="summary-value">${total}</div></div></div>
+    <div class="summary-card"><div class="summary-icon pass"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div><div><div class="summary-label">通过</div><div class="summary-value" style="color:var(--success)">${pass}</div></div></div>
+    <div class="summary-card"><div class="summary-icon fail"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div><div><div class="summary-label">失败</div><div class="summary-value" style="color:var(--danger)">${fail}</div></div></div>
+    <div class="summary-card"><div class="summary-icon pending"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="summary-label">待测试</div><div class="summary-value" style="color:var(--pending)">${pending}</div></div></div>
+  `;
+
+  document.getElementById('progressText').textContent = `${done} / ${total}`;
+  document.getElementById('progressFill').style.width = total ? (done / total * 100) + '%' : '0%';
+
+  // Footer
+  const reportBtnHtml = done === total && total > 0
+    ? '<button class="btn btn-primary" onclick="generateReport()">生成测试报告</button>'
+    : '';
+  const runBtnHtml = '<button class="btn btn-primary" onclick="runAllCurrent()">执行全部测试</button>';
+  document.getElementById('footerActions').innerHTML = reportBtnHtml + ' ' + runBtnHtml;
+  document.getElementById('footerInfo').textContent = done === total && total > 0
+    ? `全部完成 (${pass}通过 / ${fail}失败)`
+    : pending > 0 ? `就绪 (${done}/${total} 已完成)` : '就绪';
+}
+
+// ===== TEST EXECUTION =====
+function runSingle(id) {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+  snap.tests[id] = { status: 'running', time: null, error: '' };
+  saveData(data);
+  renderDetailTestList();
+  updateDetailSummary();
+  renderDetailTabs();
+
+  const dur = 600 + Math.random() * 2200;
+  setTimeout(() => {
+    const d2 = loadData();
+    const s2 = d2.snapshots.find(s => s.id === currentSnapshotId);
+    if (!s2) return;
+    const passed = Math.random() > 0.25;
+    s2.tests[id] = { status: passed ? 'pass' : 'fail', time: Math.round(dur), error: '' };
+    saveData(d2);
+    renderDetailTestList();
+    updateDetailSummary();
+    renderDetailTabs();
+    toast(`${id} ${passed ? '通过' : '失败'}`, passed ? 'success' : 'error');
+    if (!passed) {
+      const el = document.getElementById('detail-' + id);
+      if (el) el.classList.add('visible');
+    }
+  }, dur);
+}
+
+async function runAllCurrent() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+  const items = snap.interfaces.filter(i => i.dir === currentDetailTab);
+  const pending = items.filter(i => !snap.tests[i.id] || snap.tests[i.id].status === 'pending' || snap.tests[i.id].status === 'fail');
+
+  if (pending.length === 0) return toast('当前 Tab 下所有接口已测试完成', 'info');
+
+  for (const t of pending) {
+    await new Promise(resolve => {
+      const d = loadData();
+      const s = d.snapshots.find(s => s.id === currentSnapshotId);
+      s.tests[t.id] = { status: 'running', time: null, error: '' };
+      saveData(d);
+      renderDetailTestList();
+      updateDetailSummary();
+      renderDetailTabs();
+
+      const dur = 600 + Math.random() * 1800;
+      setTimeout(() => {
+        const d2 = loadData();
+        const s2 = d2.snapshots.find(s => s.id === currentSnapshotId);
+        const passed = Math.random() > 0.25;
+        s2.tests[t.id] = { status: passed ? 'pass' : 'fail', time: Math.round(dur), error: '' };
+        saveData(d2);
+        renderDetailTestList();
+        updateDetailSummary();
+        renderDetailTabs();
+        if (!passed) {
+          const el = document.getElementById('detail-' + t.id);
+          if (el) el.classList.add('visible');
+        }
+        resolve();
+      }, dur);
+    });
+  }
+
+  const d3 = loadData();
+  const s3 = d3.snapshots.find(s => s.id === currentSnapshotId);
+  const allDone = s3.interfaces.every(i => s3.tests[i.id]?.status === 'pass' || s3.tests[i.id]?.status === 'fail');
+  if (allDone) toast('所有接口测试已完成，可生成报告', 'success');
+}
+
+function resetCurrent() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+  snap.interfaces.filter(i => i.dir === currentDetailTab).forEach(i => { snap.tests[i.id] = { status: 'pending', time: null, error: '' }; });
+  saveData(data);
+  renderDetailTestList();
+  updateDetailSummary();
+  renderDetailTabs();
+  toast('已重置当前 Tab 测试状态', 'info');
+}
+
+// ===== REPORT =====
+function generateReport() {
+  const data = loadData();
+  const snap = data.snapshots.find(s => s.id === currentSnapshotId);
+  if (!snap) return;
+
+  const total = snap.interfaces.length;
+  const tests = snap.tests || {};
+  const pass = Object.values(tests).filter(t => t.status === 'pass').length;
+  const fail = Object.values(tests).filter(t => t.status === 'fail').length;
+  const now = new Date();
+  const ts = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')} ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+
+  document.getElementById('reportMeta').textContent = `快照: ${snap.name} v${snap.version} | 设备: ${snap.device || '--'} | 生成: ${ts}`;
+
+  const uploads = snap.interfaces.filter(i => i.dir === 'upload');
+  const downloads = snap.interfaces.filter(i => i.dir === 'download');
+
+  document.getElementById('reportContent').innerHTML = `
+    <div class="report-stat-grid">
+      <div class="report-stat"><div class="report-stat-val">${total}</div><div class="report-stat-lbl">总接口数</div></div>
+      <div class="report-stat"><div class="report-stat-val" style="color:var(--success)">${pass}</div><div class="report-stat-lbl">通过</div></div>
+      <div class="report-stat"><div class="report-stat-val" style="color:var(--danger)">${fail}</div><div class="report-stat-lbl">失败</div></div>
+      <div class="report-stat"><div class="report-stat-val" style="color:${pass===total?'var(--success)':'var(--warning)'}">${Math.round(pass/total*100)}%</div><div class="report-stat-lbl">通过率</div></div>
+    </div>
+    <div class="report-sec-title">EQP → EAP 上报接口 (${uploads.length}项)</div>
+    <table class="report-table"><thead><tr><th>编号</th><th>名称</th><th>端点</th><th>状态</th><th>耗时</th><th>异常信息</th></tr></thead><tbody>
+      ${uploads.map(i => reportRow(i, snap)).join('')}
+    </tbody></table>
+    <div class="report-sec-title" style="margin-top:20px">EAP → EQP 下发接口 (${downloads.length}项)</div>
+    <table class="report-table"><thead><tr><th>编号</th><th>名称</th><th>端点</th><th>状态</th><th>耗时</th><th>异常信息</th></tr></thead><tbody>
+      ${downloads.map(i => reportRow(i, snap)).join('')}
+    </tbody></table>
+  `;
+  document.getElementById('reportOverlay').classList.add('visible');
+}
+
+function reportRow(t, snap) {
+  const s = snap.tests[t.id] || {};
+  const st = s.status || 'pending';
+  const stHtml = st === 'pass' ? '<span style="color:var(--success);font-weight:600">PASS</span>' : st === 'fail' ? '<span style="color:var(--danger);font-weight:600">FAIL</span>' : '<span style="color:var(--text3)">--</span>';
+  const err = s.error || (st === 'pass' ? '-' : st === 'fail' ? '<span style="color:var(--text3)">未填写</span>' : '--');
+  return `<tr><td class="mono">${t.id}</td><td>${esc(t.name)}</td><td class="mono">${t.endpoint||''}</td><td>${stHtml}</td><td class="mono">${s.time?s.time+'ms':'--'}</td><td>${err}</td></tr>`;
+}
+
+function closeReport() { document.getElementById('reportOverlay').classList.remove('visible'); }
+
+// ===== UTILITIES =====
+function esc(s) { const d = document.createElement('div'); d.textContent = s; return d.innerHTML; }
+
+function toast(msg, type = 'info') {
+  const icons = {
+    success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>',
+    error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
+  };
+  const el = document.createElement('div');
+  el.className = 'toast ' + type;
+  el.innerHTML = `${icons[type]}<span>${msg}</span>`;
+  document.getElementById('toastBox').appendChild(el);
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(16px)'; el.style.transition = 'all .3s'; setTimeout(() => el.remove(), 300); }, 3000);
+}
+
+function updateFooter() {
+  if (currentView === 'detail') return; // detail view manages its own footer
+  document.getElementById('footerActions').innerHTML = '';
+  document.getElementById('footerInfo').textContent = '就绪';
+}
+
+// Clock
+function tick() {
+  const n = new Date();
+  document.getElementById('clock').textContent = `${String(n.getHours()).padStart(2,'0')}:${String(n.getMinutes()).padStart(2,'0')}:${String(n.getSeconds()).padStart(2,'0')}`;
+}
+setInterval(tick, 1000); tick();
+
+// ===== INIT =====
+// Seed demo data if empty
+(function init() {
+  const data = loadData();
+  if (data.snapshots.length === 0) {
+    // Create a demo snapshot
+    const demoInterfaces = [
+      ...STANDARD_LIBRARY.filter(i => ['EQP-EAP-001','EQP-EAP-002','EQP-EAP-004','EQP-EAP-005','EQP-EAP-007','EQP-EAP-009','EQP-EAP-027','EQP-EAP-028'].includes(i.id)),
+      ...STANDARD_LIBRARY.filter(i => ['EAP-EQP-001','EAP-EQP-002','EAP-EQP-005','EAP-EQP-007'].includes(i.id)),
+    ].map(i => ({...i}));
+
+    data.snapshots.push({
+      id: 'snap_demo',
+      name: '钻孔机-A线-首件联调',
+      device: 'DS-800C',
+      note: 'A线钻孔机首件测试，包含基础通讯和核心业务接口',
+      version: 1,
+      interfaces: demoInterfaces,
+      tests: {},
+      createdAt: new Date().toISOString(),
+    });
+    saveData(data);
+  }
+  renderDashboard();
+})();
+</script>
+</body>
+</html>

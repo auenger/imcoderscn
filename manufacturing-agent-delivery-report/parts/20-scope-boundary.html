@@ -1,0 +1,75 @@
+      <section class="section" id="scope">
+        <h2>建议交付范围矩阵</h2>
+        <p class="section-intro">合同范围必须按“业务 Agent、平台能力、数据工程、渠道与运维”拆分，避免客户将示范能力理解为完整平台授权。</p>
+        <div style="overflow-x:auto">
+          <table class="scope-table">
+            <thead>
+              <tr><th>范围层级</th><th>建议本期交付</th><th>可选增强</th><th>默认不包含</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>四类业务 Agent</strong></td>
+                <td>场景配置、提示策略、工具调用、结果页面、审计日志</td>
+                <td>新增工厂、新业务口径、新模型专项优化</td>
+                <td>无限数量 Agent、客户自由复制商业模板</td>
+              </tr>
+              <tr>
+                <td><strong>MES 数据接入</strong></td>
+                <td>约定范围内的设备、人员、计划、工单、产量与停机数据</td>
+                <td>ERP、WMS、QMS、能源及第三方设备平台</td>
+                <td>历史脏数据全面治理、源系统改造、未开放接口的数据采集</td>
+              </tr>
+              <tr>
+                <td><strong>Agent 平台</strong></td>
+                <td>生产运行时、配置管理、模型路由、日志审计与监控</td>
+                <td>客户管理员自定义 Agent 与受控连接器</td>
+                <td>平台源代码、平台知识产权、无上限开发者席位</td>
+              </tr>
+              <tr>
+                <td><strong>用户入口</strong></td>
+                <td>工厂内部 Web 工作台及统一身份登录</td>
+                <td>钉钉、企业微信、飞书等 IM Bot</td>
+                <td>面向供应商、经销商、消费者的外部开放服务</td>
+              </tr>
+              <tr>
+                <td><strong>权限与安全</strong></td>
+                <td>用户身份映射、角色权限、数据范围、工具白名单、全链路审计</td>
+                <td>字段脱敏、审批流、动态策略、专用安全网关</td>
+                <td>替客户承担源系统权限制度设计和合规认证</td>
+              </tr>
+              <tr>
+                <td><strong>交付与运维</strong></td>
+                <td>安装部署、配置文档、操作培训、验收测试、约定期质保</td>
+                <td>驻场运营、模型持续调优、7x24 支持、容量扩展</td>
+                <td>长期无偿运营、模型调用费用、客户基础设施费用</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>四类 Agent 的最低可验收定义</h2>
+        <div class="grid-2">
+          <div class="panel">
+            <h3>产能分析 Agent</h3>
+            <p class="muted">按约定组织、产线、设备、班次与人员维度查询产能，解释指标来源，识别异常与瓶颈，并可追溯至 MES 明细。</p>
+          </div>
+          <div class="panel">
+            <h3>数据分析 Agent</h3>
+            <p class="muted">对不少于约定周期的设备与人员历史数据进行趋势、对比、异常和相关性分析，输出结论、证据和数据时间范围。</p>
+          </div>
+          <div class="panel">
+            <h3>计划模拟 Agent</h3>
+            <p class="muted">读取周计划、产能约束、设备状态、人员能力与历史节拍，生成候选日计划，并清晰展示约束、冲突和人工调整点。</p>
+          </div>
+          <div class="panel">
+            <h3>预测性报告 Agent</h3>
+            <p class="muted">按约定周期生成生产趋势、异常风险、预测区间、影响因素与建议动作。预测结论必须附带置信度或适用条件。</p>
+          </div>
+        </div>
+        <div class="callout" style="margin-top:16px">
+          <h3>验收不应只看“能否聊天”</h3>
+          <p>建议同时验收数据正确性、口径一致性、权限隔离、响应时效、可解释性、稳定性、人工兜底和审计完整性。计划模拟与预测结果属于辅助决策，最终生产指令仍由授权人员确认。</p>
+        </div>
+      </section>

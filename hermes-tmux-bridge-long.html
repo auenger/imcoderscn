@@ -1,0 +1,844 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermes × Claude Code 调度架构</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    [data-theme="light"] {
+      --bg: #f4f4fb;
+      --bg2: #eaeaf4;
+      --surface: #ffffff;
+      --surface2: #f0f0fa;
+      --surface3: #e6e6f2;
+      --border: rgba(0,0,0,0.07);
+      --border-strong: rgba(0,0,0,0.12);
+      --text: #1a1a30;
+      --text2: #5a5a78;
+      --text3: #9898ac;
+      --accent: #5b4cc4;
+      --accent2: #7b6cf0;
+      --green: #009a7c;
+      --green-bg: rgba(0,154,124,0.06);
+      --green-border: rgba(0,154,124,0.18);
+      --red: #d44040;
+      --red-bg: rgba(212,64,64,0.06);
+      --red-border: rgba(212,64,64,0.18);
+      --orange: #b88020;
+      --orange-bg: rgba(184,128,32,0.06);
+      --orange-border: rgba(184,128,32,0.18);
+      --accent-bg: rgba(91,76,196,0.06);
+      --accent-border: rgba(91,76,196,0.15);
+      --code-bg: #1a1a30;
+      --code-border: rgba(91,76,196,0.12);
+      --code-text: #00d4aa;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+      --quote-bg: rgba(91,76,196,0.04);
+      --quote-border: var(--accent);
+      --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+      --key-border: rgba(91,76,196,0.12);
+      --toggle-bg: rgba(0,0,0,0.06);
+      --toggle-hover: rgba(0,0,0,0.1);
+      --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    .slides-container {
+      width: 1200px;
+      margin: 0 auto;
+    }
+
+    .slide {
+      min-height: 675px;
+      padding: 48px 96px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      border-top: 1px solid var(--border);
+      position: relative;
+    }
+
+    .slide:first-child { border-top: none; }
+
+    .slide-content { max-width: 920px; width: 100%; }
+
+    .slide-cover {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+    }
+
+    .slide-cover h1 {
+      font-size: 3rem;
+      font-weight: 900;
+      line-height: 1.35;
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .slide-cover .subtitle {
+      font-size: 1.2rem;
+      color: var(--text2);
+      margin-top: 1rem;
+    }
+
+    .slide-cover .divider {
+      width: 60px; height: 2px; margin: 1.8rem auto;
+      background: var(--progress-bg); border-radius: 1px;
+    }
+
+    .slide-cover .meta {
+      font-size: 0.9rem;
+      color: var(--text3);
+      margin-top: 0.5rem;
+    }
+
+    .slide-end {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%);
+    }
+
+    .slide-end h2 {
+      font-size: 2rem;
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+    .tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+    h2 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      line-height: 1.4;
+    }
+
+    h3 {
+      font-size: 1.15rem;
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    h4 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 1rem;
+      color: var(--text2);
+      margin-bottom: 0.8rem;
+      line-height: 1.8;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 0.8rem;
+    }
+
+    ul li {
+      font-size: 1rem;
+      color: var(--text2);
+      padding: 0.3rem 0 0.3rem 1.5rem;
+      position: relative;
+      line-height: 1.7;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.75rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    .key-point {
+      background: var(--key-bg);
+      border: 1px solid var(--key-border);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .key-point p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    .quote {
+      background: var(--quote-bg);
+      border-left: 3px solid var(--quote-border);
+      padding: 1rem 1.4rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-size: 1rem;
+      color: var(--text2);
+    }
+
+    .quote em {
+      color: var(--accent);
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+
+    .flow-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 1.2rem;
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .flow-item.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+    .flow-item.red { border-color: var(--red-border); background: var(--red-bg); color: var(--red); }
+    .flow-item.orange { border-color: var(--orange-border); background: var(--orange-bg); color: var(--orange); }
+    .flow-item.accent { border-color: var(--accent-border); background: var(--accent-bg); color: var(--accent); }
+
+    .flow-arrow {
+      font-size: 1.2rem;
+      color: var(--text3);
+      font-weight: 300;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 1rem 0;
+    }
+
+    .col-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .col-card.green-card { border-color: var(--green-border); }
+    .col-card.red-card { border-color: var(--red-border); }
+    .col-card.accent-card { border-color: var(--accent-border); }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 1rem 0;
+    }
+
+    .step-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.2rem;
+    }
+
+    .step-label {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .step-label.waterfall { background: var(--accent-bg); color: var(--accent); }
+    .step-label.agile { background: var(--green-bg); color: var(--green); }
+
+    .step-body {
+      font-size: 0.92rem;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 1rem 0;
+    }
+
+    .icon-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .vs-block {
+      display: flex;
+      gap: 0;
+      margin: 1rem 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .vs-side {
+      flex: 1;
+      padding: 1.2rem;
+      background: var(--surface);
+    }
+
+    .vs-side h4 { margin-bottom: 0.6rem; }
+
+    .vs-side.red-side { background: var(--red-bg); }
+    .vs-side.green-side { background: var(--green-bg); }
+
+    .vs-divider {
+      width: 2px;
+      background: var(--border);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 10px;
+      padding: 1.2rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+
+    pre code {
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--code-text);
+      line-height: 1.6;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: 0.9rem;
+    }
+
+    .data-table th {
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 0.7rem 1rem;
+      text-align: left;
+      border-bottom: 2px solid var(--accent-border);
+    }
+
+    .data-table td {
+      padding: 0.6rem 1rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .loop-card {
+      background: var(--surface);
+      border-left: 3px solid var(--green);
+      border-radius: 0 10px 10px 0;
+      padding: 1rem 1.2rem;
+      margin: 0.8rem 0;
+    }
+
+    .loop-card h4 { color: var(--green); }
+    .loop-card p { margin-bottom: 0; }
+
+    .challenge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 1rem 0;
+    }
+
+    .challenge-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--red-border);
+      border-radius: 10px;
+      padding: 0.9rem 1.2rem;
+    }
+
+    .challenge-num {
+      width: 28px; height: 28px;
+      background: var(--red);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .challenge-body strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+
+    .challenge-body p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .highlight { color: var(--accent); font-weight: 600; }
+    .highlight-green { color: var(--green); font-weight: 600; }
+    .highlight-red { color: var(--red); font-weight: 600; }
+    .highlight-orange { color: var(--orange); font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="slides-container">
+
+    <!-- Slide 1: Cover -->
+    <div class="slide slide-cover">
+      <div class="slide-content">
+        <span class="tag tag-section">Architecture Design</span>
+        <h1>Hermes × Claude Code<br>调度架构</h1>
+        <div class="divider"></div>
+        <p class="subtitle">通过 tmux 桥接国内 IM，驱动 Claude Code 执行 Superpowers 工作流</p>
+        <p class="meta">2026.05</p>
+      </div>
+    </div>
+
+    <!-- Slide 2: Problem -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-red">Problem</span>
+        <h2>核心问题：国内 IM 无法直连 Claude Code</h2>
+        <div class="challenge-list">
+          <div class="challenge-item">
+            <div class="challenge-num">1</div>
+            <div class="challenge-body">
+              <strong>ACP 协议缺失</strong>
+              <p>国内的 IM（钉钉、飞书、企微等）不支持 ACP（Agent Communication Protocol）通讯协议，无法直接与 Claude Code 建立双向通道</p>
+            </div>
+          </div>
+          <div class="challenge-item">
+            <div class="challenge-num">2</div>
+            <div class="challenge-body">
+              <strong>上下文成本高</strong>
+              <p>如果把 Claude Code 的完整输出塞进 Hermes 上下文，会快速消耗 token 额度，且大部分输出内容对调度决策无用</p>
+            </div>
+          </div>
+          <div class="challenge-item">
+            <div class="challenge-num">3</div>
+            <div class="challenge-body">
+              <strong>多实例调度需求</strong>
+              <p>团队需要通过 IM 同时调度多个 Claude Code 实例，处理不同的 bug、issue、task，需要统一入口和状态管理</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Architecture Overview -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">Architecture</span>
+        <h2>整体架构：Hermes 作为调度中枢</h2>
+        <div class="flow" style="justify-content: center; margin: 1.5rem 0;">
+          <div class="flow-item">用户 IM</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item accent">Hermes Gateway</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">tmux Session</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item green">Claude Code</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">Skill 执行</div>
+        </div>
+        <div class="key-point">
+          <p><strong>核心思路：</strong>Hermes 只做<span class="highlight">输入解析</span>和<span class="highlight-green">输出转发</span>两件事，不承载 Claude Code 的执行过程，从而节省上下文空间。</p>
+        </div>
+        <div class="cols" style="margin-top: 1rem;">
+          <div class="col-card accent-card">
+            <h3>Hermes Gateway</h3>
+            <ul>
+              <li>接入钉钉 / 飞书 / 企微</li>
+              <li>解析用户指令 → 确定目标 Skill</li>
+              <li>通过 tmux 控制 Claude Code</li>
+              <li>提取关键输出 → 转发回 IM</li>
+            </ul>
+          </div>
+          <div class="col-card green-card">
+            <h3>Claude Code + Skill</h3>
+            <ul>
+              <li>运行在独立 tmux session 中</li>
+              <li>加载 Superpowers 工作流 Skill</li>
+              <li>处理 bug / issue / task</li>
+              <li>完整输出留在 tmux 中</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: tmux Bridge Design -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-lesson">Design</span>
+        <h2>tmux 桥接方案：控制面与数据面分离</h2>
+        <div class="vs-block">
+          <div class="vs-side green-side">
+            <h4>控制面（Hermes → tmux）</h4>
+            <ul>
+              <li>创建 tmux session 对应每个任务</li>
+              <li>向指定 pane 发送 Claude Code 命令</li>
+              <li>触发特定 Skill 的执行</li>
+              <li>轻量级指令，几乎不占上下文</li>
+            </ul>
+          </div>
+          <div class="vs-divider"></div>
+          <div class="vs-side red-side">
+            <h4>数据面（tmux → Hermes Gateway）</h4>
+            <ul>
+              <li>capture-pane 获取 Claude Code 输出</li>
+              <li>只提取关键结果（状态、摘要）</li>
+              <li>丢弃中间过程日志</li>
+              <li>转发精简结果到 IM</li>
+            </ul>
+          </div>
+        </div>
+        <div class="key-point" style="margin-top: 1rem;">
+          <p><strong>关键收益：</strong>Claude Code 可能输出数千行内容，但 Hermes 只需捕获<span class="highlight-orange">最终结论</span>和<span class="highlight">关键状态变更</span>，上下文消耗降低 90%+。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Full Workflow -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">Workflow</span>
+        <h2>完整工作流：从 IM 消息到任务完成</h2>
+        <div class="steps">
+          <div class="step-card">
+            <span class="step-label waterfall">Step 1</span>
+            <div class="step-body"><strong>用户在 IM 中发出指令</strong> — 钉钉群里 @Hermes Bot："处理 #1234 bug，使用 bugfix skill"</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label waterfall">Step 2</span>
+            <div class="step-body"><strong>Hermes Gateway 解析意图</strong> — 识别任务类型（bug/issue/task）、目标 Skill、相关上下文参数</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label waterfall">Step 3</span>
+            <div class="step-body"><strong>创建或复用 tmux session</strong> — <code>tmux new-session -s task-1234</code>，启动独立的 Claude Code 实例</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label waterfall">Step 4</span>
+            <div class="step-body"><strong>通过 tmux 发送 Skill 命令</strong> — <code>tmux send-keys -t task-1234 '/superpowers-bugfix #1234' Enter</code></div>
+          </div>
+          <div class="step-card">
+            <span class="step-label waterfall">Step 5</span>
+            <div class="step-body"><strong>Claude Code 执行 Skill 工作流</strong> — 完整的分析、修复、测试流程在 tmux 中独立运行</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label waterfall">Step 6</span>
+            <div class="step-body"><strong>Hermes 轮询捕获输出</strong> — 定期 <code>tmux capture-pane</code> 提取关键状态，检测执行是否完成</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label agile">Step 7</span>
+            <div class="step-body"><strong>Gateway 转发精简结果到 IM</strong> — 将最终结论、PR 链接、测试状态等关键信息发回钉钉群</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: tmux Command Details -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-lesson">Implementation</span>
+        <h2>tmux 命令详解</h2>
+        <div class="cols">
+          <div class="col-card">
+            <h3>输入控制</h3>
+            <pre><code># 创建独立 session
+tmux new-session -d -s bug-1234
+
+# 启动 Claude Code
+tmux send-keys -t bug-1234 'claude' Enter
+
+# 发送 Skill 指令
+tmux send-keys -t bug-1234 \
+  '/bugfix --issue=1234' Enter
+
+# 检查 session 状态
+tmux list-sessions</code></pre>
+          </div>
+          <div class="col-card">
+            <h3>输出捕获</h3>
+            <pre><code># 捕获当前 pane 内容
+tmux capture-pane -t bug-1234 -p
+
+# 捕获历史输出
+tmux capture-pane -t bug-1234 \
+  -p -S -1000
+
+# 捕获并写入文件
+tmux capture-pane -t bug-1234 \
+  -p > /tmp/output-1234.log
+
+# 检测进程状态
+tmux list-panes -t bug-1234 \
+  -F '#{pane_dead}'</code></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Superpowers Skill -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">Skill</span>
+        <h2>Superpowers 工作流 Skill 体系</h2>
+        <div class="icon-grid">
+          <div class="icon-card">
+            <h4>Bug Fix Skill</h4>
+            <p>接收 bug ID → 定位代码 → 分析根因 → 生成修复 → 运行测试 → 提交 PR</p>
+          </div>
+          <div class="icon-card">
+            <h4>Issue Processing Skill</h4>
+            <p>解析 issue 描述 → 确认需求 → 评估影响 → 生成方案 → 执行实现</p>
+          </div>
+          <div class="icon-card">
+            <h4>Task Execution Skill</h4>
+            <p>拆解任务 → 逐步实现 → 自动化测试 → 文档更新 → 状态同步</p>
+          </div>
+          <div class="icon-card">
+            <h4>Code Review Skill</h4>
+            <p>拉取变更 → 静态分析 → 安全审查 → 性能评估 → 生成 review 意见</p>
+          </div>
+        </div>
+        <div class="quote" style="margin-top: 0.8rem;">
+          每个 Skill 都是一个完整的<span class="highlight">端到端工作流</span>，Claude Code 在 tmux 中自主执行，<span class="highlight-green">无需 Hermes 介入中间步骤</span>。
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 8: Context Optimization -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-lesson">Optimization</span>
+        <h2>上下文优化：只做输入和输出转发</h2>
+        <div class="vs-block">
+          <div class="vs-side red-side">
+            <h4>传统方案（❌ 高成本）</h4>
+            <ul>
+              <li>Hermes 维护完整对话上下文</li>
+              <li>Claude Code 输出全部传入 Hermes</li>
+              <li>每个 token 都计入 Hermes 额度</li>
+              <li>上下文窗口快速耗尽</li>
+              <li>多任务并行时成本爆炸</li>
+            </ul>
+          </div>
+          <div class="vs-divider"></div>
+          <div class="vs-side green-side">
+            <h4>tmux 桥接方案（✅ 低成本）</h4>
+            <ul>
+              <li>Hermes 只存调度元数据</li>
+              <li>只提取最终状态和结论</li>
+              <li>中间过程留在 tmux buffer</li>
+              <li>上下文占用降低 90%+</li>
+              <li>可并行调度数十个任务</li>
+            </ul>
+          </div>
+        </div>
+        <div class="key-point" style="margin-top: 1rem;">
+          <p><strong>Hermes 的角色：</strong>纯粹的<span class="highlight">路由器</span>和<span class="highlight-green">翻译器</span> — 把 IM 消息翻译成 Claude Code 命令，把 Claude Code 输出翻译成 IM 消息。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Multi-Instance -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">Scale</span>
+        <h2>多实例并行：tmux Session 隔离</h2>
+        <div class="flow" style="margin: 1rem 0 1.5rem;">
+          <div class="flow-item accent">Hermes</div>
+          <span class="flow-arrow">→</span>
+          <div class="flow-item">tmux: task-001</div>
+          <span class="flow-arrow">|</span>
+          <div class="flow-item">tmux: task-002</div>
+          <span class="flow-arrow">|</span>
+          <div class="flow-item">tmux: task-003</div>
+        </div>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Session</th>
+              <th>任务类型</th>
+              <th>Skill</th>
+              <th>状态</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>task-001</td>
+              <td>Bug Fix</td>
+              <td>/bugfix --issue=1234</td>
+              <td style="color: var(--green); font-weight: 600;">✓ 已完成</td>
+            </tr>
+            <tr>
+              <td>task-002</td>
+              <td>Feature</td>
+              <td>/feature --spec=auth-v2</td>
+              <td style="color: var(--orange); font-weight: 600;">⟳ 执行中</td>
+            </tr>
+            <tr>
+              <td>task-003</td>
+              <td>Review</td>
+              <td>/review --pr=567</td>
+              <td style="color: var(--text3);">○ 排队中</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="quote" style="margin-top: 1rem;">
+          每个 tmux session 完全隔离，<span class="highlight">一个任务的崩溃不影响其他任务</span>。Hermes 通过 session 名称精确路由输入和输出。
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: Dual Mode -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-section">Validated</span>
+        <h2>调度脚本就绪：双模式执行引擎</h2>
+        <div class="cols">
+          <div class="col-card green-card">
+            <h3>Print 模式（推荐，默认）</h3>
+            <ul>
+              <li>一次性任务，执行完自动退出</li>
+              <li>适合：写代码、修 bug、重构、创建文件</li>
+              <li>不需要 tmux，直接 <code>claude -p</code></li>
+              <li>输出干净，直接拿到结果</li>
+            </ul>
+            <div class="loop-card" style="margin-top: 0.8rem;">
+              <p style="font-size: 0.85rem; color: var(--text2);">✓ 测试通过：文件创建、代码输出都正常</p>
+            </div>
+          </div>
+          <div class="col-card accent-card">
+            <h3>Interactive 模式（tmux）</h3>
+            <ul>
+              <li>多轮对话 TUI 会话</li>
+              <li>适合：探索性编程、需要中间决策的任务</li>
+              <li>通过 tmux capture-pane 监控</li>
+              <li>提取关键回复，转发回 IM</li>
+            </ul>
+            <div class="loop-card" style="margin-top: 0.8rem;">
+              <p style="font-size: 0.85rem; color: var(--text2);">→ 适合需要人机协作的复杂任务</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 11: Script Usage -->
+    <div class="slide">
+      <div class="slide-content">
+        <span class="tag tag-lesson">Usage</span>
+        <h2>claude-tmux.sh 实战用法</h2>
+        <pre><code>脚本路径: ~/.hermes/scripts/claude-tmux.sh
+
+# 编码任务（默认 print 模式）
+claude-tmux.sh &lt;session名&gt; "任务描述" /项目路径 300
+
+# 多轮交互（interactive 模式）
+claude-tmux.sh &lt;session名&gt; "任务描述" /项目路径 300 interactive</code></pre>
+        <div class="steps" style="margin-top: 1rem;">
+          <div class="step-card">
+            <span class="step-label agile">场景 1</span>
+            <div class="step-body"><strong>修 bug</strong> — <code>claude-tmux.sh fix-login "修复登录页空指针异常" /app 300</code></div>
+          </div>
+          <div class="step-card">
+            <span class="step-label agile">场景 2</span>
+            <div class="step-body"><strong>新功能</strong> — <code>claude-tmux.sh feat-pay "实现微信支付回调" /api 600</code></div>
+          </div>
+          <div class="step-card">
+            <span class="step-label waterfall">场景 3</span>
+            <div class="step-body"><strong>探索重构</strong> — <code>claude-tmux.sh refactor "分析订单模块重构方案" /core 600 interactive</code></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 12: Summary -->
+    <div class="slide slide-end">
+      <div class="slide-content">
+        <span class="tag tag-section">Summary</span>
+        <h2>设计总结</h2>
+        <div class="steps" style="text-align: left; max-width: 700px; margin: 1.5rem auto;">
+          <div class="step-card">
+            <span class="step-label agile">1</span>
+            <div class="step-body"><strong>Hermes 作为轻量 Gateway</strong> — 只做输入解析和输出转发，不承载执行过程</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label agile">2</span>
+            <div class="step-body"><strong>tmux 桥接 ACP 缺口</strong> — 用 tmux send-keys / capture-pane 替代 ACP 协议</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label agile">3</span>
+            <div class="step-body"><strong>双模式执行引擎已就绪</strong> — print 模式处理一次性任务，interactive 模式处理多轮对话</div>
+          </div>
+          <div class="step-card">
+            <span class="step-label agile">4</span>
+            <div class="step-body"><strong>方案已验证通过</strong> — claude-tmux.sh 脚本测试通过，可接入钉钉等国内 IM</div>
+          </div>
+        </div>
+        <div class="key-point" style="max-width: 700px; margin: 1rem auto;">
+          <p><strong>一句话总结：</strong>用<span class="highlight">最轻的中间层</span>打通国内 IM 和 Claude Code，让团队通过钉钉就能驱动 AI 完成研发任务。</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap');
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    font-family: 'Inter', 'PingFang SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: #0a0a0f;
+    color: #f0f0f0;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0 96px;
+  }
+  .top-bar {
+    position: absolute; top: 0; left: 0; right: 0; height: 8px;
+    background: linear-gradient(90deg, #d4af37, #f5c842, #ffd700);
+  }
+  .domain {
+    position: absolute; top: 56px; left: 96px;
+    font-size: 26px; font-weight: 600; color: #d4af37; letter-spacing: 0.04em;
+  }
+  h1 {
+    font-size: 110px; font-weight: 800; line-height: 1.05;
+    background: linear-gradient(135deg, #d4af37, #f5c842, #ffd700);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 20px;
+  }
+  .subtitle {
+    font-size: 42px; font-weight: 600; color: #f0f0f0; margin-bottom: 18px;
+    letter-spacing: 0.02em;
+  }
+  .tagline {
+    font-size: 30px; font-weight: 400; color: #a0a0a0; line-height: 1.5;
+    max-width: 920px;
+  }
+  .bottom-line {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 1px; background: #2a2a2a;
+  }
+  .corner {
+    position: absolute; bottom: 48px; right: 96px;
+    font-size: 22px; color: #6b7280; letter-spacing: 0.06em;
+  }
+</style>
+</head>
+<body>
+  <div class="top-bar"></div>
+  <div class="domain">imcoders.cn</div>
+  <h1>杨正武</h1>
+  <div class="subtitle">Harness 工程师</div>
+  <div class="tagline">设计与 AI 智能体的高效工程实践</div>
+  <div class="corner">个人技术站</div>
+  <div class="bottom-line"></div>
+</body>
+</html>

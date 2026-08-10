@@ -418,6 +418,87 @@ import Layout from '../layouts/Layout.astro';
       font-weight: bold;
     }
 
+    /* Playbook Section */
+    .playbook-section {
+      padding: 4rem 0;
+      background: #141414;
+    }
+
+    .playbook-card {
+      display: block;
+      background: #1a1a1a;
+      border: 1px solid #2a2a2a;
+      border-left: 4px solid #d4af37;
+      border-radius: 16px;
+      padding: 3rem;
+      text-decoration: none;
+      transition: all 0.4s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .playbook-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 200px;
+      height: 200px;
+      background: radial-gradient(circle, rgba(212, 175, 55, 0.06), transparent 70%);
+      pointer-events: none;
+    }
+
+    .playbook-card:hover {
+      transform: translateY(-4px);
+      border-color: #d4af37;
+      box-shadow: 0 10px 40px rgba(212, 175, 55, 0.15);
+    }
+
+    .playbook-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #d4af37;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 1.25rem;
+    }
+
+    .playbook-title {
+      font-size: 1.75rem;
+      font-weight: 700;
+      color: #f0f0f0;
+      margin-bottom: 1rem;
+      transition: color 0.3s ease;
+    }
+
+    .playbook-card:hover .playbook-title {
+      color: #d4af37;
+    }
+
+    .playbook-desc {
+      color: #a0a0a0;
+      line-height: 1.8;
+      max-width: 700px;
+    }
+
+    .playbook-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #d4af37;
+      font-weight: 600;
+      font-size: 0.95rem;
+      margin-top: 1.5rem;
+      transition: gap 0.3s ease;
+    }
+
+    .playbook-card:hover .playbook-link {
+      gap: 0.75rem;
+    }
+
     /* 联系方式 */
     .contact-section {
       background: linear-gradient(135deg, #0a0a0f 0%, #141414 100%);
@@ -496,6 +577,23 @@ import Layout from '../layouts/Layout.astro';
         width: 100%;
         max-width: 280px;
         text-align: center;
+      }
+
+      /* Playbook 移动端 */
+      .playbook-section {
+        padding: 2.5rem 0;
+      }
+
+      .playbook-card {
+        padding: 1.5rem;
+      }
+
+      .playbook-title {
+        font-size: 1.25rem;
+      }
+
+      .playbook-desc {
+        font-size: 0.9rem;
       }
 
       section {
@@ -645,6 +743,30 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </section>
 
+  <!-- Harness Engineering Playbook -->
+  <section class="playbook-section">
+    <div class="container">
+      <a href="https://agents-zone.github.io/harness-engineering-playbook/"
+         target="_blank"
+         rel="noopener noreferrer"
+         class="playbook-card">
+        <div class="playbook-badge">
+          <i class="fas fa-book-open"></i>
+          <span>Agents 特区社区出品</span>
+        </div>
+        <h2 class="playbook-title">Harness Engineering Playbook</h2>
+        <p class="playbook-desc">
+          实战手册：如何在团队中用 AI agent 稳定交付生产级代码。<br>
+          从单个 agent 的闭环工程，到多 agent 并行扩展，再到人机协同的组织设计——三个阶段，一线实践验证的方法论。
+        </p>
+        <span class="playbook-link">
+          <i class="fas fa-arrow-right"></i>
+          在线阅读
+        </span>
+      </a>
+    </div>
+  </section>
+
   <!-- 核心理念 -->
   <section id="about">
     <div class="container">
@@ -689,6 +811,54 @@ import Layout from '../layouts/Layout.astro';
     <div class="container">
       <h2 class="section-title">代表作品</h2>
       <div class="projects-grid">
+        <!-- Silieco -->
+        <a href="/blog/human-agent-collaboration-work-os" class="project-card">
+          <div class="project-content">
+            <div class="project-icon">
+              <i class="fas fa-network-wired"></i>
+            </div>
+            <h3 class="project-title">Silieco</h3>
+            <p class="project-description">
+              Human + Agent Work OS<br>
+              让人、Agent、Task、SOP、Skill 与 Runtime 在统一的组织空间中持续协作。
+            </p>
+            <div class="project-tech">
+              <span class="tech-badge">Human + Agent</span>
+              <span class="tech-badge">Work OS</span>
+              <span class="tech-badge">Task</span>
+              <span class="tech-badge">SOP</span>
+            </div>
+          </div>
+          <div class="project-link">
+            <i class="fas fa-arrow-right"></i>
+            <span>阅读 Work OS 设计</span>
+          </div>
+        </a>
+
+        <!-- Chat2DB Agent -->
+        <a href="https://chat2db-ai.com/" target="_blank" rel="noopener noreferrer" class="project-card">
+          <div class="project-content">
+            <div class="project-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3 class="project-title">Chat2DB Agent 化</h3>
+            <p class="project-description">
+              Chat2DB 开源贡献者<br>
+              推动 AI 从 SQL 聊天助手升级为可调度、可审批、可恢复、可审计的 Database Agent。
+            </p>
+            <div class="project-tech">
+              <span class="tech-badge">Open Source</span>
+              <span class="tech-badge">Database Agent</span>
+              <span class="tech-badge">Agent Runtime</span>
+              <span class="tech-badge">Task</span>
+            </div>
+          </div>
+          <div class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            <span>访问 Chat2DB 官网</span>
+          </div>
+        </a>
+
         <!-- VRT -->
         <a href="https://vrtest.cn" target="_blank" class="project-card">
           <div class="project-content">
@@ -719,15 +889,16 @@ import Layout from '../layouts/Layout.astro';
             <div class="project-icon">
               <i class="fas fa-brain"></i>
             </div>
-            <h3 class="project-title">Neuro-IDE</h3>
+            <h3 class="project-title">Neuro</h3>
             <p class="project-description">
-              所见即所得的桌面自动化测试 IDE<br>
-              完整的系统化交付项目。
+              AI 原生桌面端 IDE<br>
+              文档即数据库 (FS-as-Database) 架构，PM Agent 驱动需求拆解到编码验收全流程。
             </p>
             <div class="project-tech">
+              <span class="tech-badge">Tauri V2</span>
               <span class="tech-badge">Rust</span>
-              <span class="tech-badge">Electron</span>
-              <span class="tech-badge">Playwright</span>
+              <span class="tech-badge">React 18</span>
+              <span class="tech-badge">PM Agent</span>
             </div>
           </div>
           <div class="project-link">
@@ -781,6 +952,78 @@ import Layout from '../layouts/Layout.astro';
             <span>GitHub: feature-workflow-LockStep</span>
           </div>
         </a>
+
+        <!-- Edith -->
+        <a href="/blog/edith-agent" class="project-card">
+          <div class="project-content">
+            <div class="project-icon">
+              <i class="fas fa-database"></i>
+            </div>
+            <h3 class="project-title">Edith</h3>
+            <p class="project-description">
+              AI 知识基础设施<br>
+              把代码自动转化为 AI 可消费的知识，三层渐进式加载，任何 Agent 拿到就能用。
+            </p>
+            <div class="project-tech">
+              <span class="tech-badge">TypeScript</span>
+              <span class="tech-badge">多 LLM</span>
+              <span class="tech-badge">知识蒸馏</span>
+              <span class="tech-badge">渐进式加载</span>
+            </div>
+          </div>
+          <div class="project-link">
+            <i class="fas fa-book"></i>
+            <span>阅读介绍</span>
+          </div>
+        </a>
+
+        <!-- AgentsZone -->
+        <a href="/blog/agentszone" class="project-card">
+          <div class="project-content">
+            <div class="project-icon">
+              <i class="fas fa-satellite-dish"></i>
+            </div>
+            <h3 class="project-title">AgentsZone</h3>
+            <p class="project-description">
+              基于 A2A 协议的 Agent 协作平台<br>
+              去中心化 Agent 通信，Channel 多 Agent 协作，跨机器 az-bridge 连接，任务委派与上下文编排。
+            </p>
+            <div class="project-tech">
+              <span class="tech-badge">Tauri V2</span>
+              <span class="tech-badge">Rust</span>
+              <span class="tech-badge">A2A 协议</span>
+              <span class="tech-badge">任务委派</span>
+            </div>
+          </div>
+          <div class="project-link">
+            <i class="fas fa-arrow-right"></i>
+            <span>了解更多</span>
+          </div>
+        </a>
+
+        <!-- AnyClaw -->
+        <a href="https://github.com/auenger/anyclaw" target="_blank" class="project-card">
+          <div class="project-content">
+            <div class="project-icon">
+              <i class="fas fa-paw"></i>
+            </div>
+            <h3 class="project-title">AnyClaw</h3>
+            <p class="project-description">
+              轻量级 AI Agent 框架<br>
+              多通道消息架构 + Skill 代码化约束 + 安全模块。
+            </p>
+            <div class="project-tech">
+              <span class="tech-badge">Python</span>
+              <span class="tech-badge">Tauri</span>
+              <span class="tech-badge">Skill System</span>
+              <span class="tech-badge">Security</span>
+            </div>
+          </div>
+          <div class="project-link">
+            <i class="fas fa-external-link-alt"></i>
+            <span>GitHub: auenger/anyclaw</span>
+          </div>
+        </a>
       </div>
     </div>
   </section>
@@ -824,6 +1067,20 @@ import Layout from '../layouts/Layout.astro';
             <li>Java + Spring Boot</li>
             <li>微服务架构</li>
             <li>分布式系统</li>
+          </ul>
+        </div>
+
+        <div class="skill-card">
+          <div class="skill-icon">
+            <i class="fas fa-diagram-project"></i>
+          </div>
+          <h3 class="skill-title">Agent 工程</h3>
+          <ul class="skill-list">
+            <li>LangGraph 工作流编排</li>
+            <li>Pi Agent Runtime</li>
+            <li>上下文工程与记忆管理</li>
+            <li>Eval 评测与质量闭环</li>
+            <li>Tool Use 与多 Agent 协作</li>
           </ul>
         </div>
 

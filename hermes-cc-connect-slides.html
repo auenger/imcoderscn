@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hermes × cc-connect 远程调度方案</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <style>
+    [data-theme="dark"] {
+      --bg: #0b0b14;
+      --bg2: #0f0f1c;
+      --surface: #161628;
+      --surface2: #1c1c36;
+      --surface3: #22223e;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --text: #e6e6f2;
+      --text2: #9090ac;
+      --text3: #606078;
+      --accent: #7b6cf0;
+      --accent2: #a8a0ff;
+      --green: #00d4aa;
+      --green-bg: rgba(0,212,170,0.08);
+      --green-border: rgba(0,212,170,0.2);
+      --red: #ff6b6b;
+      --red-bg: rgba(255,107,107,0.08);
+      --red-border: rgba(255,107,107,0.2);
+      --orange: #f0b848;
+      --orange-bg: rgba(240,184,72,0.08);
+      --orange-border: rgba(240,184,72,0.2);
+      --accent-bg: rgba(123,108,240,0.08);
+      --accent-border: rgba(123,108,240,0.18);
+      --code-bg: #111124;
+      --code-border: rgba(123,108,240,0.12);
+      --code-text: #00d4aa;
+      --shadow: 0 2px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+      --quote-bg: rgba(123,108,240,0.06);
+      --quote-border: var(--accent);
+      --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+      --key-border: rgba(123,108,240,0.18);
+      --toggle-bg: rgba(255,255,255,0.08);
+      --toggle-hover: rgba(255,255,255,0.14);
+      --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f4fb;
+      --bg2: #eaeaf4;
+      --surface: #ffffff;
+      --surface2: #f0f0fa;
+      --surface3: #e6e6f2;
+      --border: rgba(0,0,0,0.07);
+      --border-strong: rgba(0,0,0,0.12);
+      --text: #1a1a30;
+      --text2: #5a5a78;
+      --text3: #9898ac;
+      --accent: #5b4cc4;
+      --accent2: #7b6cf0;
+      --green: #009a7c;
+      --green-bg: rgba(0,154,124,0.06);
+      --green-border: rgba(0,154,124,0.18);
+      --red: #d44040;
+      --red-bg: rgba(212,64,64,0.06);
+      --red-border: rgba(212,64,64,0.18);
+      --orange: #b88020;
+      --orange-bg: rgba(184,128,32,0.06);
+      --orange-border: rgba(184,128,32,0.18);
+      --accent-bg: rgba(91,76,196,0.06);
+      --accent-border: rgba(91,76,196,0.15);
+      --code-bg: #1a1a30;
+      --code-border: rgba(91,76,196,0.12);
+      --code-text: #00d4aa;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+      --quote-bg: rgba(91,76,196,0.04);
+      --quote-border: var(--accent);
+      --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+      --key-border: rgba(91,76,196,0.12);
+      --toggle-bg: rgba(0,0,0,0.06);
+      --toggle-hover: rgba(0,0,0,0.1);
+      --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      overflow: hidden;
+      height: 100vh;
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    html, body, .slide, .progress, .slide-number, .nav-hint,
+    .col-card, .tip, pre, .quote, .key-point, .flow-item, .tag,
+    .theme-toggle, .tip-num, .loop-card, .step-card, .nav-dot, .nav-dots,
+    .arch-layer, .challenge-item, .icon-card {
+      transition: background 0.4s ease, color 0.4s ease,
+                  border-color 0.4s ease, box-shadow 0.4s ease,
+                  opacity 0.4s ease;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      padding: 6vh 8vw;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      transform: translateX(60px);
+      pointer-events: none;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+
+    .slide::-webkit-scrollbar { width: 4px; }
+    .slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+      transition: opacity 0.45s ease, transform 0.45s ease;
+    }
+
+    .slide > * {
+      max-width: 860px;
+      width: 100%;
+    }
+
+    .slide > .tag { width: auto; }
+
+    .slide-cover {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+    }
+
+    .slide-cover h1 {
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900;
+      line-height: 1.35;
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .slide-cover .subtitle {
+      font-size: clamp(0.95rem, 1.5vw, 1.2rem);
+      color: var(--text2);
+      margin-top: 1rem;
+    }
+
+    .slide-cover .divider {
+      width: 60px; height: 2px; margin: 1.8rem auto;
+      background: var(--progress-bg); border-radius: 1px;
+    }
+
+    .slide-cover .meta {
+      font-size: clamp(0.8rem, 1vw, 0.9rem);
+      color: var(--text3);
+      margin-top: 0.5rem;
+    }
+
+    .slide-end {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%);
+    }
+
+    .slide-end h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0; left: 0;
+      height: 3px;
+      background: var(--progress-bg);
+      z-index: 100;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slide-number {
+      position: fixed;
+      top: 16px; right: 20px;
+      font-size: 0.8rem;
+      color: var(--text3);
+      z-index: 100;
+    }
+
+    .nav-hint {
+      position: fixed;
+      bottom: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      color: var(--text3);
+      z-index: 100;
+      opacity: 0.5;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: clamp(0.7rem, 0.9vw, 0.78rem);
+      font-weight: 500;
+      margin-bottom: 1rem;
+    }
+
+    .tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+    .tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+    .tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+    .tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+    h2 {
+      font-size: clamp(1.3rem, 2.5vw, 1.8rem);
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      line-height: 1.4;
+    }
+
+    h3 {
+      font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+      font-weight: 600;
+      margin-bottom: 0.6rem;
+    }
+
+    h4 {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      color: var(--text2);
+      margin-bottom: 0.8rem;
+      line-height: 1.8;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      margin-bottom: 0.8rem;
+    }
+
+    ul li {
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      color: var(--text2);
+      padding: 0.3rem 0 0.3rem 1.5rem;
+      position: relative;
+      line-height: 1.7;
+    }
+
+    ul li::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0.75rem;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.5;
+    }
+
+    .key-point {
+      background: var(--key-bg);
+      border: 1px solid var(--key-border);
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      margin: 1rem 0;
+    }
+
+    .key-point p {
+      color: var(--text);
+      margin-bottom: 0;
+    }
+
+    .quote {
+      background: var(--quote-bg);
+      border-left: 3px solid var(--quote-border);
+      padding: 1rem 1.4rem;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-size: clamp(0.85rem, 1.2vw, 1rem);
+      color: var(--text2);
+    }
+
+    .quote em {
+      color: var(--accent);
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+
+    .flow-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.7rem 1.2rem;
+      font-size: clamp(0.8rem, 1.1vw, 0.9rem);
+      font-weight: 500;
+      color: var(--text);
+      box-shadow: var(--shadow);
+    }
+
+    .flow-item.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+    .flow-item.red { border-color: var(--red-border); background: var(--red-bg); color: var(--red); }
+    .flow-item.orange { border-color: var(--orange-border); background: var(--orange-bg); color: var(--orange); }
+    .flow-item.accent { border-color: var(--accent-border); background: var(--accent-bg); color: var(--accent); }
+
+    .flow-arrow {
+      font-size: 1.2rem;
+      color: var(--text3);
+      font-weight: 300;
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin: 1rem 0;
+    }
+
+    .col-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .col-card.green-card { border-color: var(--green-border); }
+    .col-card.red-card { border-color: var(--red-border); }
+    .col-card.accent-card { border-color: var(--accent-border); }
+    .col-card.orange-card { border-color: var(--orange-border); }
+
+    .steps {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 1rem 0;
+    }
+
+    .step-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.2rem;
+    }
+
+    .step-label {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 6px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      white-space: nowrap;
+      margin-top: 2px;
+    }
+
+    .step-label.waterfall { background: var(--accent-bg); color: var(--accent); }
+    .step-label.agile { background: var(--green-bg); color: var(--green); }
+
+    .step-body {
+      font-size: clamp(0.82rem, 1.1vw, 0.92rem);
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin: 1rem 0;
+    }
+
+    .icon-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem;
+      box-shadow: var(--shadow);
+    }
+
+    .vs-block {
+      display: flex;
+      gap: 0;
+      margin: 1rem 0;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    .vs-side {
+      flex: 1;
+      padding: 1.2rem;
+      background: var(--surface);
+    }
+
+    .vs-side h4 { margin-bottom: 0.6rem; }
+
+    .vs-side.red-side { background: var(--red-bg); }
+    .vs-side.green-side { background: var(--green-bg); }
+
+    .vs-divider {
+      width: 2px;
+      background: var(--border);
+    }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 10px;
+      padding: 1.2rem;
+      margin: 1rem 0;
+      overflow-x: auto;
+    }
+
+    pre code {
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+      font-size: clamp(0.75rem, 1vw, 0.85rem);
+      color: var(--code-text);
+      line-height: 1.6;
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: clamp(0.8rem, 1vw, 0.9rem);
+    }
+
+    .data-table th {
+      background: var(--accent-bg);
+      color: var(--accent);
+      font-weight: 600;
+      padding: 0.7rem 0.8rem;
+      text-align: left;
+      border-bottom: 2px solid var(--accent-border);
+    }
+
+    .data-table td {
+      padding: 0.6rem 0.8rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .challenge-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin: 1rem 0;
+    }
+
+    .challenge-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      background: var(--surface);
+      border: 1px solid var(--red-border);
+      border-radius: 10px;
+      padding: 0.9rem 1.2rem;
+    }
+
+    .challenge-num {
+      width: 28px; height: 28px;
+      background: var(--red);
+      color: white;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.8rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .challenge-body strong {
+      display: block;
+      margin-bottom: 0.3rem;
+      color: var(--text);
+    }
+
+    .challenge-body p {
+      margin: 0;
+      font-size: clamp(0.8rem, 1vw, 0.9rem);
+    }
+
+    .highlight { color: var(--accent); font-weight: 600; }
+    .highlight-green { color: var(--green); font-weight: 600; }
+    .highlight-red { color: var(--red); font-weight: 600; }
+    .highlight-orange { color: var(--orange); font-weight: 600; }
+
+    .arch-layer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1rem 1.4rem;
+      margin: 0.6rem 0;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .arch-layer-label {
+      min-width: 100px;
+      font-size: clamp(0.78rem, 1vw, 0.85rem);
+      font-weight: 600;
+      color: var(--accent);
+      flex-shrink: 0;
+    }
+
+    .arch-layer-items {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .arch-layer-items .flow-item {
+      font-size: clamp(0.72rem, 0.9vw, 0.82rem);
+      padding: 0.4rem 0.8rem;
+    }
+
+    /* Nav arrows */
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      cursor: pointer;
+      z-index: 90;
+      transition: opacity 0.3s;
+    }
+
+    .nav-arrow:hover { opacity: 1 !important; }
+
+    .nav-arrow svg {
+      width: 28px;
+      height: 28px;
+      stroke: var(--text2);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    .nav-left {
+      left: 0;
+      background: linear-gradient(90deg, var(--bg), transparent);
+    }
+
+    .nav-right {
+      right: 0;
+      background: linear-gradient(270deg, var(--bg), transparent);
+    }
+
+    .nav-arrow.flash { opacity: 0.7; }
+
+    /* Theme toggle */
+    .theme-toggle {
+      position: fixed;
+      bottom: 8px;
+      right: 16px;
+      transform: none;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      border: 1px solid var(--border);
+      background: var(--toggle-bg);
+      backdrop-filter: blur(8px);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 0.5;
+      transition: opacity 0.3s, background 0.4s, border-color 0.4s;
+    }
+
+    .theme-toggle:hover { opacity: 1; background: var(--toggle-hover); }
+
+    .theme-toggle svg {
+      width: 20px;
+      height: 20px;
+      stroke: var(--text2);
+      stroke-width: 2;
+      fill: none;
+    }
+
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+    [data-theme="light"] .icon-sun { display: none; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    /* Nav bar */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      padding: 8px 0 10px;
+      pointer-events: none;
+    }
+
+    .nav-dots {
+      display: flex;
+      align-items: center;
+      position: relative;
+      background: var(--toggle-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 8px 18px;
+      gap: 6px;
+      pointer-events: auto;
+      transition: background 0.25s, transform 0.25s;
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text3);
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      opacity: 0.4;
+      flex-shrink: 0;
+      outline: none;
+    }
+
+    .nav-dot:hover { opacity: 0.9; transform: scale(1.3); }
+
+    .nav-dot.active {
+      background: var(--accent);
+      opacity: 1;
+      width: 24px;
+      border-radius: 4px;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .nav-dot .dot-tip {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border-strong);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: var(--text2);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-dot:hover .dot-tip { opacity: 1; }
+
+    .nav-dots.dragging { background: var(--border-strong); transform: scaleY(1.25); }
+    .nav-dots.dragging .nav-dot { opacity: 0.7; }
+    .nav-dots.dragging .nav-dot.active { opacity: 1; width: 28px; box-shadow: 0 0 12px var(--accent); }
+    .nav-dots.dragging .nav-dot .dot-tip { opacity: 0 !important; }
+
+    .drag-label {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .nav-dots.dragging .drag-label { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .slide { padding: 4vh 5vw; }
+      .cols { grid-template-columns: 1fr; }
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .icon-grid { grid-template-columns: 1fr; }
+      .vs-block { flex-direction: column; }
+      .nav-dots { padding: 6px 12px; gap: 4px; }
+      .nav-dot { width: 6px; height: 6px; }
+      .nav-dot.active { width: 18px; }
+      .arch-layer { flex-direction: column; align-items: flex-start; }
+      .arch-layer-label { min-width: auto; }
+    }
+
+    @media (hover: none) { .nav-hint { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="slide-number" id="slideNum"></div>
+  <div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+  <div class="nav-arrow nav-left flash" id="navLeft">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </div>
+  <div class="nav-arrow nav-right flash" id="navRight">
+    <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+    <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <div class="slides" id="slides">
+
+    <!-- Slide 1: Cover -->
+    <div class="slide slide-cover active">
+      <span class="tag tag-section">Architecture Design</span>
+      <h1>Hermes × cc-connect<br>远程调度方案</h1>
+      <div class="divider"></div>
+      <p class="subtitle">用 cc-connect 直连 Claude Code，配合 Hermes 构建完整的远程任务调度生态</p>
+      <p class="meta">2026.05</p>
+    </div>
+
+    <!-- Slide 2: Problem -->
+    <div class="slide">
+      <span class="tag tag-red">Problem</span>
+      <h2>tmux 桥接方案的局限性</h2>
+      <div class="challenge-list">
+        <div class="challenge-item">
+          <div class="challenge-num">1</div>
+          <div class="challenge-body">
+            <strong>自建脚本维护成本高</strong>
+            <p>claude-tmux.sh 需要自己维护 send-keys / capture-pane 逻辑，解析 Claude Code 的 TUI 输出，遇到版本更新容易失效</p>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">2</div>
+          <div class="challenge-body">
+            <strong>仅支持单通道调度</strong>
+            <p>tmux 方案一次只能对接一个 IM 平台，缺乏多平台统一接入能力，钉钉、飞书、企微需要分别开发适配</p>
+          </div>
+        </div>
+        <div class="challenge-item">
+          <div class="challenge-num">3</div>
+          <div class="challenge-body">
+            <strong>缺乏会话与权限管理</strong>
+            <p>无法精细控制谁可以触发任务、任务执行中的状态追踪、会话切换等企业级需求</p>
+          </div>
+        </div>
+      </div>
+      <div class="key-point" style="margin-top: 0.8rem;">
+        <p><strong>核心矛盾：</strong>tmux 方案解决了<span class="highlight">"能不能用"</span>的问题，但离<span class="highlight-green">"好用、稳定、可扩展"</span>还有差距。</p>
+      </div>
+    </div>
+
+    <!-- Slide 3: Solution -->
+    <div class="slide">
+      <span class="tag tag-section">Solution</span>
+      <h2>cc-connect — 开源 IM ↔ Agent 桥接层</h2>
+      <div class="flow" style="justify-content: center; margin: 1.5rem 0;">
+        <div class="flow-item">12 个 IM 平台</div>
+        <span class="flow-arrow">↔</span>
+        <div class="flow-item accent">cc-connect</div>
+        <span class="flow-arrow">↔</span>
+        <div class="flow-item green">10+ AI Agent</div>
+      </div>
+      <div class="cols">
+        <div class="col-card green-card">
+          <h3>核心能力</h3>
+          <ul>
+            <li>支持飞书 / 钉钉 / 企微 / Slack / Telegram 等 12 个平台</li>
+            <li>支持 Claude Code / Codex / Cursor / Gemini CLI 等 Agent</li>
+            <li>大多数平台无需公网 IP</li>
+            <li>流式回复、语音、图片、文件传输</li>
+          </ul>
+        </div>
+        <div class="col-card accent-card">
+          <h3>企业级特性</h3>
+          <ul>
+            <li>多项目隔离，一个进程管理多个 Agent</li>
+            <li>会话管理：/new /switch /list 完整控制</li>
+            <li>权限模式：/mode yolo|default 灵活切换</li>
+            <li>定时任务、Provider 管理、Web Admin UI</li>
+          </ul>
+        </div>
+      </div>
+      <div class="quote" style="margin-top: 0.5rem;">
+        cc-connect 是 MIT 协议的开源项目，<span class="highlight">Go 语言编写</span>，npm / Homebrew 一行安装，解决了从"自己造轮子"到"用成熟方案"的跨越。
+      </div>
+    </div>
+
+    <!-- Slide 4: Architecture -->
+    <div class="slide">
+      <span class="tag tag-section">Architecture</span>
+      <h2>整体架构：三层分离，职责清晰</h2>
+      <div style="margin: 1.2rem 0;">
+        <div class="arch-layer" style="border-left: 3px solid var(--orange);">
+          <div class="arch-layer-label" style="color: var(--orange);">接入层</div>
+          <div class="arch-layer-items">
+            <div class="flow-item orange">飞书</div>
+            <div class="flow-item orange">钉钉</div>
+            <div class="flow-item orange">企微</div>
+            <div class="flow-item orange">Slack</div>
+            <div class="flow-item orange">Telegram</div>
+            <div class="flow-item orange">微信</div>
+            <div class="flow-item orange">Discord</div>
+          </div>
+        </div>
+        <div style="text-align: center; color: var(--text3); font-size: 0.9rem; padding: 0.3rem;">↓ ↑</div>
+        <div class="arch-layer" style="border-left: 3px solid var(--accent); background: var(--accent-bg);">
+          <div class="arch-layer-label">桥接层</div>
+          <div class="arch-layer-items">
+            <div class="flow-item accent">cc-connect</div>
+            <span style="font-size: 0.82rem; color: var(--text2); padding: 0.4rem 0;">会话管理 · 权限控制 · Provider · 定时任务 · 附件回传</span>
+          </div>
+        </div>
+        <div style="text-align: center; color: var(--text3); font-size: 0.9rem; padding: 0.3rem;">↓ ↑</div>
+        <div class="arch-layer" style="border-left: 3px solid var(--green);">
+          <div class="arch-layer-label" style="color: var(--green);">Agent 层</div>
+          <div class="arch-layer-items">
+            <div class="flow-item green">Claude Code</div>
+            <div class="flow-item green">Codex</div>
+            <div class="flow-item green">Cursor Agent</div>
+            <div class="flow-item green">Gemini CLI</div>
+            <div class="flow-item green">ACP Agent</div>
+          </div>
+        </div>
+      </div>
+      <div class="key-point">
+        <p><strong>架构优势：</strong>每一层都可以<span class="highlight">独立替换</span>。换 IM 平台不影响 Agent 层，换 Agent 不影响接入层。cc-connect 作为中间层屏蔽了双方的协议差异。</p>
+      </div>
+    </div>
+
+    <!-- Slide 5: Comparison -->
+    <div class="slide">
+      <span class="tag tag-lesson">Comparison</span>
+      <h2>tmux 桥接 vs cc-connect 对比</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th style="color: var(--red);">tmux 桥接</th>
+            <th style="color: var(--green);">cc-connect</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>连接方式</strong></td>
+            <td>send-keys / capture-pane 模拟终端</td>
+            <td>协议级直连 Agent stdin/stdout</td>
+          </tr>
+          <tr>
+            <td><strong>IM 平台</strong></td>
+            <td>需自行开发每个平台适配</td>
+            <td>内置 12 个平台，开箱即用</td>
+          </tr>
+          <tr>
+            <td><strong>公网 IP</strong></td>
+            <td>需要自己解决</td>
+            <td>大多数平台无需公网 IP</td>
+          </tr>
+          <tr>
+            <td><strong>会话管理</strong></td>
+            <td>通过 tmux session 名手动管理</td>
+            <td>/new /switch /list 完整管理</td>
+          </tr>
+          <tr>
+            <td><strong>权限控制</strong></td>
+            <td>无</td>
+            <td>admin_from + /mode 权限体系</td>
+          </tr>
+          <tr>
+            <td><strong>多项目</strong></td>
+            <td>每个任务一个 tmux session</td>
+            <td>一个进程管理多个 Agent 实例</td>
+          </tr>
+          <tr>
+            <td><strong>流式输出</strong></td>
+            <td>需轮询 capture-pane</td>
+            <td>原生流式回复到 IM</td>
+          </tr>
+          <tr>
+            <td><strong>维护成本</strong></td>
+            <td>自建脚本，需要自己跟进变化</td>
+            <td>开源社区维护，持续更新</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="key-point" style="margin-top: 0.5rem;">
+        <p><strong>结论：</strong>tmux 方案适合快速验证 PoC，<span class="highlight-green">cc-connect 适合生产级部署</span>。两者可以共存，根据场景选择。</p>
+      </div>
+    </div>
+
+    <!-- Slide 6: Feature Matrix -->
+    <div class="slide">
+      <span class="tag tag-section">Features</span>
+      <h2>cc-connect 核心能力矩阵</h2>
+      <div class="icon-grid">
+        <div class="icon-card">
+          <h4>会话管理</h4>
+          <p>/new 创建新会话，/list 查看所有会话，/switch 切换上下文。自动轮转防止上下文漂移</p>
+        </div>
+        <div class="icon-card">
+          <h4>权限体系</h4>
+          <p>admin_from 白名单控制特权用户，/mode 切换权限等级，支持 OS-User 级隔离</p>
+        </div>
+        <div class="icon-card">
+          <h4>定时任务</h4>
+          <p>自然语言设置 cron：/cron add 0 6 * * * 每天早6点总结 GitHub Trending</p>
+        </div>
+        <div class="icon-card">
+          <h4>多项目架构</h4>
+          <p>一个 cc-connect 进程管理多个 Agent + 平台组合，每个项目独立配置和工作目录</p>
+        </div>
+      </div>
+      <div class="icon-grid" style="margin-top: 0;">
+        <div class="icon-card">
+          <h4>Provider 管理</h4>
+          <p>/provider list 查看可用 Provider，/provider switch 运行时切换 API 提供商</p>
+        </div>
+        <div class="icon-card">
+          <h4>附件回传</h4>
+          <p>Agent 生成的截图、图表、PDF 等文件自动发送回 IM 对话，支持飞书和 Telegram</p>
+        </div>
+        <div class="icon-card">
+          <h4>Web Admin UI</h4>
+          <p>内嵌管理面板，可视化创建项目、管理 Provider、监控会话、编辑定时任务</p>
+        </div>
+        <div class="icon-card">
+          <h4>多语言支持</h4>
+          <p>原生支持中英日西 5 种语言界面，跨地区团队无障碍使用</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Hermes + cc-connect -->
+    <div class="slide">
+      <span class="tag tag-section">Integration</span>
+      <h2>Hermes + cc-connect：双层调度架构</h2>
+      <div class="flow" style="justify-content: center; margin: 1.5rem 0;">
+        <div class="flow-item">用户指令</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item accent">Hermes Agent</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item orange">cc-connect</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item green">Claude Code</div>
+      </div>
+      <div class="cols">
+        <div class="col-card accent-card">
+          <h3>Hermes Agent（任务编排层）</h3>
+          <ul>
+            <li>接收复杂任务指令，拆解为子任务</li>
+            <li>决定任务路由：哪个 Agent 处理什么</li>
+            <li>维护任务状态机：排队 → 执行中 → 完成</li>
+            <li>跨任务编排：A 任务完成后触发 B 任务</li>
+            <li>结果聚合：汇总多个 Agent 的输出</li>
+          </ul>
+        </div>
+        <div class="col-card orange-card">
+          <h3>cc-connect（通道连接层）</h3>
+          <ul>
+            <li>负责 IM ↔ Agent 的消息双向传输</li>
+            <li>管理会话生命周期和上下文</li>
+            <li>处理权限、Provider、流式输出</li>
+            <li>定时任务执行和结果回传</li>
+            <li>多项目隔离和并发控制</li>
+          </ul>
+        </div>
+      </div>
+      <div class="key-point" style="margin-top: 0.5rem;">
+        <p><strong>分工原则：</strong>Hermes 负责<span class="highlight">"做什么"</span>（任务编排和决策），cc-connect 负责<span class="highlight-orange">"怎么做"</span>（通道连接和执行）。</p>
+      </div>
+    </div>
+
+    <!-- Slide 8: Multi-Agent Orchestration -->
+    <div class="slide">
+      <span class="tag tag-section">Orchestration</span>
+      <h2>多 Agent 协同调度</h2>
+      <div class="flow" style="margin: 1rem 0 1.5rem;">
+        <div class="flow-item accent">Hermes</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item orange">cc-connect</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item green">Claude Code</div>
+        <span class="flow-arrow">+</span>
+        <div class="flow-item green">Codex</div>
+        <span class="flow-arrow">+</span>
+        <div class="flow-item green">Gemini CLI</div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>场景</th>
+            <th>Hermes 决策</th>
+            <th>执行 Agent</th>
+            <th>cc-connect 通道</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Bug 修复</strong></td>
+            <td>识别 bug → 选择 Agent</td>
+            <td>Claude Code + bugfix skill</td>
+            <td>飞书群 → 结果回传</td>
+          </tr>
+          <tr>
+            <td><strong>代码审查</strong></td>
+            <td>检测 PR → 分配审查</td>
+            <td>Codex / Gemini CLI</td>
+            <td>钉钉 → 审查意见</td>
+          </tr>
+          <tr>
+            <td><strong>定时巡检</strong></td>
+            <td>cron 触发 → 任务派发</td>
+            <td>Claude Code</td>
+            <td>企微 → 巡检报告</td>
+          </tr>
+          <tr>
+            <td><strong>多模型对比</strong></td>
+            <td>同一问题分发给多个 Agent</td>
+            <td>Claude Code + Gemini CLI</td>
+            <td>Slack → 结果聚合</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="quote">
+        cc-connect 原生支持 <span class="highlight">Multi-Bot Relay</span>：在一个群聊中绑定多个 Bot，让不同 Agent 的回答出现在同一对话流中。
+      </div>
+    </div>
+
+    <!-- Slide 9: Deployment -->
+    <div class="slide">
+      <span class="tag tag-lesson">Deployment</span>
+      <h2>实战部署方案</h2>
+      <div class="cols">
+        <div class="col-card">
+          <h3>安装 cc-connect</h3>
+          <pre><code># npm 一行安装
+npm install -g cc-connect
+
+# 或 Homebrew
+brew install cc-connect
+
+# 或直接下载二进制
+curl -L -o cc-connect \
+  https://github.com/chenhg5/\
+cc-connect/releases/latest/\
+download/cc-connect-linux-amd64
+chmod +x cc-connect</code></pre>
+        </div>
+        <div class="col-card">
+          <h3>配置项目</h3>
+          <pre><code># Web UI 配置（推荐）
+cc-connect web
+
+# 或手动编辑配置
+mkdir -p ~/.cc-connect
+cp config.example.toml \
+  ~/.cc-connect/config.toml
+vim ~/.cc-connect/config.toml
+
+# 启动服务
+cc-connect</code></pre>
+        </div>
+      </div>
+      <div class="steps" style="margin-top: 0.8rem;">
+        <div class="step-card">
+          <span class="step-label agile">Step 1</span>
+          <div class="step-body"><strong>部署 cc-connect</strong> — 在开发机上安装并配置 IM 平台接入</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">Step 2</span>
+          <div class="step-body"><strong>配置 Hermes</strong> — 将 Hermes 的任务输出指向 cc-connect 的消息通道</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">Step 3</span>
+          <div class="step-body"><strong>验证链路</strong> — 在 IM 中发送测试指令，确认完整的 指令→执行→回传 链路</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: Ecosystem -->
+    <div class="slide">
+      <span class="tag tag-section">Ecosystem</span>
+      <h2>Hermes 调度生态全景</h2>
+      <div style="margin: 1.2rem 0;">
+        <div class="arch-layer" style="border-left: 3px solid var(--text3);">
+          <div class="arch-layer-label" style="color: var(--text3);">用户触点</div>
+          <div class="arch-layer-items">
+            <div class="flow-item">钉钉群</div>
+            <div class="flow-item">飞书群</div>
+            <div class="flow-item">企微</div>
+            <div class="flow-item">Slack</div>
+            <div class="flow-item">Telegram</div>
+            <div class="flow-item">微信</div>
+          </div>
+        </div>
+        <div style="text-align: center; color: var(--text3); font-size: 0.85rem; padding: 0.3rem;">cc-connect 桥接 ↑ ↓</div>
+        <div class="arch-layer" style="border-left: 3px solid var(--accent); background: var(--accent-bg);">
+          <div class="arch-layer-label">Hermes 调度</div>
+          <div class="arch-layer-items">
+            <div class="flow-item accent">任务拆解</div>
+            <div class="flow-item accent">路由分发</div>
+            <div class="flow-item accent">状态追踪</div>
+            <div class="flow-item accent">结果聚合</div>
+            <div class="flow-item accent">Skill 编排</div>
+          </div>
+        </div>
+        <div style="text-align: center; color: var(--text3); font-size: 0.85rem; padding: 0.3rem;">cc-connect 桥接 ↑ ↓</div>
+        <div class="arch-layer" style="border-left: 3px solid var(--green);">
+          <div class="arch-layer-label" style="color: var(--green);">Agent 执行</div>
+          <div class="arch-layer-items">
+            <div class="flow-item green">Claude Code</div>
+            <div class="flow-item green">Codex</div>
+            <div class="flow-item green">Cursor Agent</div>
+            <div class="flow-item green">Gemini CLI</div>
+          </div>
+        </div>
+        <div style="text-align: center; color: var(--text3); font-size: 0.85rem; padding: 0.3rem;">↓ 执行结果</div>
+        <div class="arch-layer" style="border-left: 3px solid var(--orange);">
+          <div class="arch-layer-label" style="color: var(--orange);">输出交付</div>
+          <div class="arch-layer-items">
+            <div class="flow-item orange">PR 链接</div>
+            <div class="flow-item orange">测试报告</div>
+            <div class="flow-item orange">代码审查</div>
+            <div class="flow-item orange">巡检摘要</div>
+            <div class="flow-item orange">附件文件</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 11: Summary -->
+    <div class="slide slide-end">
+      <span class="tag tag-section">Summary</span>
+      <h2>设计总结</h2>
+      <div class="steps" style="text-align: left; max-width: 700px; margin: 1.5rem auto;">
+        <div class="step-card">
+          <span class="step-label agile">1</span>
+          <div class="step-body"><strong>cc-connect 替代 tmux 桥接</strong> — 协议级直连 Agent，12 个 IM 平台开箱即用</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">2</span>
+          <div class="step-body"><strong>Hermes 专注任务编排</strong> — 不再做通道适配，专注于"做什么"的决策层</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">3</span>
+          <div class="step-body"><strong>三层解耦架构</strong> — 接入层 / 调度层 / 执行层独立演进，灵活替换</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">4</span>
+          <div class="step-body"><strong>生产级可用</strong> — 企业级权限、会话管理、定时任务，满足团队协作需求</div>
+        </div>
+      </div>
+      <div class="key-point" style="max-width: 700px; margin: 1rem auto;">
+        <p><strong>一句话总结：</strong>用<span class="highlight">开源成熟的 cc-connect</span> 替换自建 tmux 桥接，让 Hermes 专注调度编排，构建<span class="highlight-green">稳定、可扩展</span>的远程任务调度生态。</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav-bar" id="navBar"></div>
+
+  <script>
+  (function() {
+    var slides = document.querySelectorAll('.slide');
+    var total = slides.length;
+    var current = 0;
+    var isAnimating = false;
+
+    var progress = document.getElementById('progress');
+    var slideNum = document.getElementById('slideNum');
+    var themeToggle = document.getElementById('themeToggle');
+    var navLeft = document.getElementById('navLeft');
+    var navRight = document.getElementById('navRight');
+
+    // Theme
+    var savedTheme = localStorage.getItem('slide-theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+
+    themeToggle.addEventListener('click', function() {
+      var current = document.documentElement.getAttribute('data-theme');
+      var next = current === 'dark' ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', next);
+      localStorage.setItem('slide-theme', next);
+    });
+
+    // Nav dots
+    var navBar = document.getElementById('navBar');
+    var dotsContainer = document.createElement('div');
+    dotsContainer.className = 'nav-dots';
+    var dots = [];
+    var slideLabels = [];
+    var dotPositions = [];
+
+    slides.forEach(function(slide, i) {
+      var h2 = slide.querySelector('h2');
+      var tag = slide.querySelector('.tag');
+      var label = h2 ? h2.textContent.trim() : (tag ? tag.textContent.trim() : '');
+      if (label.length > 16) label = label.substring(0, 14) + '…';
+      slideLabels.push(label);
+      var dot = document.createElement('button');
+      dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+      dot.innerHTML = '<span class="dot-tip">' + (i + 1) + (label ? '. ' + label : '') + '</span>';
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+
+    var dragLabel = document.createElement('div');
+    dragLabel.className = 'drag-label';
+    dotsContainer.appendChild(dragLabel);
+    navBar.appendChild(dotsContainer);
+
+    var isDragging = false;
+
+    function getIdxFromX(clientX) {
+      var closest = 0, minDist = Infinity;
+      dotPositions.forEach(function(cx, i) {
+        var d = Math.abs(clientX - cx);
+        if (d < minDist) { minDist = d; closest = i; }
+      });
+      return closest;
+    }
+
+    function jumpTo(idx) {
+      if (idx === current || idx < 0 || idx >= total) return;
+      isAnimating = false;
+      slides[current].classList.remove('active');
+      slides[current].style.transform = '';
+      slides[idx].style.transition = 'none';
+      slides[idx].style.transform = '';
+      slides[idx].classList.add('active');
+      void slides[idx].offsetWidth;
+      slides[idx].style.transition = '';
+      current = idx;
+      updateUI();
+    }
+
+    function updateDragLabel() {
+      dragLabel.textContent = (current + 1) + ' / ' + total + (slideLabels[current] ? '  ' + slideLabels[current] : '');
+    }
+
+    dotsContainer.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      isDragging = true;
+      dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+      dotsContainer.classList.add('dragging');
+      var idx = getIdxFromX(e.clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      var idx = getIdxFromX(e.clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (!isDragging) return;
+      isDragging = false;
+      dotsContainer.classList.remove('dragging');
+    });
+
+    dotsContainer.addEventListener('touchstart', function(e) {
+      isDragging = true;
+      dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+      dotsContainer.classList.add('dragging');
+      var idx = getIdxFromX(e.touches[0].clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    }, { passive: true });
+
+    dotsContainer.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      var idx = getIdxFromX(e.touches[0].clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    }, { passive: false });
+
+    dotsContainer.addEventListener('touchend', function() {
+      isDragging = false;
+      dotsContainer.classList.remove('dragging');
+    });
+
+    // Navigation
+    function updateSlide(newIdx, direction) {
+      if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+      isAnimating = true;
+      var oldSlide = slides[current];
+      var newSlide = slides[newIdx];
+      var exitX = direction === 'next' ? '-60px' : '60px';
+      var enterX = direction === 'next' ? '60px' : '-60px';
+
+      oldSlide.classList.remove('active');
+      newSlide.style.transition = 'none';
+      newSlide.style.transform = 'translateX(' + enterX + ')';
+      newSlide.classList.add('active');
+
+      void newSlide.offsetWidth;
+      newSlide.style.transition = '';
+      newSlide.style.transform = '';
+
+      oldSlide.style.transform = 'translateX(' + exitX + ')';
+
+      current = newIdx;
+      updateUI();
+
+      setTimeout(function() {
+        oldSlide.style.transform = '';
+        isAnimating = false;
+      }, 460);
+    }
+
+    function updateUI() {
+      var pct = ((current + 1) / total) * 100;
+      progress.style.width = pct + '%';
+      slideNum.textContent = (current + 1) + ' / ' + total;
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+
+      // Flash arrows
+      clearTimeout(navLeft._flashTimer);
+      clearTimeout(navRight._flashTimer);
+      if (current > 0) {
+        navLeft.classList.add('flash');
+        navLeft._flashTimer = setTimeout(function() { navLeft.classList.remove('flash'); }, 600);
+      }
+      if (current < total - 1) {
+        navRight.classList.add('flash');
+        navRight._flashTimer = setTimeout(function() { navRight.classList.remove('flash'); }, 600);
+      }
+    }
+
+    // Keyboard
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); updateSlide(current + 1, 'next'); }
+      if (e.key === 'ArrowLeft') { e.preventDefault(); updateSlide(current - 1, 'prev'); }
+    });
+
+    // Click
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.theme-toggle') || e.target.closest('.nav-bar')) return;
+      var w = window.innerWidth;
+      var x = e.clientX;
+      var y = e.clientY;
+      if (y > window.innerHeight * 0.88) return;
+      if (x < w * 0.35) updateSlide(current - 1, 'prev');
+      else if (x > w * 0.65) updateSlide(current + 1, 'next');
+    });
+
+    // Touch
+    var touchStartX = -1;
+    document.addEventListener('touchstart', function(e) {
+      if (e.target.closest('.nav-bar')) { touchStartX = -1; return; }
+      touchStartX = e.touches[0].clientX;
+    });
+    document.addEventListener('touchend', function(e) {
+      if (touchStartX === -1) return;
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) updateSlide(current + 1, 'next');
+        else updateSlide(current - 1, 'prev');
+      }
+      touchStartX = -1;
+    });
+
+    // Arrow clicks
+    navLeft.addEventListener('click', function() { updateSlide(current - 1, 'prev'); });
+    navRight.addEventListener('click', function() { updateSlide(current + 1, 'next'); });
+
+    updateUI();
+  })();
+  </script>
+</body>
+</html>

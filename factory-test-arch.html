@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EQP-EAP 工厂测试平台 · 系统架构</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F3F4F8;--surface:#FFFFFF;--surface2:#F9FAFB;--surface3:#F1F5F9;
+  --border:#E2E8F0;--text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --blue:#2563EB;--blue-bg:#EFF6FF;--blue-glow:rgba(37,99,235,.08);
+  --green:#16A34A;--green-bg:#F0FDF4;--green-glow:rgba(22,163,74,.08);
+  --amber:#D97706;--amber-bg:#FFFBEB;--amber-glow:rgba(217,119,6,.08);
+  --purple:#7C3AED;--purple-bg:#F5F3FF;--purple-glow:rgba(124,58,237,.08);
+  --red:#DC2626;--red-bg:#FEF2F2;
+  --r:10px;
+}
+html{font-size:15px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;overflow-x:hidden}
+
+/* ===== HEADER ===== */
+.page-header{padding:40px 40px 0;max-width:1200px;margin:0 auto}
+.page-header h1{font-size:28px;font-weight:800;letter-spacing:-.5px;color:var(--text)}
+.page-header p{color:var(--text2);font-size:14px;margin-top:6px;max-width:720px}
+
+/* ===== FLOW CHART ===== */
+.flow{max-width:1200px;margin:40px auto;padding:0 40px}
+
+.layer{position:relative;margin-bottom:0}
+.layer-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.layer-num{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0}
+.layer-num.blue{background:var(--blue-bg);color:var(--blue);border:1.5px solid rgba(37,99,235,.2)}
+.layer-num.green{background:var(--green-bg);color:var(--green);border:1.5px solid rgba(22,163,74,.2)}
+.layer-num.amber{background:var(--amber-bg);color:var(--amber);border:1.5px solid rgba(217,119,6,.2)}
+.layer-num.purple{background:var(--purple-bg);color:var(--purple);border:1.5px solid rgba(124,58,237,.2)}
+.layer-label{font-size:15px;font-weight:700}
+.layer-sublabel{font-size:12px;color:var(--text3);margin-left:4px}
+
+/* Highlight callout */
+.callout{display:flex;align-items:center;gap:10px;padding:12px 16px;border-radius:var(--r);margin-bottom:16px;font-size:13px;font-weight:600;line-height:1.5}
+.callout.green{background:var(--green-bg);border:1px solid rgba(22,163,74,.2);color:#15803D}
+.callout.purple{background:var(--purple-bg);border:1px solid rgba(124,58,237,.2);color:#6D28D9}
+.callout.amber{background:var(--amber-bg);border:1px solid rgba(217,119,6,.2);color:#B45309}
+.callout svg{width:18px;height:18px;flex-shrink:0}
+
+/* Card row */
+.card-row{display:grid;gap:14px}
+.card-row.c3{grid-template-columns:repeat(3,1fr)}
+.card-row.c4{grid-template-columns:repeat(4,1fr)}
+.card-row.c2{grid-template-columns:repeat(2,1fr)}
+.card-row.c1{grid-template-columns:1fr}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;position:relative;transition:all .3s ease;cursor:default}
+.card:hover{border-color:#CBD5E1;transform:translateY(-2px);box-shadow:0 4px 16px rgba(0,0,0,.08)}
+.card-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:20px}
+.card-icon.blue{background:var(--blue-bg);border:1px solid rgba(37,99,235,.15)}
+.card-icon.green{background:var(--green-bg);border:1px solid rgba(22,163,74,.15)}
+.card-icon.amber{background:var(--amber-bg);border:1px solid rgba(217,119,6,.15)}
+.card-icon.purple{background:var(--purple-bg);border:1px solid rgba(124,58,237,.15)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.7}
+.card-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-top:10px}
+.card-tag.blue{background:var(--blue-bg);color:var(--blue)}
+.card-tag.green{background:var(--green-bg);color:var(--green)}
+.card-tag.amber{background:var(--amber-bg);color:var(--amber)}
+.card-tag.purple{background:var(--purple-bg);color:var(--purple)}
+.card-tag.highlight{background:#FEF2F2;color:var(--red);border:1px solid rgba(220,38,38,.15)}
+
+/* Interface list inside card */
+.iface-list{margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.iface-item{font-size:11px;font-family:'SF Mono',Monaco,Consolas,monospace;color:var(--text2);padding:3px 8px;background:var(--surface2);border-radius:4px;display:flex;justify-content:space-between}
+.iface-item .dir{font-size:9px;font-weight:600;padding:1px 5px;border-radius:3px}
+.iface-item .dir.up{background:var(--blue-bg);color:var(--blue)}
+.iface-item .dir.dn{background:var(--amber-bg);color:var(--amber)}
+
+/* Connector arrows */
+.connector{display:flex;justify-content:center;padding:4px 0;position:relative}
+.connector svg{color:var(--text3)}
+
+/* ===== PARALLEL DIAGRAM ===== */
+.parallel-section{max-width:1200px;margin:48px auto 0;padding:0 40px}
+.parallel-section h2{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.parallel-section h2::before{content:'';width:4px;height:20px;border-radius:2px;background:linear-gradient(180deg,var(--green),var(--amber))}
+.parallel-diagram{display:grid;grid-template-columns:160px 1fr 160px;gap:0;align-items:center}
+.parallel-label{text-align:center;padding:16px;border-radius:var(--r);font-size:13px;font-weight:600}
+.parallel-label.top{background:var(--blue-bg);color:var(--blue);border:1px solid rgba(37,99,235,.15)}
+.parallel-label.bottom{background:var(--purple-bg);color:var(--purple);border:1px solid rgba(124,58,237,.15)}
+.parallel-lanes{display:flex;flex-direction:column;gap:12px;padding:0 20px}
+.lane{display:flex;align-items:center;gap:10px}
+.lane-device{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:12px;transition:all .3s}
+.lane-device:hover{border-color:#CBD5E1;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.lane-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.lane-dot.running{background:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.2)}
+.lane-dot.waiting{background:var(--amber);box-shadow:0 0 0 3px rgba(217,119,6,.2)}
+.lane-dot.done{background:var(--blue);box-shadow:0 0 0 3px rgba(37,99,235,.2)}
+.lane-info h4{font-size:12px;font-weight:700}
+.lane-info p{font-size:11px;color:var(--text2)}
+.lane-status{margin-left:auto;font-size:10px;font-weight:600;padding:3px 8px;border-radius:4px;white-space:nowrap}
+.lane-status.green{background:var(--green-bg);color:var(--green)}
+.lane-status.amber{background:var(--amber-bg);color:var(--amber)}
+.lane-status.blue{background:var(--blue-bg);color:var(--blue)}
+.parallel-arrow{display:flex;justify-content:center;align-items:center;color:var(--text3)}
+.parallel-arrow.horizontal{padding:0 4px}
+.parallel-divider{display:flex;align-items:center;gap:12px;margin:12px 20px}
+.parallel-divider::before,.parallel-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+.parallel-divider span{font-size:11px;font-weight:600;color:var(--text3);white-space:nowrap}
+
+/* ===== AUTO-TEST LOOP ===== */
+.auto-loop{max-width:1200px;margin:48px auto 0;padding:0 40px}
+.auto-loop h2{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.auto-loop h2::before{content:'';width:4px;height:20px;border-radius:2px;background:linear-gradient(180deg,var(--purple),var(--red))}
+.loop-diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:28px 32px;position:relative}
+.loop-flow{display:flex;align-items:center;gap:0;justify-content:center;flex-wrap:wrap}
+.loop-node{background:var(--surface2);border:1.5px solid var(--border);border-radius:var(--r);padding:16px 20px;text-align:center;min-width:160px;transition:all .3s}
+.loop-node:hover{border-color:#CBD5E1;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+.loop-node h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.loop-node p{font-size:11px;color:var(--text2);line-height:1.5}
+.loop-node.highlight{border-color:var(--red);background:var(--red-bg)}
+.loop-node.highlight h4{color:var(--red)}
+.loop-arrow{font-size:24px;color:var(--text3);padding:0 6px;flex-shrink:0}
+.loop-return{display:flex;justify-content:center;margin-top:16px;position:relative}
+.loop-return-inner{display:flex;align-items:center;gap:8px;padding:10px 20px;background:var(--purple-bg);border:1px dashed rgba(124,58,237,.3);border-radius:var(--r);font-size:12px;font-weight:600;color:#6D28D9}
+
+/* ===== ADVANTAGES SECTION ===== */
+.adv-section{max-width:1200px;margin:48px auto 0;padding:0 40px}
+.adv-section h2{font-size:18px;font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px}
+.adv-section h2::before{content:'';width:4px;height:20px;border-radius:2px;background:linear-gradient(180deg,var(--blue),var(--purple))}
+.adv-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.adv-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px}
+.adv-card .adv-icon{font-size:24px;margin-bottom:10px}
+.adv-card h3{font-size:13px;font-weight:700;margin-bottom:6px}
+.adv-card p{font-size:12px;color:var(--text2);line-height:1.7}
+.adv-card.primary{border-color:rgba(37,99,235,.3);background:linear-gradient(135deg,var(--blue-bg),#F8FAFC)}
+.adv-card.primary h3{color:var(--blue)}
+
+/* ===== PIPELINE ===== */
+.pipeline{max-width:1200px;margin:48px auto 0;padding:0 40px}
+.pipeline h2{font-size:18px;font-weight:700;margin-bottom:24px;display:flex;align-items:center;gap:8px}
+.pipeline h2::before{content:'';width:4px;height:20px;border-radius:2px;background:linear-gradient(180deg,var(--green),var(--amber))}
+.pipe-track{display:flex;align-items:stretch;gap:0;position:relative}
+.pipe-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 18px;position:relative;text-align:center;transition:all .3s}
+.pipe-step:hover{border-color:#CBD5E1;transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.pipe-step::after{content:'›';position:absolute;right:-12px;top:50%;transform:translateY(-50%);font-size:28px;color:var(--text3);z-index:2}
+.pipe-step:last-child::after{display:none}
+.pipe-step .step-num{width:28px;height:28px;border-radius:50%;background:var(--blue-bg);color:var(--blue);font-size:12px;font-weight:800;display:inline-flex;align-items:center;justify-content:center;margin-bottom:10px;border:1.5px solid rgba(37,99,235,.2)}
+.pipe-step h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.pipe-step p{font-size:11px;color:var(--text2);line-height:1.6}
+.pipe-step .step-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;margin-top:8px}
+.step-tag.owner-provider{background:var(--blue-bg);color:var(--blue)}
+.step-tag.owner-device{background:var(--green-bg);color:var(--green)}
+.step-tag.owner-test{background:var(--amber-bg);color:var(--amber)}
+.step-tag.owner-auto{background:var(--purple-bg);color:var(--purple)}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:768px){
+  .page-header,.flow,.adv-section,.pipeline,.parallel-section,.auto-loop{padding:0 16px}
+  .page-header h1{font-size:22px}
+  .card-row.c3,.card-row.c4,.card-row.c2{grid-template-columns:1fr}
+  .adv-grid{grid-template-columns:1fr}
+  .pipe-track{flex-direction:column}
+  .pipe-step::after{content:'›';right:50%;top:auto;bottom:-16px;transform:translateX(50%) rotate(90deg)}
+  .parallel-diagram{grid-template-columns:1fr}
+  .parallel-label{margin-bottom:8px}
+  .loop-flow{flex-direction:column}
+  .loop-arrow{transform:rotate(90deg)}
+}
+
+/* ===== ANIMATIONS ===== */
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.layer{animation:fadeInUp .5s ease both}
+.layer:nth-child(2){animation-delay:.1s}
+.layer:nth-child(3){animation-delay:.2s}
+.layer:nth-child(4){animation-delay:.3s}
+.pipe-step{animation:fadeInUp .4s ease both}
+.pipe-step:nth-child(1){animation-delay:.1s}
+.pipe-step:nth-child(2){animation-delay:.2s}
+.pipe-step:nth-child(3){animation-delay:.3s}
+.pipe-step:nth-child(4){animation-delay:.4s}
+.pipe-step:nth-child(5){animation-delay:.5s}
+.lane-dot.running{animation:pulse 1.5s ease-in-out infinite}
+</style>
+</head>
+<body>
+
+<header class="page-header">
+  <h1>EQP-EAP 工厂测试平台 · 系统架构</h1>
+  <p>标准接口协议驱动的设备独立测试体系 — 多设备并发测试，报告驱动自动化服务验证，全程无需人工逐项操作</p>
+</header>
+
+<!-- ===== MAIN ARCHITECTURE FLOW ===== -->
+<div class="flow">
+
+  <!-- LAYER 1: System Provider -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-num blue">1</div>
+      <div class="layer-label">系统提供商 · 标准接口协议层</div>
+      <div class="layer-sublabel">定义、维护、扩展工厂通讯标准</div>
+    </div>
+    <div class="card-row c3">
+      <div class="card">
+        <div class="card-icon blue">📡</div>
+        <div class="card-title">EQP → EAP 上报接口 (28项)</div>
+        <div class="card-desc">设备主动上报的标准协议集合：连线检查、状态上报、警报上报、制程数据、扫码读码、任务进展等</div>
+        <div class="iface-list">
+          <div class="iface-item"><span>EQP-EAP-001 连线检查</span><span class="dir up">上报</span></div>
+          <div class="iface-item"><span>EQP-EAP-002 设备状态上报</span><span class="dir up">上报</span></div>
+          <div class="iface-item"><span>EQP-EAP-004 设备警报上报</span><span class="dir up">上报</span></div>
+          <div class="iface-item"><span>EQP-EAP-009 制程量测数据</span><span class="dir up">上报</span></div>
+          <div class="iface-item"><span>... 共 28 项标准接口</span><span class="dir up">上报</span></div>
+        </div>
+        <div class="card-tag blue">标准协议</div>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">📥</div>
+        <div class="card-title">EAP → EQP 下发接口 (8项)</div>
+        <div class="card-desc">主机侧下发的控制指令集合：初始化请求、时间同步、远程控制、任务调度、参数查询、通知广播等</div>
+        <div class="iface-list">
+          <div class="iface-item"><span>EAP-EQP-001 初始化状态请求</span><span class="dir dn">下发</span></div>
+          <div class="iface-item"><span>EAP-EQP-002 时间同步</span><span class="dir dn">下发</span></div>
+          <div class="iface-item"><span>EAP-EQP-005 远程控制指令</span><span class="dir dn">下发</span></div>
+          <div class="iface-item"><span>EAP-EQP-007 任务信息下发</span><span class="dir dn">下发</span></div>
+          <div class="iface-item"><span>... 共 8 项标准接口</span><span class="dir dn">下发</span></div>
+        </div>
+        <div class="card-tag amber">标准协议</div>
+      </div>
+      <div class="card">
+        <div class="card-icon blue">➕</div>
+        <div class="card-title">自定义接口扩展</div>
+        <div class="card-desc">系统提供商可根据项目需求，灵活扩展非标接口。自定义接口与标准接口享有同等测试能力，可纳入快照归档。</div>
+        <div class="iface-list">
+          <div class="iface-item"><span>自定义编号 · 自定义名称</span><span class="dir up">灵活</span></div>
+        </div>
+        <div class="card-tag blue">可扩展</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <svg width="24" height="48" viewBox="0 0 24 48"><path d="M12 0 L12 40 M6 34 L12 40 L18 34" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+  </div>
+
+  <!-- LAYER 2: Device Test Snapshot -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-num green">2</div>
+      <div class="layer-label">设备测试快照 · 创建与配置</div>
+      <div class="layer-sublabel">为每台设备按需组合接口，形成独立测试方案</div>
+    </div>
+    <div class="card-row c4">
+      <div class="card">
+        <div class="card-icon green">📋</div>
+        <div class="card-title">选择接口</div>
+        <div class="card-desc">从标准接口库中勾选该设备需要测试的接口项，支持按方向筛选和关键词搜索</div>
+        <div class="card-tag green">设备侧操作</div>
+      </div>
+      <div class="card">
+        <div class="card-icon green">⚙️</div>
+        <div class="card-title">配置快照</div>
+        <div class="card-desc">填写快照名称、设备型号、备注说明，形成一份设备专属的测试方案文档</div>
+        <div class="card-tag green">设备侧操作</div>
+      </div>
+      <div class="card">
+        <div class="card-icon green">💾</div>
+        <div class="card-title">保存归档</div>
+        <div class="card-desc">快照持久化存储，可随时调出复用。支持创建新版本迭代，历史版本完整保留</div>
+        <div class="card-tag green">版本管理</div>
+      </div>
+      <div class="card">
+        <div class="card-icon green">📊</div>
+        <div class="card-title">快照看板</div>
+        <div class="card-desc">全局视角查看所有设备的测试快照，每张卡片展示接口统计、测试进度、完成状态</div>
+        <div class="card-tag green">全局管理</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <svg width="24" height="48" viewBox="0 0 24 48"><path d="M12 0 L12 40 M6 34 L12 40 L18 34" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+  </div>
+
+  <!-- LAYER 3: Independent Testing (EMPHASIZED) -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-num amber">3</div>
+      <div class="layer-label">设备独立测试 · 并发执行</div>
+      <div class="layer-sublabel">多台设备同时测试，互不阻塞，不依赖后端服务全部就绪</div>
+    </div>
+
+    <div class="callout green">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>
+      <span>核心优势：每台设备拥有独立测试快照，可同时并发执行测试，无需等待后端服务完整部署。设备 A 在测试上报接口的同时，设备 B 可以独立测试下发接口，互不干扰。</span>
+    </div>
+
+    <div class="card-row c4">
+      <div class="card">
+        <div class="card-icon amber">⚡</div>
+        <div class="card-title">并发独立测试</div>
+        <div class="card-desc">多台设备同时运行各自快照的测试任务，互不阻塞。设备测试只依赖快照中的接口定义，不要求后端服务全部开发完成即可开始验证。</div>
+        <div class="card-tag highlight">无需等后端</div>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">▶️</div>
+        <div class="card-title">单接口测试</div>
+        <div class="card-desc">对每个接口独立发起测试请求，实时展示状态（待测试 → 测试中 → 通过/失败），记录响应耗时</div>
+        <div class="card-tag amber">逐项验证</div>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">⏩</div>
+        <div class="card-title">批量执行</div>
+        <div class="card-desc">一键执行当前方向全部接口测试，实时更新进度条和通过率统计</div>
+        <div class="card-tag amber">高效覆盖</div>
+      </div>
+      <div class="card">
+        <div class="card-icon amber">📝</div>
+        <div class="card-title">异常记录</div>
+        <div class="card-desc">失败的接口自动展开异常录入区，测试人员可填写具体故障现象，作为报告的异常信息字段</div>
+        <div class="card-tag amber">问题追踪</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Connector -->
+  <div class="connector">
+    <svg width="24" height="48" viewBox="0 0 24 48"><path d="M12 0 L12 40 M6 34 L12 40 L18 34" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+  </div>
+
+  <!-- LAYER 4: Report -->
+  <div class="layer">
+    <div class="layer-head">
+      <div class="layer-num purple">4</div>
+      <div class="layer-label">测试报告产出</div>
+      <div class="layer-sublabel">汇总全部测试结果，生成可打印的标准报告</div>
+    </div>
+    <div class="card-row c2">
+      <div class="card">
+        <div class="card-icon purple">📈</div>
+        <div class="card-title">报告总览</div>
+        <div class="card-desc">总接口数、通过数、失败数、通过率四大指标一览。按上报/下发分组展示明细表格，包含编号、名称、端点、状态、耗时、异常信息完整字段</div>
+        <div class="card-tag purple">结构化产出</div>
+      </div>
+      <div class="card">
+        <div class="card-icon purple">🖨️</div>
+        <div class="card-title">归档 & 打印</div>
+        <div class="card-desc">报告支持打印输出，作为设备验收交付物。每次测试的快照版本、测试结果完整归档，可追溯任意历史版本</div>
+        <div class="card-tag purple">交付物</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PARALLEL DIAGRAM ===== -->
+<div class="parallel-section">
+  <h2>多设备并发测试示意</h2>
+  <div class="callout green" style="margin-bottom:16px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    <span>每台设备持有独立快照，测试互不依赖。不必等后端全部接口开发完成，设备侧可先行启动接口验证，大幅缩短联调周期。</span>
+  </div>
+  <div class="parallel-diagram">
+    <div class="parallel-label top">
+      <div>接口协议库</div>
+      <div style="font-size:10px;font-weight:400;margin-top:2px;opacity:.7">36项标准接口</div>
+    </div>
+    <div class="parallel-lanes">
+      <div class="lane">
+        <div class="lane-device">
+          <div class="lane-dot running"></div>
+          <div class="lane-info">
+            <h4>钻孔机 A线 (DS-800C)</h4>
+            <p>快照 v3 · 12项接口 · 正在测试 EQP-EAP-009</p>
+          </div>
+          <span class="lane-status green">测试中</span>
+        </div>
+      </div>
+      <div class="lane">
+        <div class="lane-device">
+          <div class="lane-dot running"></div>
+          <div class="lane-info">
+            <h4>AOI 检测机 B线 (AOI-500X)</h4>
+            <p>快照 v1 · 8项接口 · 正在测试 EAP-EQP-005</p>
+          </div>
+          <span class="lane-status green">测试中</span>
+        </div>
+      </div>
+      <div class="lane">
+        <div class="lane-device">
+          <div class="lane-dot waiting"></div>
+          <div class="lane-info">
+            <h4>压膜机 C线 (LM-320T)</h4>
+            <p>快照 v2 · 10项接口 · 等待开始</p>
+          </div>
+          <span class="lane-status amber">待启动</span>
+        </div>
+      </div>
+      <div class="lane">
+        <div class="lane-device">
+          <div class="lane-dot done"></div>
+          <div class="lane-info">
+            <h4>喷码机 D线 (IJ-200P)</h4>
+            <p>快照 v1 · 6项接口 · 全部通过</p>
+          </div>
+          <span class="lane-status blue">已完成</span>
+        </div>
+      </div>
+      <div class="parallel-divider">
+        <span>各设备独立产出测试报告 ↓</span>
+      </div>
+      <div class="lane">
+        <div class="lane-device" style="background:var(--purple-bg);border-color:rgba(124,58,237,.15)">
+          <div class="lane-dot" style="background:var(--purple);box-shadow:0 0 0 3px rgba(124,58,237,.2)"></div>
+          <div class="lane-info">
+            <h4 style="color:#6D28D9">测试报告汇总</h4>
+            <p>4台设备 · 36项接口 · 自动汇总报告</p>
+          </div>
+          <span class="lane-status" style="background:var(--purple-bg);color:var(--purple)">自动生成</span>
+        </div>
+      </div>
+    </div>
+    <div class="parallel-label bottom">
+      <div>自动化服务验证</div>
+      <div style="font-size:10px;font-weight:400;margin-top:2px;opacity:.7">报告驱动回归</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== AUTO-TEST LOOP ===== -->
+<div class="auto-loop">
+  <h2>报告驱动的自动化服务验证</h2>
+  <div class="callout purple" style="margin-bottom:16px">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>传统方式：人工逐个接口手动测试，耗时且容易遗漏。本系统：基于测试报告自动对后端服务发起全量验证，无需人工介入，一次点击完成所有接口的回归测试。</span>
+  </div>
+  <div class="loop-diagram">
+    <div class="loop-flow">
+      <div class="loop-node">
+        <h4>设备测试报告</h4>
+        <p>结构化测试结果<br>包含全部接口状态</p>
+      </div>
+      <div class="loop-arrow">›</div>
+      <div class="loop-node">
+        <h4>解析接口清单</h4>
+        <p>自动提取报告中的<br>全部接口端点与参数</p>
+      </div>
+      <div class="loop-arrow">›</div>
+      <div class="loop-node highlight">
+        <h4>自动化服务测试</h4>
+        <p>对后端服务自动发起<br>全量接口验证请求</p>
+      </div>
+      <div class="loop-arrow">›</div>
+      <div class="loop-node">
+        <h4>服务端回归报告</h4>
+        <p>自动对比历史结果<br>标识兼容性回归项</p>
+      </div>
+    </div>
+    <div class="loop-return">
+      <div class="loop-return-inner">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        版本升级 / 接口变更 → 自动触发回归，无需人工逐项重测
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PIPELINE FLOW ===== -->
+<div class="pipeline">
+  <h2>端到端工作流程</h2>
+  <div class="pipe-track">
+    <div class="pipe-step">
+      <div class="step-num">1</div>
+      <h4>维护接口协议</h4>
+      <p>系统提供商定义标准接口库，28项上报 + 8项下发，支持按需扩展</p>
+      <span class="step-tag owner-provider">系统提供商</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-num">2</div>
+      <h4>创建设备快照</h4>
+      <p>为每台设备选择接口，组合为独立测试方案，保存归档</p>
+      <span class="step-tag owner-device">设备工程师</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-num">3</div>
+      <h4>并发独立测试</h4>
+      <p>多台设备同时测试，不依赖后端服务全部就绪，互不阻塞</p>
+      <span class="step-tag owner-test">测试人员</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-num">4</div>
+      <h4>生成测试报告</h4>
+      <p>自动汇总所有接口结果，输出标准化测试报告</p>
+      <span class="step-tag owner-test">自动产出</span>
+    </div>
+    <div class="pipe-step">
+      <div class="step-num">5</div>
+      <h4>自动化服务验证</h4>
+      <p>基于报告自动对后端服务发起全量回归，无需人工逐项测试</p>
+      <span class="step-tag owner-auto">自动化</span>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ADVANTAGES ===== -->
+<div class="adv-section">
+  <h2>核心优势</h2>
+  <div class="adv-grid">
+    <div class="adv-card primary">
+      <div class="adv-icon">⚡</div>
+      <h3>设备并发 · 不等后端</h3>
+      <p>多台设备可同时独立执行测试，互不阻塞。设备测试只依赖接口协议定义，不要求后端服务全部开发完成即可开始验证，大幅缩短联调等待时间。</p>
+    </div>
+    <div class="adv-card primary">
+      <div class="adv-icon">🤖</div>
+      <h3>报告驱动 · 自动回归</h3>
+      <p>测试报告自动解析接口清单，一键对后端服务发起全量验证。替代人工逐个接口手动测试，杜绝遗漏，版本升级后秒级发现兼容性问题。</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">🔓</div>
+      <h3>流程完全解耦</h3>
+      <p>接口定义、快照创建、设备测试、服务验证四个阶段完全独立。接口库更新不影响已有快照，各角色并行工作互不干扰。</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">📦</div>
+      <h3>快照版本归档</h3>
+      <p>每次测试方案以快照形式持久化存储，支持版本迭代。历史版本完整保留，满足审计和追溯需求。</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">📐</div>
+      <h3>标准与灵活并存</h3>
+      <p>以标准接口协议为基础保证一致性，同时支持自定义接口扩展适配非标场景，标准与非标享有同等测试能力。</p>
+    </div>
+    <div class="adv-card">
+      <div class="adv-icon">📋</div>
+      <h3>结构化报告</h3>
+      <p>测试报告自动汇总所有接口结果，包含状态、耗时、异常明细，直接作为设备验收交付物和自动化回归的输入。</p>
+    </div>
+  </div>
+</div>
+
+<div style="height:80px"></div>
+</body>
+</html>

@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="paper">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AILock-Step 协议：解决 AI Agent 幻觉性跳步的工程实践</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root, [data-theme="paper"] {
+  --paper:#F2EEDF; --paper-2:#ECE6D2; --ink:#2A241B; --ink-soft:#5C5345;
+  --pink:#E1A4C2; --lemon:#D6DD63; --blush:#E8C9B6; --sage:#B7C7A8; --lilac:#C9BEDC;
+  --card-fill:rgba(255,255,255,0.55); --card-fill-2:rgba(255,255,255,0.78);
+  --rule-soft:rgba(42,36,27,0.18); --rule-medium:rgba(42,36,27,0.35);
+  --nav-bg:rgba(42,36,27,0.07); --nav-dot:rgba(42,36,27,0.28);
+  --nav-tip-bg:#2A241B; --nav-tip-text:#F2EEDF;
+  --font-display: 'Albert Sans','Noto Serif SC',sans-serif;
+  --font-body:    'Albert Sans','Noto Serif SC',sans-serif;
+  --font-mono:    'SF Mono','Fira Code','JetBrains Mono',monospace;
+  --ease:         cubic-bezier(0.16,1,0.3,1);
+}
+[data-theme="ink"] {
+  --paper:#211C15; --paper-2:#2B251C; --ink:#EDE7D4; --ink-soft:#A89E84;
+  --pink:#E8B4D0; --lemon:#E0E678; --blush:#EFD2C0; --sage:#C4D2B5; --lilac:#D2C8E6;
+  --card-fill:rgba(255,255,255,0.07); --card-fill-2:rgba(255,255,255,0.13);
+  --rule-soft:rgba(237,231,212,0.15); --rule-medium:rgba(237,231,212,0.32);
+  --nav-bg:rgba(255,255,255,0.08); --nav-dot:rgba(237,231,212,0.34);
+  --nav-tip-bg:rgba(20,16,10,0.92); --nav-tip-text:#EDE7D4;
+}
+[data-theme="cream"] {
+  --paper:#F6EAD0; --paper-2:#EFDFBE; --ink:#4A3520; --ink-soft:#806A4C;
+  --pink:#E0A0BC; --lemon:#D8D058; --blush:#EFC6A4; --sage:#B0C69A; --lilac:#CBB8DC;
+  --card-fill:rgba(255,255,255,0.5); --card-fill-2:rgba(255,255,255,0.72);
+  --rule-soft:rgba(74,53,32,0.18); --rule-medium:rgba(74,53,32,0.35);
+  --nav-bg:rgba(74,53,32,0.08); --nav-dot:rgba(74,53,32,0.3);
+  --nav-tip-bg:#4A3520; --nav-tip-text:#F6EAD0;
+}
+[data-theme="mint"] {
+  --paper:#E6ECDF; --paper-2:#D8E0CF; --ink:#283228; --ink-soft:#566B52;
+  --pink:#DCA8BE; --lemon:#D6DC68; --blush:#E8CBB6; --sage:#A2BE90; --lilac:#BEB6D6;
+  --card-fill:rgba(255,255,255,0.5); --card-fill-2:rgba(255,255,255,0.72);
+  --rule-soft:rgba(40,50,40,0.18); --rule-medium:rgba(40,50,40,0.35);
+  --nav-bg:rgba(40,50,40,0.08); --nav-dot:rgba(40,50,40,0.3);
+  --nav-tip-bg:#283228; --nav-tip-text:#E6ECDF;
+}
+[data-theme="berry"] {
+  --paper:#2A2030; --paper-2:#352840; --ink:#ECE0F0; --ink-soft:#AE9EBC;
+  --pink:#E8A8C8; --lemon:#E0DC70; --blush:#EFCAB8; --sage:#B8C9A8; --lilac:#D0C0E8;
+  --card-fill:rgba(255,255,255,0.08); --card-fill-2:rgba(255,255,255,0.14);
+  --rule-soft:rgba(236,224,240,0.15); --rule-medium:rgba(236,224,240,0.32);
+  --nav-bg:rgba(255,255,255,0.08); --nav-dot:rgba(236,224,240,0.34);
+  --nav-tip-bg:rgba(15,10,20,0.92); --nav-tip-text:#ECE0F0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+* { transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+html,body { width:100%; height:100%; margin:0; overflow:hidden; background:var(--paper); }
+body { font-family:var(--font-body); color:var(--ink); -webkit-font-smoothing:antialiased; text-rendering:optimizeLegibility; }
+
+/* deck 舞台 */
+.deck-viewport { position:fixed; inset:0; overflow:hidden; background:var(--paper); }
+.deck-stage { position:absolute; left:0; top:0; width:1920px; height:1080px; overflow:hidden; transform-origin:0 0; background:var(--paper); }
+.slide { position:absolute; inset:0; width:1920px; height:1080px; overflow:hidden; background:var(--paper);
+  font-feature-settings:"palt" 1; opacity:0; transform:translateX(60px); pointer-events:none; z-index:1;
+  transition: opacity .45s ease, transform .45s ease, background-color .4s ease; }
+.slide.active { opacity:1; transform:translateX(0); pointer-events:auto; z-index:2; }
+
+/* reveal */
+.reveal { opacity:0; transform:translateY(26px); transition: opacity .7s var(--ease), transform .7s var(--ease); }
+.slide.active .reveal { opacity:1; transform:translateY(0); }
+.slide.active .reveal:nth-child(1){transition-delay:.05s}
+.slide.active .reveal:nth-child(2){transition-delay:.15s}
+.slide.active .reveal:nth-child(3){transition-delay:.25s}
+.slide.active .reveal:nth-child(4){transition-delay:.35s}
+.slide.active .reveal:nth-child(5){transition-delay:.45s}
+.slide.active .reveal:nth-child(6){transition-delay:.55s}
+
+/* 通用排版 */
+.h-display,.h-section,.h-card { font-family:var(--font-display); font-weight:700; line-height:1.2; color:var(--ink); }
+.body-text { font-family:var(--font-body); font-weight:500; line-height:1.65; color:var(--ink); }
+.lead { font-family:var(--font-body); font-weight:600; line-height:1.5; color:var(--ink-soft); }
+.h-section { font-size:78px; }
+em.soft { font-style:normal; font-weight:700; color:var(--ink);
+  background:linear-gradient(180deg, transparent 58%, var(--blush) 58%, var(--blush) 90%, transparent 90%); padding:0 0.06em; }
+.slide-pad { position:absolute; inset:0; padding:96px 80px; display:flex; flex-direction:column; justify-content:center; gap:30px; }
+.page-numeral { position:absolute; top:56px; right:80px; font-family:var(--font-display); font-weight:600; font-size:30px; color:var(--ink-soft); z-index:5; }
+
+/* pill */
+.pill { display:inline-flex; align-items:center; gap:14px; border-radius:999px; padding:12px 28px;
+  font-family:var(--font-body); font-weight:700; font-size:36px; color:var(--ink); background:var(--paper); border:1.5px solid var(--ink); align-self:flex-start; }
+.pill .pdot { width:18px; height:18px; border-radius:50%; display:inline-block; }
+.pill .pdot.sage{background:var(--sage)} .pill .pdot.pink{background:var(--pink)} .pill .pdot.lemon{background:var(--lemon)} .pill .pdot.lilac{background:var(--lilac)}
+
+/* cover */
+.cover { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  background: radial-gradient(ellipse at 50% 45%, rgba(225,164,194,0.16), transparent 68%); }
+.cover .cover-inner { padding:0 80px; display:flex; flex-direction:column; align-items:center; gap:40px; }
+.cover .pill { align-self:center; }
+.cover h1 { font-size:140px; }
+.cover h1 .line { display:block; }
+.cover .divider { width:88px; height:4px; background:var(--ink); border-radius:2px; }
+
+/* challenge grid */
+.challenge-grid { display:grid; grid-template-columns:1fr 1fr; gap:22px; }
+.challenge-item { display:flex; gap:20px; align-items:flex-start; background:var(--card-fill); border:1px solid var(--rule-soft); border-left:6px solid var(--pink); border-radius:22px; padding:30px 34px;
+  transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+.challenge-num { width:50px; height:50px; border-radius:50%; background:var(--pink); color:var(--ink); font-family:var(--font-display); font-weight:700; font-size:26px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.challenge-body strong { display:block; font-family:var(--font-display); font-weight:700; font-size:32px; color:var(--ink); margin-bottom:6px; }
+.challenge-body p { font-family:var(--font-body); font-weight:500; font-size:23px; color:var(--ink-soft); line-height:1.55; }
+
+/* data table */
+.data-table { width:100%; border-collapse:collapse; background:var(--card-fill); border-radius:26px; overflow:hidden; }
+.data-table th { background:var(--paper-2); font-family:var(--font-display); font-weight:700; font-size:30px; color:var(--ink); padding:26px 30px; text-align:left; }
+.data-table td { padding:24px 30px; color:var(--ink); border-top:1px solid var(--rule-soft); font-size:26px; line-height:1.5; vertical-align:top; }
+.data-table tbody tr:nth-child(even) { background:rgba(255,255,255,0.18); }
+.data-table td.cat { font-family:var(--font-display); font-weight:700; color:var(--ink); width:24%; }
+.data-table code { font-family:var(--font-mono); font-size:23px; background:var(--paper-2); padding:2px 8px; border-radius:6px; }
+
+/* symbol grid (5 col) */
+.symbol-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:24px; }
+.symbol-card { background:var(--card-fill); border:1px solid var(--rule-soft); border-radius:28px; padding:38px 26px;
+  display:flex; flex-direction:column; gap:18px; transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+.symbol-card .sym { font-family:var(--font-mono); font-weight:700; font-size:46px; color:var(--ink); line-height:1; }
+.symbol-card .name { font-family:var(--font-display); font-weight:700; font-size:26px; color:var(--ink); }
+.symbol-card .desc { font-family:var(--font-body); font-weight:500; font-size:21px; line-height:1.55; color:var(--ink-soft); }
+.symbol-card.lemon { background:var(--lemon); border-color:transparent; }
+.symbol-card.lemon .desc { color:var(--ink); }
+
+/* operator cols (4) */
+.op-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:24px; }
+.op-card { background:var(--card-fill); border:1px solid var(--rule-soft); border-radius:26px; padding:32px 30px;
+  display:flex; flex-direction:column; gap:18px; transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+.op-card .op-head { display:flex; align-items:center; gap:14px; }
+.op-card .op-dot { width:20px; height:20px; border-radius:50%; flex-shrink:0; }
+.op-card h4 { font-family:var(--font-display); font-weight:700; font-size:28px; color:var(--ink); }
+.op-card ul { list-style:none; padding:0; display:flex; flex-direction:column; gap:10px; }
+.op-card li { font-family:var(--font-mono); font-weight:500; font-size:20px; line-height:1.45; color:var(--ink); padding-left:22px; position:relative; }
+.op-card li::before { content:''; position:absolute; left:4px; top:13px; width:8px; height:8px; border-radius:50%; background:var(--rule-medium); }
+.op-card li .note { font-family:var(--font-body); font-size:18px; color:var(--ink-soft); display:block; margin-top:2px; }
+
+/* advantage icon grid */
+.icon-grid { display:grid; grid-template-columns:1fr 1fr; gap:26px; }
+.icon-card { position:relative; background:var(--card-fill); border:1px solid var(--rule-soft); border-radius:28px; padding:34px 36px;
+  transition: background-color .4s ease, color .4s ease, border-color .4s ease; }
+.icon-card .ic-num { position:absolute; top:20px; right:28px; font-family:var(--font-display); font-weight:700; font-size:56px; color:var(--ink); opacity:0.16; line-height:1; }
+.icon-card h4 { font-family:var(--font-display); font-weight:700; font-size:34px; color:var(--ink); margin-bottom:10px; }
+.icon-card p { font-family:var(--font-body); font-weight:500; font-size:23px; line-height:1.6; color:var(--ink); }
+
+/* workflow three-step (4 col) */
+.three-step { display:grid; grid-template-columns:repeat(4,1fr); gap:28px; }
+.ts-card { border-radius:34px; padding:42px 34px; display:flex; flex-direction:column; justify-content:flex-start; gap:20px; min-height:0; }
+.ts-card .numeral { font-family:var(--font-display); font-weight:700; font-size:64px; color:var(--ink); line-height:0.9; }
+.ts-card .t { font-family:var(--font-display); font-weight:700; font-size:38px; line-height:1.25; color:var(--ink); }
+.ts-card .ann { font-family:var(--font-body); font-weight:500; font-size:22px; line-height:1.55; color:var(--ink); border-top:1px dashed rgba(42,36,27,0.25); padding-top:18px; }
+.ts-card .ann strong { font-family:var(--font-display); font-weight:700; }
+.ts-card.lilac { background:var(--lilac); }
+.ts-card.lemon { background:var(--lemon); }
+.ts-card.sage { background:var(--sage); }
+.ts-card.blush { background:var(--blush); }
+
+/* closer */
+.closer { display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center;
+  background: radial-gradient(ellipse at 50% 55%, rgba(225,164,194,0.18), transparent 70%); }
+.closer-inner { display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%; padding:0 120px; gap:40px; }
+.closer h1 { font-size:130px; line-height:1.12; }
+.closer .lead { font-size:36px; max-width:1200px; }
+
+/* nav */
+.nav-bar { position:fixed; bottom:0; left:0; right:0; display:flex; align-items:center; justify-content:center; z-index:90; padding:8px 0 12px; pointer-events:none; }
+.nav-dots { display:flex; align-items:center; background:var(--nav-bg); backdrop-filter:blur(16px); border:1px solid var(--rule-soft); border-radius:999px; padding:9px 20px; gap:7px; pointer-events:auto; cursor:grab; transition: background-color .25s ease, transform .25s ease, border-color .4s ease; }
+.nav-dot { width:9px; height:9px; border-radius:50%; background:var(--nav-dot); border:none; cursor:pointer; opacity:.5; position:relative; transition: background-color .25s ease, width .25s ease, opacity .25s ease, transform .25s ease; padding:0; }
+.nav-dot:hover { opacity:.95; transform:scale(1.3); }
+.nav-dot.active { background:var(--ink); opacity:1; width:26px; border-radius:999px; box-shadow:0 0 10px rgba(225,164,194,0.7); }
+.nav-dot .dot-tip { position:absolute; bottom:calc(100% + 12px); left:50%; transform:translateX(-50%); background:var(--nav-tip-bg); color:var(--nav-tip-text); padding:5px 11px; border-radius:8px; font-size:13px; white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none; }
+.nav-dot:hover .dot-tip { opacity:1; }
+.nav-dots.dragging { transform:scaleY(1.22); }
+.nav-dots.dragging .nav-dot .dot-tip { opacity:0 !important; }
+.drag-label { position:absolute; bottom:calc(100% + 12px); left:50%; transform:translateX(-50%); background:var(--ink); color:var(--paper); padding:6px 16px; border-radius:10px; font-size:14px; font-weight:600; opacity:0; transition:opacity .15s; white-space:nowrap; }
+.nav-dots.dragging .drag-label { opacity:1; }
+
+/* palette dots */
+.palette-dots { position:fixed; bottom:14px; right:16px; z-index:95; display:flex; align-items:center; gap:7px; background:var(--nav-bg); backdrop-filter:blur(10px); border:1px solid var(--rule-soft); border-radius:999px; padding:6px 10px; transition: background-color .3s ease, border-color .4s ease; }
+.palette-dot { width:16px; height:16px; border-radius:50%; cursor:pointer; border:2px solid transparent; padding:0; position:relative; transition: transform .2s ease, border-color .2s ease; }
+.palette-dot:hover { transform:scale(1.18); }
+.palette-dot.active { border-color:var(--ink); transform:scale(1.1); }
+.palette-dot .pd-tip { position:absolute; bottom:calc(100% + 8px); left:50%; transform:translateX(-50%); background:var(--nav-tip-bg); color:var(--nav-tip-text); padding:3px 9px; border-radius:6px; font-size:11px; white-space:nowrap; opacity:0; transition:opacity .2s; pointer-events:none; }
+.palette-dot:hover .pd-tip { opacity:1; }
+.fs-toggle { width:24px; height:24px; border-radius:50%; cursor:pointer; background:transparent; border:none; color:var(--ink); display:flex; align-items:center; justify-content:center; padding:0; flex-shrink:0; transition: background-color .2s ease, transform .2s ease; }
+.fs-toggle:hover { background:var(--card-fill-2); transform:scale(1.1); }
+.fs-toggle svg { width:15px; height:15px; }
+.fs-toggle .icon-collapse { display:none; }
+.fs-toggle.is-fs .icon-expand { display:none; }
+.fs-toggle.is-fs .icon-collapse { display:flex; }
+.palette-sep { width:1px; height:18px; background:var(--rule-medium); flex-shrink:0; }
+
+.nav-hint { position:fixed; bottom:22px; left:24px; z-index:90; font-size:15px; color:var(--ink-soft); background:var(--nav-bg); backdrop-filter:blur(8px); border:1px solid var(--rule-soft); padding:7px 14px; border-radius:999px; opacity:.85; pointer-events:none; }
+@media (hover:none){ .nav-hint{ display:none; } }
+</style>
+</head>
+<body>
+  <div class="palette-dots" id="paletteDots">
+    <button class="fs-toggle" id="fsToggle" aria-label="全屏"><svg class="icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9V4h5"/><path d="M20 9V4h-5"/><path d="M4 15v5h5"/><path d="M20 15v5h-5"/></svg><svg class="icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4v5H4"/><path d="M15 4v5h5"/><path d="M9 20v-5H4"/><path d="M15 20v-5h5"/></svg></button>
+    <span class="palette-sep"></span>
+    <button class="palette-dot active" data-theme="paper" style="background:#E1A4C2" aria-label="米纸"><span class="pd-tip">米纸</span></button>
+    <button class="palette-dot" data-theme="ink" style="background:#D2C8E6" aria-label="墨夜"><span class="pd-tip">墨夜</span></button>
+    <button class="palette-dot" data-theme="cream" style="background:#EFC6A4" aria-label="奶油"><span class="pd-tip">奶油</span></button>
+    <button class="palette-dot" data-theme="mint" style="background:#A2BE90" aria-label="薄荷"><span class="pd-tip">薄荷</span></button>
+    <button class="palette-dot" data-theme="berry" style="background:#E0DC70" aria-label="莓果"><span class="pd-tip">莓果</span></button>
+  </div>
+  <div class="nav-hint">← → / 滚轮 / 拖拽圆点</div>
+
+  <div class="deck-viewport">
+    <main class="deck-stage" id="deckStage">
+
+      <!-- 1. 封面 -->
+      <section class="slide cover active">
+        <div class="cover-inner">
+          <span class="pill reveal"><span class="pdot lilac"></span>AI Agent · 工程实践</span>
+          <h1 class="h-display reveal"><span class="line">AILock-Step 协议</span><span class="line">给 Agent 装上<em class="soft">断点续传</em></span></h1>
+          <div class="divider reveal"></div>
+          <p class="lead reveal" style="font-size:38px">基于状态锚点（STP）的严格线性执行协议，消除幻觉性跳步、实现绝对幂等</p>
+        </div>
+      </section>
+
+      <!-- 2. 四个典型问题 -->
+      <section class="slide">
+        <div class="page-numeral"></div>
+        <div class="slide-pad">
+          <div class="reveal"><span class="pill"><span class="pdot pink"></span>引言 · 问题</span></div>
+          <h2 class="h-section reveal">和 AI 协作，<em class="soft">四个绕不开的坑</em></h2>
+          <div class="challenge-grid">
+            <div class="challenge-item reveal"><div class="challenge-num">1</div><div class="challenge-body"><strong>幻觉性跳步</strong><p>看到循环任务，AI 会因上下文压力自动简化中间步骤，直接说"剩余逻辑相似，已省略"。</p></div></div>
+            <div class="challenge-item reveal"><div class="challenge-num">2</div><div class="challenge-body"><strong>状态不可追溯</strong><p>一旦生成中断，AI 很难找回执行进度，导致重复工作或遗漏任务。</p></div></div>
+            <div class="challenge-item reveal"><div class="challenge-num">3</div><div class="challenge-body"><strong>依赖管理混乱</strong><p>AI 可能在依赖未就绪时就开始实现相关功能，依赖关系层层错乱。</p></div></div>
+            <div class="challenge-item reveal"><div class="challenge-num">4</div><div class="challenge-body"><strong>语义噪声干扰</strong><p>AI 容易被代码注释或需求文档里的感性描述带偏，产出偏离目标的逻辑。</p></div></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 3. 问题对比 -->
+      <section class="slide">
+        <div class="page-numeral"></div>
+        <div class="slide-pad">
+          <div class="reveal"><span class="pill"><span class="pdot lemon"></span>核心设计</span></div>
+          <h2 class="h-section reveal">传统方案 <em class="soft">VS</em> AILock-Step</h2>
+          <table class="data-table reveal">
+            <thead><tr><th>问题</th><th>传统方案</th><th>AILock-Step 方案</th></tr></thead>
+            <tbody>
+              <tr><td class="cat">幻觉性跳步</td><td>看到 <code>for task in tasks</code> 会自动简化中间步骤</td><td>通过 <code>STP-XXX → STP-YYY</code> 物理跳转，强迫保持 100% 步骤完整性</td></tr>
+              <tr><td class="cat">状态不可追溯</td><td>中断后难以恢复，进度丢失</td><td>每个 STP 节点都关联 <code>REG_</code> 寄存器和物理存盘点</td></tr>
+              <tr><td class="cat">语义噪声</td><td>容易被感性描述影响判断</td><td>冷门符号（<code>?? ! ! &gt;&gt;</code>）触发"指令解析模式"</td></tr>
+              <tr><td class="cat">依赖管理松散</td><td>可能跳过前置条件直接动手</td><td><code>??</code> 判断算子充当逻辑哨兵，硬性锁死执行路径</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4. 协议语法 -->
+      <section class="slide">
+        <div class="page-numeral"></div>
+        <div class="slide-pad">
+          <div class="reveal"><span class="pill"><span class="pdot lilac"></span>协议语法</span></div>
+          <h2 class="h-section reveal">五个符号，<em class="soft">定义一套执行逻辑</em></h2>
+          <p class="lead reveal" style="font-size:30px">执行器必须严格遵守"编号 → 判断 → 动作 → 跳转"的单步逻辑，只有收到明确跳转指令才能进入下一个状态锚点。</p>
+          <div class="symbol-grid">
+            <div class="symbol-card reveal"><span class="sym">STP-XXX</span><span class="name">状态锚点</span><span class="desc">执行指针必须停留在此处，所有动作围绕它展开。</span></div>
+            <div class="symbol-card lemon reveal"><span class="sym">?? Cond</span><span class="name">逻辑门控</span><span class="desc">条件为假时跳转错误流，充当依赖哨兵。</span></div>
+            <div class="symbol-card reveal"><span class="sym">!! OP</span><span class="name">原子算子</span><span class="desc">不可拆分的物理动作，保证幂等。</span></div>
+            <div class="symbol-card reveal"><span class="sym">&gt;&gt; REG</span><span class="name">数据流向</span><span class="desc">将算子输出压入寄存器，供后续读取。</span></div>
+            <div class="symbol-card reveal"><span class="sym">→ STP</span><span class="name">强制跳转</span><span class="desc">唯一合法的逻辑演进路径，禁止循环。</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 标准算子集 -->
+      <section class="slide">
+        <div class="page-numeral"></div>
+        <div class="slide-pad">
+          <div class="reveal"><span class="pill"><span class="pdot sage"></span>标准算子集</span></div>
+          <h2 class="h-section reveal">四类<em class="soft">原子算子</em>，覆盖全流程</h2>
+          <div class="op-grid">
+            <div class="op-card reveal">
+              <div class="op-head"><span class="op-dot" style="background:var(--pink)"></span><h4>文件系统</h4></div>
+              <ul>
+                <li>OP_FS_READ<span class="note">读取，路径不存在返回空</span></li>
+                <li>OP_FS_WRITE<span class="note">写入或覆盖</span></li>
+                <li>OP_FS_EXISTS<span class="note">检查路径</span></li>
+                <li>OP_FS_DELETE<span class="note">删除文件或目录</span></li>
+              </ul>
+            </div>
+            <div class="op-card reveal">
+              <div class="op-head"><span class="op-dot" style="background:var(--lemon)"></span><h4>Git</h4></div>
+              <ul>
+                <li>OP_GIT_STATUS<span class="note">获取状态</span></li>
+                <li>OP_GIT_COMMIT<span class="note">提交变更</span></li>
+                <li>OP_GIT_MERGE<span class="note">合并分支</span></li>
+                <li>OP_GIT_WORKTREE_ADD<span class="note">创建 worktree</span></li>
+                <li>OP_GIT_WORKTREE_REMOVE<span class="note">删除 worktree</span></li>
+              </ul>
+            </div>
+            <div class="op-card reveal">
+              <div class="op-head"><span class="op-dot" style="background:var(--sage)"></span><h4>数据处理</h4></div>
+              <ul>
+                <li>OP_ANALYSE<span class="note">非结构化 → Key-Value</span></li>
+                <li>OP_GET_TOP<span class="note">取符合条件的首项</span></li>
+                <li>OP_COUNT<span class="note">统计符合条件的数量</span></li>
+                <li>OP_CODE_GEN<span class="note">基于上下文生成代码</span></li>
+              </ul>
+            </div>
+            <div class="op-card reveal">
+              <div class="op-head"><span class="op-dot" style="background:var(--lilac)"></span><h4>状态同步</h4></div>
+              <ul>
+                <li>OP_STATUS_UPDATE<span class="note">更新 .status 文件</span></li>
+                <li>OP_TASK_SYNC<span class="note">同步 task.md 状态</span></li>
+                <li>OP_EVENT_EMIT<span class="note">输出事件到日志</span></li>
+                <li>OP_UI_NOTIFY<span class="note">向用户发通知</span></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 6. 方案优势 -->
+      <section class="slide">
+        <div class="page-numeral"></div>
+        <div class="slide-pad">
+          <div class="reveal"><span class="pill"><span class="pdot lemon"></span>方案优势</span></div>
+          <h2 class="h-section reveal">为什么是<em class="soft">这套协议</em></h2>
+          <div class="icon-grid">
+            <div class="icon-card reveal"><span class="ic-num">01</span><h4>消除幻觉性跳步</h4><p>禁止循环语义，必须靠物理跳转重新扫描任务列表。每一轮跳转都是一次全新的状态对齐。</p></div>
+            <div class="icon-card reveal"><span class="ic-num">02</span><h4>状态可追溯 · 断点恢复</h4><p>每个锚点关联寄存器和物理存盘。即使中断，新会话读一次 .status 就能精准定位指针。</p></div>
+            <div class="icon-card reveal"><span class="ic-num">03</span><h4>屏蔽语义噪声</h4><p>冷门符号逻辑触发"指令解析模式"而非"文本续写模式"，注意力集中在算子执行上。</p></div>
+            <div class="icon-card reveal"><span class="ic-num">04</span><h4>严格的依赖管理</h4><p>状态锚点序列锁死路径，前置任务未标记完成，指针就无法移动到下一阶段。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. 工作流 -->
+      <section class="slide">
+        <div class="page-numeral"></div>
+        <div class="slide-pad">
+          <div class="reveal"><span class="pill"><span class="pdot sage"></span>实际应用</span></div>
+          <h2 class="h-section reveal">Feature Agent 的<em class="soft">四个阶段</em></h2>
+          <p class="lead reveal" style="font-size:28px">系统严格按 STP 步骤执行，不会跳过任何验证——这就是断点续传级开发。</p>
+          <div class="three-step">
+            <div class="ts-card lilac reveal"><span class="numeral">01</span><p class="t">INITIALIZATION</p><p class="ann"><strong>事件启动</strong>：读取 spec.md 与 task.md，建立初始寄存器，进入实现循环。</p></div>
+            <div class="ts-card lemon reveal"><span class="numeral">02</span><p class="t">IMPLEMENT</p><p class="ann"><strong>逐个实现</strong>：取未完成任务 → 实现 → 更新进度，循环跳转直至清空。</p></div>
+            <div class="ts-card sage reveal"><span class="numeral">03</span><p class="t">VERIFY</p><p class="ann"><strong>三道闸门</strong>：lint → test → checklist，全部通过才允许进入完成态。</p></div>
+            <div class="ts-card blush reveal"><span class="numeral">04</span><p class="t">COMPLETE</p><p class="ann"><strong>收尾</strong>：git commit → 标记 status=done → 发出 EVENT:COMPLETE。</p></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 8. 核心理念 -->
+      <section class="slide closer">
+        <div class="closer-inner">
+          <h1 class="h-display reveal">执行器不必懂<em class="soft">"宏观意义"</em><br>只需保证每次 <em class="soft">REG_</em> 转换准确无误</h1>
+          <p class="lead reveal">AILock-Step 用状态锚点强制线性、原子算子保证幂等、物理存盘实现断点续传——让 AI Agent 真正可靠地干活。</p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+  <div class="nav-bar" id="navBar"></div>
+
+  <script>
+  (function () {
+    var slides = document.querySelectorAll('.slide');
+    var total = slides.length, current = 0, isAnimating = false;
+    var stage = document.getElementById('deckStage');
+    var navBar = document.getElementById('navBar');
+
+    function fit() {
+      var f = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+      var x = (window.innerWidth - 1920 * f) / 2, y = (window.innerHeight - 1080 * f) / 2;
+      stage.style.transform = 'translate(' + x + 'px,' + y + 'px) scale(' + f + ')';
+    }
+    window.addEventListener('resize', fit);
+
+    function updateSlide(newIdx, direction) {
+      if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+      isAnimating = true;
+      var oldSlide = slides[current], newSlide = slides[newIdx];
+      var exitX = direction === 'next' ? '-60px' : '60px';
+      var enterX = direction === 'next' ? '60px' : '-60px';
+      oldSlide.classList.remove('active');
+      newSlide.style.transition = 'none';
+      newSlide.style.transform = 'translateX(' + enterX + ')';
+      newSlide.classList.add('active');
+      void newSlide.offsetWidth;
+      newSlide.style.transition = '';
+      newSlide.style.transform = '';
+      oldSlide.style.transform = 'translateX(' + exitX + ')';
+      current = newIdx; updateUI();
+      setTimeout(function () { oldSlide.style.transform = ''; isAnimating = false; }, 470);
+    }
+    function jumpTo(idx) {
+      if (idx === current || idx < 0 || idx >= total) return;
+      isAnimating = false;
+      slides[current].classList.remove('active'); slides[current].style.transform = '';
+      slides[idx].style.transition = 'none'; slides[idx].style.transform = '';
+      slides[idx].classList.add('active');
+      void slides[idx].offsetWidth; slides[idx].style.transition = '';
+      current = idx; updateUI();
+    }
+    function next() { updateSlide(current + 1, 'next'); }
+    function prev() { updateSlide(current - 1, 'prev'); }
+    function updateUI() {
+      for (var i = 0; i < total; i++) {
+        var pn = slides[i].querySelector('.page-numeral');
+        if (pn) pn.textContent = (i + 1) + ' / ' + total;
+      }
+      dots.forEach(function (d, i) { d.classList.toggle('active', i === current); });
+      updateDragLabel();
+    }
+
+    var dotsContainer = document.createElement('div'); dotsContainer.className = 'nav-dots';
+    var dots = [], labels = [];
+    slides.forEach(function (slide, i) {
+      var h2 = slide.querySelector('h2'), h1 = slide.querySelector('h1');
+      var label = (h2 ? h2.textContent.trim() : (h1 ? h1.textContent.trim() : '')).replace(/\s+/g, ' ').slice(0, 16);
+      labels.push(label);
+      var dot = document.createElement('button');
+      dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+      dot.innerHTML = '<span class="dot-tip">' + (i + 1) + (label ? ' · ' + label : '') + '</span>';
+      dot.addEventListener('click', function (e) { e.stopPropagation(); if (i !== current) updateSlide(i, i > current ? 'next' : 'prev'); });
+      dotsContainer.appendChild(dot); dots.push(dot);
+    });
+    var dragLabel = document.createElement('div'); dragLabel.className = 'drag-label';
+    dotsContainer.appendChild(dragLabel); navBar.appendChild(dotsContainer);
+    function updateDragLabel() {
+      dragLabel.textContent = (current + 1) + ' / ' + total + (labels[current] ? '  ' + labels[current] : '');
+    }
+
+    var isDragging = false, dotPositions = [];
+    function getIdxFromX(clientX) {
+      var closest = 0, minDist = Infinity;
+      dotPositions.forEach(function (cx, i) { var d = Math.abs(clientX - cx); if (d < minDist) { minDist = d; closest = i; } });
+      return closest;
+    }
+    function refreshPositions() {
+      dotPositions = dots.map(function (d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+    }
+    dotsContainer.addEventListener('mousedown', function (e) {
+      e.preventDefault(); isDragging = true; refreshPositions(); dotsContainer.classList.add('dragging');
+      var idx = getIdxFromX(e.clientX); if (idx !== current) jumpTo(idx);
+    });
+    document.addEventListener('mousemove', function (e) {
+      if (!isDragging) return; e.preventDefault(); var idx = getIdxFromX(e.clientX); if (idx !== current) jumpTo(idx);
+    });
+    document.addEventListener('mouseup', function () { if (!isDragging) return; isDragging = false; dotsContainer.classList.remove('dragging'); });
+    dotsContainer.addEventListener('touchstart', function (e) {
+      isDragging = true; refreshPositions(); dotsContainer.classList.add('dragging');
+      var idx = getIdxFromX(e.touches[0].clientX); if (idx !== current) jumpTo(idx);
+    }, { passive: true });
+    dotsContainer.addEventListener('touchmove', function (e) {
+      if (!isDragging) return; e.preventDefault(); var idx = getIdxFromX(e.touches[0].clientX); if (idx !== current) jumpTo(idx);
+    }, { passive: false });
+    dotsContainer.addEventListener('touchend', function () { isDragging = false; dotsContainer.classList.remove('dragging'); });
+
+    document.addEventListener('keydown', function (e) {
+      switch (e.key) {
+        case 'ArrowRight': case ' ': case 'PageDown': e.preventDefault(); next(); break;
+        case 'ArrowLeft': case 'PageUp': e.preventDefault(); prev(); break;
+        case 'Home': updateSlide(0, 'prev'); break;
+        case 'End': updateSlide(total - 1, 'next'); break;
+      }
+    });
+    var touchStartX = -1;
+    document.addEventListener('touchstart', function (e) {
+      if (e.target.closest('.nav-bar') || e.target.closest('.palette-dots')) { touchStartX = -1; return; }
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.addEventListener('touchend', function (e) {
+      if (touchStartX === -1) return;
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 50) (dx < 0 ? next() : prev());
+      touchStartX = -1;
+    }, { passive: true });
+    var wheelLock = false;
+    document.addEventListener('wheel', function (e) {
+      if (e.target.closest && e.target.closest('.nav-bar')) return;
+      if (wheelLock || Math.abs(e.deltaY) < 30) return;
+      wheelLock = true; (e.deltaY > 0 ? next() : prev());
+      setTimeout(function () { wheelLock = false; }, 750);
+    }, { passive: true });
+
+    var THEME_KEY = 'magazine-theme';
+    var paletteDots = document.querySelectorAll('.palette-dot');
+    try { var saved = localStorage.getItem(THEME_KEY); if (saved) { document.documentElement.setAttribute('data-theme', saved); } } catch (e) {}
+    function syncPalette() {
+      var cur = document.documentElement.getAttribute('data-theme') || 'paper';
+      paletteDots.forEach(function (d) { d.classList.toggle('active', d.getAttribute('data-theme') === cur); });
+    }
+    paletteDots.forEach(function (dot) {
+      dot.addEventListener('click', function () {
+        var t = dot.getAttribute('data-theme');
+        document.documentElement.setAttribute('data-theme', t);
+        try { localStorage.setItem(THEME_KEY, t); } catch (e) {}
+        syncPalette();
+      });
+    });
+    syncPalette();
+
+    var fsToggle = document.getElementById('fsToggle');
+    function setFsState(on) { fsToggle.classList.toggle('is-fs', on); }
+    fsToggle.addEventListener('click', function () {
+      var d = document;
+      if (!d.fullscreenElement && !d.webkitFullscreenElement) {
+        var el = d.documentElement, req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (req) { try { req.call(el); } catch (e) {} }
+      } else {
+        var exit = d.exitFullscreen || d.webkitExitFullscreen;
+        if (exit) { try { exit.call(d); } catch (e) {} }
+      }
+    });
+    document.addEventListener('fullscreenchange', function () { setFsState(!!document.fullscreenElement); });
+    document.addEventListener('webkitfullscreenchange', function () { setFsState(!!document.webkitFullscreenElement); });
+
+    fit(); updateUI();
+  })();
+  </script>
+</body>
+</html>

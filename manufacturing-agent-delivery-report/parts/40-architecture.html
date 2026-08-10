@@ -1,0 +1,99 @@
+      <section class="section" id="architecture">
+        <h2>推荐技术架构</h2>
+        <p class="section-intro">核心原则是渠道可替换、Agent 运行时可演进、MES 数据服务稳定、权限策略集中执行。</p>
+        <div class="architecture" style="margin-top:20px">
+          <div class="arch-box">
+            <h3>交互与身份层</h3>
+            <ul class="clean-list small muted">
+              <li>Web 工作台</li>
+              <li>可选 IM Gateway</li>
+              <li>统一登录与组织映射</li>
+              <li>会话与用户上下文</li>
+            </ul>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box core">
+            <h3>Agent 平台层</h3>
+            <ul class="clean-list small">
+              <li>四类业务 Agent 编排</li>
+              <li>模型路由与提示策略</li>
+              <li>工具白名单与任务状态</li>
+              <li>日志、评测与运营监控</li>
+            </ul>
+          </div>
+          <div class="arch-arrow">→</div>
+          <div class="arch-box">
+            <h3>MES 数据服务层</h3>
+            <ul class="clean-list small muted">
+              <li>指标语义与数据契约</li>
+              <li>用户数据范围过滤</li>
+              <li>时序与历史分析服务</li>
+              <li>计划模拟与预测服务</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="grid-2" style="margin-top:16px">
+          <div class="panel">
+            <h3>平台内部需要稳定的接口</h3>
+            <ul class="clean-list muted">
+              <li>Agent Definition：Agent 配置、版本和发布状态</li>
+              <li>Tool Contract：工具参数、返回结构、错误码和权限标签</li>
+              <li>Identity Context：用户、组织、角色和数据范围</li>
+              <li>Trace Event：问题、调用链、耗时、成本和结果状态</li>
+            </ul>
+          </div>
+          <div class="panel">
+            <h3>MES 侧需要沉淀的公共能力</h3>
+            <ul class="clean-list muted">
+              <li>统一设备、人员、工单、班次和产线主数据</li>
+              <li>产能、达成率、稼动率、节拍等指标口径</li>
+              <li>面向 Agent 的聚合 API，避免直接生成任意 SQL</li>
+              <li>数据新鲜度、缺失率和异常值的质量标记</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>权限模型建议</h2>
+        <div class="callout">
+          <h3>有效权限由三层取交集</h3>
+          <p><strong>用户权限</strong>控制谁能看什么；<strong>Agent 权限</strong>控制这个 AI 员工允许做什么；<strong>场景策略</strong>控制本次任务在什么条件下可以执行。</p>
+        </div>
+        <div class="grid-2" style="margin-top:16px">
+          <div class="panel">
+            <h3>查询类操作</h3>
+            <p class="muted">沿用 MES 组织与数据范围，结果按工厂、车间、产线、设备、人员和敏感字段过滤。报告缓存也必须带权限标签。</p>
+          </div>
+          <div class="panel">
+            <h3>动作类操作</h3>
+            <p class="muted">创建计划、修改参数、发送通知等动作默认要求人工确认。高风险动作进入审批，禁止模型直接提交生产控制指令。</p>
+          </div>
+          <div class="panel">
+            <h3>AI 员工身份</h3>
+            <p class="muted">每个 Agent 使用独立服务身份、最小权限和独立密钥，禁止多个 Agent 共享高权限账号，禁止把密钥写入提示词或连接器配置明文。</p>
+          </div>
+          <div class="panel">
+            <h3>审计与追责</h3>
+            <p class="muted">审计至少包含发起用户、Agent 版本、模型、数据范围、工具参数、结果、确认人、异常和成本。日志保留周期写入合同。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>平台与替代基座的决策比较</h2>
+        <div style="overflow-x:auto">
+          <table class="scope-table">
+            <thead><tr><th>决策维度</th><th>公司 Agent 平台</th><th>OpenClaw / Hermes 类基座</th><th>建议</th></tr></thead>
+            <tbody>
+              <tr><td>现有资产复用</td><td>可复用模型、连接器、运营和团队经验</td><td>需要重新适配 MES 与内部规范</td><td><strong>平台优先</strong></td></tr>
+              <tr><td>业务交付一致性</td><td>便于形成统一产品和售后体系</td><td>灵活，但容易形成第二套技术栈</td><td><strong>平台优先</strong></td></tr>
+              <tr><td>个人 AI 员工能力</td><td>取决于现有记忆、长任务和渠道能力</td><td>通常更强调个人自治、工具与消息渠道</td><td>按差距验证</td></tr>
+              <tr><td>企业权限与审计</td><td>可按公司标准统一建设</td><td>需要专项加固和集成验证</td><td><strong>平台优先</strong></td></tr>
+              <tr><td>可控性与责任</td><td>版本、SLA、故障和路线由公司负责</td><td>受社区迭代和开源依赖影响</td><td><strong>平台优先</strong></td></tr>
+              <tr><td>适用位置</td><td>主生产交付架构</td><td>隔离试验、专项能力或备用方案</td><td>主次分明</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>

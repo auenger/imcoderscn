@@ -2,12 +2,19 @@
 interface Props {
   title?: string;
   description?: string;
+  image?: string;
 }
 
-const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智能体的高效工程实践' } = Astro.props;
+const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智能体的高效工程实践', image } = Astro.props;
+const site = (Astro.site?.toString() || 'https://imcoders.cn').replace(/\/$/, '');
+const ogImage = image
+  ? `${site}${image.startsWith('/') ? image : '/' + image}`
+  : `${site}/og-default.png`;
+const ogUrl = new URL(Astro.url.pathname, site).toString();
+const WX_SIGN_URL = import.meta.env.WX_SIGN_URL || '/api/wx-sign';
 ---
 
-<script>
+<script is:inline>
   // 移动端菜单切换
   let menuOpen = false;
 
@@ -73,7 +80,7 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
     }
   });
 
-  (window as any).toggleMenu = toggleMenu;
+  window.toggleMenu = toggleMenu;
 </script>
 
 <!DOCTYPE html>
@@ -92,6 +99,29 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
 
     <title>{title}</title>
     <meta name="description" content={description} />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="杨正武 · imcoders" />
+    <meta property="og:locale" content="zh_CN" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={ogUrl} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={title} />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- 微信 / 结构化数据 -->
+    <meta itemprop="name" content={title} />
+    <meta itemprop="description" content={description} />
+    <meta itemprop="image" content={ogImage} />
     <style is:global>
       * {
         margin: 0;
@@ -405,6 +435,34 @@ const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智
         }
       }
     </style>
+
+    <!-- 微信 JS-SDK：自定义“微信内打开网页后点分享”的卡片 -->
+    <script is:inline src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
+    <script is:inline define:vars={{ signUrl: WX_SIGN_URL, shareTitle: title, shareDesc: description, shareLink: ogUrl, shareImg: ogImage }}>
+      (function () {
+        if (!signUrl || typeof wx === 'undefined') return;
+        var url = location.href.split('#')[0];
+        fetch(signUrl + '?url=' + encodeURIComponent(url))
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (!d || !d.signature) return;
+            wx.config({
+              debug: false,
+              appId: d.appId,
+              timestamp: d.timestamp,
+              nonceStr: d.nonceStr,
+              signature: d.signature,
+              jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+            });
+            wx.ready(function () {
+              wx.updateAppMessageShareData({ title: shareTitle, desc: shareDesc, link: shareLink, imgUrl: shareImg });
+              wx.updateTimelineShareData({ title: shareTitle, link: shareLink, imgUrl: shareImg });
+            });
+            wx.error(function (res) { console.warn('[wx-sign] config failed:', res && res.errMsg); });
+          })
+          .catch(function (e) { console.error('wx-sign failed', e); });
+      })();
+    </script>
   </head>
   <body>
     <nav class="navbar" id="navbar">

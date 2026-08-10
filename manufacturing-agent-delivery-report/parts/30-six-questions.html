@@ -1,0 +1,52 @@
+      <section class="section" id="questions">
+        <h2>六项交付边界问题分析</h2>
+        <p class="section-intro">以下判断可直接转化为产品方案、合同条款和技术设计输入。</p>
+
+        <article class="panel" style="margin-top:18px">
+          <span class="tag must">推荐：基于现有平台</span>
+          <h3 style="margin-top:12px">1. 交付物应采用什么产品形态</h3>
+          <p><strong>建议形态：</strong>“制造 AI Agent 应用套件 + 公司 Agent 平台运行服务 + MES 数据适配服务”。客户前台看到的是制造业务应用，后台由公司平台承载 Agent 编排、模型管理、连接器、日志和运营。</p>
+          <p class="muted"><strong>边界说明：</strong>本期交付的是指定场景的可运行实例及使用权，不等同于整套平台产品、全部平台功能或平台源代码。部署模式可根据客户安全要求选择客户本地、专有云或混合部署，但必须单独核算基础设施和运维责任。</p>
+          <div class="decision"><strong>管理决策：</strong>统一将公司平台定义为产品底座，将四类制造 Agent 定义为行业应用包。</div>
+        </article>
+
+        <article class="panel" style="margin-top:14px">
+          <span class="tag option">推荐：受控开放</span>
+          <h3 style="margin-top:12px">2. 自定义 Agent 和连接是否交付</h3>
+          <p><strong>建议分级：</strong>标准版只交付已经配置并验收的 Agent 与连接。增强版可开放“参数级配置”和经过审核的连接器。开发者版才开放 Agent 创建、工具编排、发布审批和测试环境。</p>
+          <p class="muted">如果直接开放全部自定义能力，客户新增 Agent 后产生的安全、模型费用、数据泄露、稳定性和效果问题会回流为项目责任。开放能力必须配套沙箱、工具白名单、发布审批、版本回滚、调用限额和责任边界。</p>
+          <div class="decision"><strong>合同建议：</strong>写明可创建数量、连接器范围、管理员席位、发布流程、支持范围与二次开发责任。</div>
+        </article>
+
+        <article class="panel" style="margin-top:14px">
+          <span class="tag option">推荐：第二阶段可选</span>
+          <h3 style="margin-top:12px">3. 是否需要 IM Gateway</h3>
+          <p><strong>建议：</strong>核心交付先以 Web 工作台为主，IM Gateway 作为可选渠道适配层。IM 适合查询、提醒、报告推送、确认与轻量审批；复杂图表、计划对比、数据钻取和权限配置仍回到 Web。</p>
+          <p class="muted">接入钉钉或其他 IM 不是增加一个 Bot 就结束，还涉及账号绑定、组织同步、消息幂等、会话隔离、文件安全、卡片兼容、超时重试、审批留痕和平台限流。</p>
+          <div class="decision"><strong>进入条件：</strong>客户明确高频移动使用场景，并确认企业应用审批、身份映射方式和渠道运维责任。</div>
+        </article>
+
+        <article class="panel" style="margin-top:14px">
+          <span class="tag must">推荐：运行绑定，接口解耦</span>
+          <h3 style="margin-top:12px">4. Agent 是否强绑定平台，是否只供工厂内部使用</h3>
+          <p><strong>建议：</strong>商业交付层面绑定公司 Agent 平台的运行与服务体系，技术层面通过标准接口避免业务逻辑和单一平台不可拆分。Agent 逻辑应以版本化配置、工具协议和数据契约沉淀。</p>
+          <p class="muted">第一阶段只面向客户工厂内部员工，包括管理者、计划员、班组长、设备人员和授权分析人员。供应商、外协、经销商等外部主体涉及新的身份域、数据边界和法律责任，应视为新增场景。</p>
+          <div class="decision"><strong>架构要求：</strong>平台可替换不代表本期必须支持双平台运行，接口可替换性应作为技术资产保留。</div>
+        </article>
+
+        <article class="panel" style="margin-top:14px">
+          <span class="tag must">推荐：双主体授权</span>
+          <h3 style="margin-top:12px">5. Agent 与用户的数据权限如何处理</h3>
+          <p><strong>建议模型：</strong>采用“Agent 服务身份 + 当前用户身份”的交集权限。Agent 服务身份决定可调用哪些工具和数据域，当前用户身份决定可查看哪些工厂、车间、产线、设备、人员和字段。</p>
+          <p class="muted">Agent 可被视为 AI 员工并拥有独立账号，但不能只给 Agent 一个高权限账号后让所有用户共享。每次调用需要记录用户、Agent、意图、数据范围、工具参数、结果摘要与时间，敏感操作必须二次确认或进入审批。</p>
+          <div class="decision"><strong>安全底线：</strong>最终有效权限 = 用户权限 ∩ Agent 权限 ∩ 场景策略，任何一层拒绝都必须终止调用。</div>
+        </article>
+
+        <article class="panel" style="margin-top:14px">
+          <span class="tag option">推荐：作为备选验证</span>
+          <h3 style="margin-top:12px">6. 是否可用 OpenClaw 或 Hermes 作为 AI 员工基座</h3>
+          <p><strong>判断：</strong>可以用于原型、专项 Agent 或隔离环境验证，但不建议在现有平台可满足需求时直接替换主交付架构。它们偏向个人或通用自治 Agent 运行时，消息渠道、工具、记忆和任务能力较强，但制造企业交付还需要补齐统一身份、细粒度数据权限、审批审计、多租户、版本治理、SLA 与安全运营。</p>
+          <p class="muted">如果公司平台在工具扩展、长任务、IM Gateway 或私有部署方面存在硬性缺口，可开展 2-4 周受控验证。验证对象应是企业能力差距，不是单纯比较对话效果。</p>
+          <div class="decision"><strong>选型门槛：</strong>只有当替代方案在关键能力、总成本和交付周期上形成明确优势，并通过安全评审，才进入正式架构。</div>
+        </article>
+      </section>

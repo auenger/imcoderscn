@@ -1,5 +1,101 @@
-<!DOCTYPE html> <html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>杨正武 - Harness 工程师</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><link rel="stylesheet" href="/_astro/_slug_.BapUKss4.css">
-<link rel="stylesheet" href="/_astro/index.BSQPHfmt.css"><script type="module" src="/_astro/hoisted.BJe75Bl7.js"></script></head> <body> <nav class="navbar" id="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
+<!DOCTYPE html><script>
+  // 移动端菜单切换
+  let menuOpen = false;
+
+  function toggleMenu() {
+    menuOpen = !menuOpen;
+    const nav = document.querySelector('.navbar-nav');
+    const hamburger = document.querySelector('.hamburger');
+    const navbar = document.querySelector('.navbar');
+
+    if (nav && hamburger && navbar) {
+      nav.classList.toggle('active', menuOpen);
+      hamburger.classList.toggle('active', menuOpen);
+      navbar.classList.toggle('menu-open', menuOpen);
+      // 防止背景滚动
+      document.body.style.overflow = menuOpen ? 'hidden' : '';
+    }
+  }
+
+  // 点击导航链接后关闭菜单
+  document.addEventListener('DOMContentLoaded', () => {
+    const navLinks = document.querySelectorAll('.navbar-nav a');
+    navLinks.forEach(link => {
+      link.addEventListener('click', () => {
+        if (window.innerWidth <= 768) {
+          menuOpen = false;
+          const nav = document.querySelector('.navbar-nav');
+          const hamburger = document.querySelector('.hamburger');
+          const navbar = document.querySelector('.navbar');
+          if (nav && hamburger && navbar) {
+            nav.classList.remove('active');
+            hamburger.classList.remove('active');
+            navbar.classList.remove('menu-open');
+            document.body.style.overflow = '';
+          }
+        }
+      });
+    });
+
+    // 点击遮罩层关闭菜单
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+      navbar.addEventListener('click', (e) => {
+        if (e.target === navbar && menuOpen) {
+          toggleMenu();
+        }
+      });
+    }
+  });
+
+  // 窗口大小变化时重置菜单状态
+  window.addEventListener('resize', () => {
+    if (window.innerWidth > 768) {
+      menuOpen = false;
+      const nav = document.querySelector('.navbar-nav');
+      const hamburger = document.querySelector('.hamburger');
+      const navbar = document.querySelector('.navbar');
+      if (nav && hamburger && navbar) {
+        nav.classList.remove('active');
+        hamburger.classList.remove('active');
+        navbar.classList.remove('menu-open');
+        document.body.style.overflow = '';
+      }
+    }
+  });
+
+  window.toggleMenu = toggleMenu;
+</script> <html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>杨正武 - Harness 工程师</title><meta name="description" content="设计与 AI 智能体的高效工程实践"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:site_name" content="杨正武 · imcoders"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="杨正武 - Harness 工程师"><meta property="og:description" content="设计与 AI 智能体的高效工程实践"><meta property="og:url" content="https://imcoders.cn/"><meta property="og:image" content="https://imcoders.cn/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="杨正武 - Harness 工程师"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="杨正武 - Harness 工程师"><meta name="twitter:description" content="设计与 AI 智能体的高效工程实践"><meta name="twitter:image" content="https://imcoders.cn/og-default.png"><!-- 微信 / 结构化数据 --><meta itemprop="name" content="杨正武 - Harness 工程师"><meta itemprop="description" content="设计与 AI 智能体的高效工程实践"><meta itemprop="image" content="https://imcoders.cn/og-default.png"><!-- 微信 JS-SDK：自定义“微信内打开网页后点分享”的卡片 --><script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script><script>(function(){const signUrl = "/api/wx-sign";
+const shareTitle = "杨正武 - Harness 工程师";
+const shareDesc = "设计与 AI 智能体的高效工程实践";
+const shareLink = "https://imcoders.cn/";
+const shareImg = "https://imcoders.cn/og-default.png";
+
+      (function () {
+        if (!signUrl || typeof wx === 'undefined') return;
+        var url = location.href.split('#')[0];
+        fetch(signUrl + '?url=' + encodeURIComponent(url))
+          .then(function (r) { return r.json(); })
+          .then(function (d) {
+            if (!d || !d.signature) return;
+            wx.config({
+              debug: false,
+              appId: d.appId,
+              timestamp: d.timestamp,
+              nonceStr: d.nonceStr,
+              signature: d.signature,
+              jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
+            });
+            wx.ready(function () {
+              wx.updateAppMessageShareData({ title: shareTitle, desc: shareDesc, link: shareLink, imgUrl: shareImg });
+              wx.updateTimelineShareData({ title: shareTitle, link: shareLink, imgUrl: shareImg });
+            });
+            wx.error(function (res) { console.warn('[wx-sign] config failed:', res && res.errMsg); });
+          })
+          .catch(function (e) { console.error('wx-sign failed', e); });
+      })();
+    })();</script><link rel="stylesheet" href="/_astro/_slug_.BapUKss4.css">
+<link rel="stylesheet" href="/_astro/index.CCVfeux6.css"></head> <body> <nav class="navbar" id="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
 杨正武<span>.imcoders</span> </a> <button class="hamburger" onclick="toggleMenu()" aria-label="切换菜单"> <span></span> <span></span> <span></span> </button> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>    <section class="hero" data-astro-cid-j7pv25f6> <div class="hero-content" data-astro-cid-j7pv25f6> <h1 class="hero-title" data-astro-cid-j7pv25f6>Harness 工程师</h1> <p class="hero-subtitle" data-astro-cid-j7pv25f6>设计与 AI 智能体的高效工程实践</p> <p class="hero-description" data-astro-cid-j7pv25f6>
 致力于构建<strong data-astro-cid-j7pv25f6>让 AI Agent 能够高效、可靠产出高质量代码</strong>的工程环境与系统。<br data-astro-cid-j7pv25f6>
 从脚本化工具到多模态测试平台，将工程思维与 AI 能力深度融合。
@@ -7,22 +103,42 @@
 阅读博客
 </a> <a href="#contact" class="btn btn-secondary" data-astro-cid-j7pv25f6>
 联系我
-</a> </div> </div> </section>  <section id="about" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>核心理念</h2> <div class="philosophy-grid" data-astro-cid-j7pv25f6> <div class="philosophy-card" data-astro-cid-j7pv25f6> <div class="philosophy-icon" data-astro-cid-j7pv25f6> <i class="fas fa-robot" data-astro-cid-j7pv25f6></i> </div> <h3 class="philosophy-title" data-astro-cid-j7pv25f6>AI Agent 工程环境</h3> <p class="philosophy-desc" data-astro-cid-j7pv25f6> <strong data-astro-cid-j7pv25f6>核心目标：让写代码不再是 AI 的唯一产出</strong><br data-astro-cid-j7pv25f6><br data-astro-cid-j7pv25f6>
+</a> </div> </div> </section>  <section class="playbook-section" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <a href="https://agents-zone.github.io/harness-engineering-playbook/" target="_blank" rel="noopener noreferrer" class="playbook-card" data-astro-cid-j7pv25f6> <div class="playbook-badge" data-astro-cid-j7pv25f6> <i class="fas fa-book-open" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>Agents 特区社区出品</span> </div> <h2 class="playbook-title" data-astro-cid-j7pv25f6>Harness Engineering Playbook</h2> <p class="playbook-desc" data-astro-cid-j7pv25f6>
+实战手册：如何在团队中用 AI agent 稳定交付生产级代码。<br data-astro-cid-j7pv25f6>
+从单个 agent 的闭环工程，到多 agent 并行扩展，再到人机协同的组织设计——三个阶段，一线实践验证的方法论。
+</p> <span class="playbook-link" data-astro-cid-j7pv25f6> <i class="fas fa-arrow-right" data-astro-cid-j7pv25f6></i>
+在线阅读
+</span> </a> </div> </section>  <section id="about" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>核心理念</h2> <div class="philosophy-grid" data-astro-cid-j7pv25f6> <div class="philosophy-card" data-astro-cid-j7pv25f6> <div class="philosophy-icon" data-astro-cid-j7pv25f6> <i class="fas fa-robot" data-astro-cid-j7pv25f6></i> </div> <h3 class="philosophy-title" data-astro-cid-j7pv25f6>AI Agent 工程环境</h3> <p class="philosophy-desc" data-astro-cid-j7pv25f6> <strong data-astro-cid-j7pv25f6>核心目标：让写代码不再是 AI 的唯一产出</strong><br data-astro-cid-j7pv25f6><br data-astro-cid-j7pv25f6>
 构建系统化的工程实践，让 AI Agent 在<strong data-astro-cid-j7pv25f6>高效、可靠、可预测</strong>的环境中工作。
 </p> </div> <div class="philosophy-card" data-astro-cid-j7pv25f6> <div class="philosophy-icon" data-astro-cid-j7pv25f6> <i class="fas fa-terminal" data-astro-cid-j7pv25f6></i> </div> <h3 class="philosophy-title" data-astro-cid-j7pv25f6>极简主义</h3> <p class="philosophy-desc" data-astro-cid-j7pv25f6>
 追求<strong data-astro-cid-j7pv25f6>最小化工具链依赖</strong>，探索轻量化前端方案。让技术为工程服务，而非相反。
 </p> </div> <div class="philosophy-card" data-astro-cid-j7pv25f6> <div class="philosophy-icon" data-astro-cid-j7pv25f6> <i class="fas fa-mouse-pointer" data-astro-cid-j7pv25f6></i> </div> <h3 class="philosophy-title" data-astro-cid-j7pv25f6>工程思维</h3> <p class="philosophy-desc" data-astro-cid-j7pv25f6>
 将复杂问题<strong data-astro-cid-j7pv25f6>模块化、标准化、可复用</strong>，建立清晰的系统边界与职责划分。
-</p> </div> </div> </div> </section>  <section id="projects" class="projects-section" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>代表作品</h2> <div class="projects-grid" data-astro-cid-j7pv25f6> <!-- VRT --> <a href="https://vrtest.cn" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-microchip" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Visual Replay Tester</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+</p> </div> </div> </div> </section>  <section id="projects" class="projects-section" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>代表作品</h2> <div class="projects-grid" data-astro-cid-j7pv25f6> <!-- Silieco --> <a href="/blog/human-agent-collaboration-work-os" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-network-wired" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Silieco</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+Human + Agent Work OS<br data-astro-cid-j7pv25f6>
+让人、Agent、Task、SOP、Skill 与 Runtime 在统一的组织空间中持续协作。
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Human + Agent</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Work OS</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Task</span> <span class="tech-badge" data-astro-cid-j7pv25f6>SOP</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-arrow-right" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>阅读 Work OS 设计</span> </div> </a> <!-- Chat2DB Agent --> <a href="https://chat2db-ai.com/" target="_blank" rel="noopener noreferrer" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-database" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Chat2DB Agent 化</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+Chat2DB 开源贡献者<br data-astro-cid-j7pv25f6>
+推动 AI 从 SQL 聊天助手升级为可调度、可审批、可恢复、可审计的 Database Agent。
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Open Source</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Database Agent</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Agent Runtime</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Task</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>访问 Chat2DB 官网</span> </div> </a> <!-- VRT --> <a href="https://vrtest.cn" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-microchip" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Visual Replay Tester</h3> <p class="project-description" data-astro-cid-j7pv25f6>
 下一代桌面自动化测试工具<br data-astro-cid-j7pv25f6>
 基于 Electron + Playwright + MCP 的 AI 驱动平台。
-</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Electron</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Playwright</span> <span class="tech-badge" data-astro-cid-j7pv25f6>MCP</span> <span class="tech-badge" data-astro-cid-j7pv25f6>多模态视觉模型</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>官网: vrtest.cn</span> </div> </a> <!-- Neuro --> <a href="https://github.com/auenger/neuro-ide" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-brain" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Neuro-IDE</h3> <p class="project-description" data-astro-cid-j7pv25f6>
-所见即所得的桌面自动化测试 IDE<br data-astro-cid-j7pv25f6>
-完整的系统化交付项目。
-</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Rust</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Electron</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Playwright</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>GitHub: auenger/neuro-ide</span> </div> </a> <!-- AILock --> <a href="https://github.com/auenger/AILock-Step" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-lock" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>AILock-Step</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Electron</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Playwright</span> <span class="tech-badge" data-astro-cid-j7pv25f6>MCP</span> <span class="tech-badge" data-astro-cid-j7pv25f6>多模态视觉模型</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>官网: vrtest.cn</span> </div> </a> <!-- Neuro --> <a href="https://github.com/auenger/neuro-ide" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-brain" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Neuro</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+AI 原生桌面端 IDE<br data-astro-cid-j7pv25f6>
+文档即数据库 (FS-as-Database) 架构，PM Agent 驱动需求拆解到编码验收全流程。
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Tauri V2</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Rust</span> <span class="tech-badge" data-astro-cid-j7pv25f6>React 18</span> <span class="tech-badge" data-astro-cid-j7pv25f6>PM Agent</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>GitHub: auenger/neuro-ide</span> </div> </a> <!-- AILock --> <a href="https://github.com/auenger/AILock-Step" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-lock" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>AILock-Step</h3> <p class="project-description" data-astro-cid-j7pv25f6>
 基于状态锚点的 AI Agent 执行协议<br data-astro-cid-j7pv25f6>
 解决 AI 幻觉性跳步，实现断点续传级开发。
 </p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>TypeScript</span> <span class="tech-badge" data-astro-cid-j7pv25f6>状态机协议</span> <span class="tech-badge" data-astro-cid-j7pv25f6>执行引擎</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>GitHub: auenger/AILock-Step</span> </div> </a> <!-- Feature Workflow --> <a href="https://github.com/auenger/AILock-Step/tree/main/feature-workflow-LockStep" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-project-diagram" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Feature Workflow</h3> <p class="project-description" data-astro-cid-j7pv25f6>
 融合 Bmad 与 OpenSpec 的 AI 工作流范式<br data-astro-cid-j7pv25f6>
 特性开发全流程标准化与工程化实践。
-</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>工作流范式</span> <span class="tech-badge" data-astro-cid-j7pv25f6>AILock-Step</span> <span class="tech-badge" data-astro-cid-j7pv25f6>工程化</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>GitHub: feature-workflow-LockStep</span> </div> </a> </div> </div> </section>  <section id="skills" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>技术领域</h2> <div class="skills-grid" data-astro-cid-j7pv25f6> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-palette" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>前端技术</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>React + TypeScript</li> <li data-astro-cid-j7pv25f6>Tailwind CSS</li> <li data-astro-cid-j7pv25f6>响应式设计</li> <li data-astro-cid-j7pv25f6>组件化开发</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-laptop" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>桌面应用</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>Electron + Playwright</li> <li data-astro-cid-j7pv25f6>跨平台打包</li> <li data-astro-cid-j7pv25f6>自动化测试工具</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-server" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>后端技术</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>Java + Spring Boot</li> <li data-astro-cid-j7pv25f6>微服务架构</li> <li data-astro-cid-j7pv25f6>分布式系统</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-robot" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>AI & 多模态</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>视觉语言模型 (VLM)</li> <li data-astro-cid-j7pv25f6>大语言模型 (LLM)</li> <li data-astro-cid-j7pv25f6>多模态融合应用</li> <li data-astro-cid-j7pv25f6>自然语言控制</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-flask" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>测试自动化</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>Playwright 自动化测试</li> <li data-astro-cid-j7pv25f6>MCP 协议集成</li> <li data-astro-cid-j7pv25f6>语义化回归测试</li> <li data-astro-cid-j7pv25f6>CI/CD 自动化</li> </ul> </div> </div> </div> </section>  <section id="contact" class="contact-section" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>联系我</h2> <div class="contact-grid" data-astro-cid-j7pv25f6> <a href="https://github.com/auenger" target="_blank" class="contact-card" data-astro-cid-j7pv25f6> <div class="contact-icon" data-astro-cid-j7pv25f6> <i class="fab fa-github" data-astro-cid-j7pv25f6></i> </div> <div class="contact-label" data-astro-cid-j7pv25f6>GitHub</div> <div class="contact-value" data-astro-cid-j7pv25f6>auenger</div> </a> <a href="mailto:yzw@imcoders.net" class="contact-card" data-astro-cid-j7pv25f6> <div class="contact-icon" data-astro-cid-j7pv25f6> <i class="fas fa-envelope" data-astro-cid-j7pv25f6></i> </div> <div class="contact-label" data-astro-cid-j7pv25f6>Email</div> <div class="contact-value" data-astro-cid-j7pv25f6>yzw@imcoders.net</div> </a> </div> </div> </section>  </main> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>工作流范式</span> <span class="tech-badge" data-astro-cid-j7pv25f6>AILock-Step</span> <span class="tech-badge" data-astro-cid-j7pv25f6>工程化</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>GitHub: feature-workflow-LockStep</span> </div> </a> <!-- Edith --> <a href="/blog/edith-agent" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-database" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>Edith</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+AI 知识基础设施<br data-astro-cid-j7pv25f6>
+把代码自动转化为 AI 可消费的知识，三层渐进式加载，任何 Agent 拿到就能用。
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>TypeScript</span> <span class="tech-badge" data-astro-cid-j7pv25f6>多 LLM</span> <span class="tech-badge" data-astro-cid-j7pv25f6>知识蒸馏</span> <span class="tech-badge" data-astro-cid-j7pv25f6>渐进式加载</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-book" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>阅读介绍</span> </div> </a> <!-- AgentsZone --> <a href="/blog/agentszone" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-satellite-dish" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>AgentsZone</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+基于 A2A 协议的 Agent 协作平台<br data-astro-cid-j7pv25f6>
+去中心化 Agent 通信，Channel 多 Agent 协作，跨机器 az-bridge 连接，任务委派与上下文编排。
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Tauri V2</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Rust</span> <span class="tech-badge" data-astro-cid-j7pv25f6>A2A 协议</span> <span class="tech-badge" data-astro-cid-j7pv25f6>任务委派</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-arrow-right" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>了解更多</span> </div> </a> <!-- AnyClaw --> <a href="https://github.com/auenger/anyclaw" target="_blank" class="project-card" data-astro-cid-j7pv25f6> <div class="project-content" data-astro-cid-j7pv25f6> <div class="project-icon" data-astro-cid-j7pv25f6> <i class="fas fa-paw" data-astro-cid-j7pv25f6></i> </div> <h3 class="project-title" data-astro-cid-j7pv25f6>AnyClaw</h3> <p class="project-description" data-astro-cid-j7pv25f6>
+轻量级 AI Agent 框架<br data-astro-cid-j7pv25f6>
+多通道消息架构 + Skill 代码化约束 + 安全模块。
+</p> <div class="project-tech" data-astro-cid-j7pv25f6> <span class="tech-badge" data-astro-cid-j7pv25f6>Python</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Tauri</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Skill System</span> <span class="tech-badge" data-astro-cid-j7pv25f6>Security</span> </div> </div> <div class="project-link" data-astro-cid-j7pv25f6> <i class="fas fa-external-link-alt" data-astro-cid-j7pv25f6></i> <span data-astro-cid-j7pv25f6>GitHub: auenger/anyclaw</span> </div> </a> </div> </div> </section>  <section id="skills" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>技术领域</h2> <div class="skills-grid" data-astro-cid-j7pv25f6> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-palette" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>前端技术</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>React + TypeScript</li> <li data-astro-cid-j7pv25f6>Tailwind CSS</li> <li data-astro-cid-j7pv25f6>响应式设计</li> <li data-astro-cid-j7pv25f6>组件化开发</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-laptop" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>桌面应用</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>Electron + Playwright</li> <li data-astro-cid-j7pv25f6>跨平台打包</li> <li data-astro-cid-j7pv25f6>自动化测试工具</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-server" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>后端技术</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>Java + Spring Boot</li> <li data-astro-cid-j7pv25f6>微服务架构</li> <li data-astro-cid-j7pv25f6>分布式系统</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-diagram-project" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>Agent 工程</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>LangGraph 工作流编排</li> <li data-astro-cid-j7pv25f6>Pi Agent Runtime</li> <li data-astro-cid-j7pv25f6>上下文工程与记忆管理</li> <li data-astro-cid-j7pv25f6>Eval 评测与质量闭环</li> <li data-astro-cid-j7pv25f6>Tool Use 与多 Agent 协作</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-robot" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>AI & 多模态</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>视觉语言模型 (VLM)</li> <li data-astro-cid-j7pv25f6>大语言模型 (LLM)</li> <li data-astro-cid-j7pv25f6>多模态融合应用</li> <li data-astro-cid-j7pv25f6>自然语言控制</li> </ul> </div> <div class="skill-card" data-astro-cid-j7pv25f6> <div class="skill-icon" data-astro-cid-j7pv25f6> <i class="fas fa-flask" data-astro-cid-j7pv25f6></i> </div> <h3 class="skill-title" data-astro-cid-j7pv25f6>测试自动化</h3> <ul class="skill-list" data-astro-cid-j7pv25f6> <li data-astro-cid-j7pv25f6>Playwright 自动化测试</li> <li data-astro-cid-j7pv25f6>MCP 协议集成</li> <li data-astro-cid-j7pv25f6>语义化回归测试</li> <li data-astro-cid-j7pv25f6>CI/CD 自动化</li> </ul> </div> </div> </div> </section>  <section id="contact" class="contact-section" data-astro-cid-j7pv25f6> <div class="container" data-astro-cid-j7pv25f6> <h2 class="section-title" data-astro-cid-j7pv25f6>联系我</h2> <div class="contact-grid" data-astro-cid-j7pv25f6> <a href="https://github.com/auenger" target="_blank" class="contact-card" data-astro-cid-j7pv25f6> <div class="contact-icon" data-astro-cid-j7pv25f6> <i class="fab fa-github" data-astro-cid-j7pv25f6></i> </div> <div class="contact-label" data-astro-cid-j7pv25f6>GitHub</div> <div class="contact-value" data-astro-cid-j7pv25f6>auenger</div> </a> <a href="mailto:yzw@imcoders.net" class="contact-card" data-astro-cid-j7pv25f6> <div class="contact-icon" data-astro-cid-j7pv25f6> <i class="fas fa-envelope" data-astro-cid-j7pv25f6></i> </div> <div class="contact-label" data-astro-cid-j7pv25f6>Email</div> <div class="contact-value" data-astro-cid-j7pv25f6>yzw@imcoders.net</div> </a> </div> </div> </section>  </main> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>

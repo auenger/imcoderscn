@@ -1,0 +1,1382 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Claude Code 基础使用指南</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+    [data-theme="dark"] {
+      --bg: #0b0b14;
+      --bg2: #0f0f1c;
+      --surface: #161628;
+      --surface2: #1c1c36;
+      --surface3: #22223e;
+      --border: rgba(255,255,255,0.06);
+      --border-strong: rgba(255,255,255,0.12);
+      --text: #e6e6f2;
+      --text2: #9090ac;
+      --text3: #606078;
+      --accent: #7b6cf0;
+      --accent2: #a8a0ff;
+      --green: #00d4aa;
+      --green-bg: rgba(0,212,170,0.08);
+      --green-border: rgba(0,212,170,0.2);
+      --red: #ff6b6b;
+      --red-bg: rgba(255,107,107,0.08);
+      --red-border: rgba(255,107,107,0.2);
+      --orange: #f0b848;
+      --orange-bg: rgba(240,184,72,0.08);
+      --orange-border: rgba(240,184,72,0.2);
+      --accent-bg: rgba(123,108,240,0.08);
+      --accent-border: rgba(123,108,240,0.18);
+      --code-bg: #111124;
+      --code-border: rgba(123,108,240,0.12);
+      --code-text: #00d4aa;
+      --shadow: 0 2px 16px rgba(0,0,0,0.4);
+      --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+      --quote-bg: rgba(123,108,240,0.06);
+      --quote-border: var(--accent);
+      --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+      --key-border: rgba(123,108,240,0.18);
+      --toggle-bg: rgba(255,255,255,0.08);
+      --toggle-hover: rgba(255,255,255,0.14);
+      --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+    }
+
+    [data-theme="light"] {
+      --bg: #f4f4fb;
+      --bg2: #eaeaf4;
+      --surface: #ffffff;
+      --surface2: #f0f0fa;
+      --surface3: #e6e6f2;
+      --border: rgba(0,0,0,0.07);
+      --border-strong: rgba(0,0,0,0.12);
+      --text: #1a1a30;
+      --text2: #5a5a78;
+      --text3: #9898ac;
+      --accent: #5b4cc4;
+      --accent2: #7b6cf0;
+      --green: #009a7c;
+      --green-bg: rgba(0,154,124,0.06);
+      --green-border: rgba(0,154,124,0.18);
+      --red: #d44040;
+      --red-bg: rgba(212,64,64,0.06);
+      --red-border: rgba(212,64,64,0.18);
+      --orange: #b88020;
+      --orange-bg: rgba(184,128,32,0.06);
+      --orange-border: rgba(184,128,32,0.18);
+      --accent-bg: rgba(91,76,196,0.06);
+      --accent-border: rgba(91,76,196,0.15);
+      --code-bg: #1a1a30;
+      --code-border: rgba(91,76,196,0.12);
+      --code-text: #00d4aa;
+      --shadow: 0 2px 12px rgba(0,0,0,0.06);
+      --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+      --quote-bg: rgba(91,76,196,0.04);
+      --quote-border: var(--accent);
+      --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+      --key-border: rgba(91,76,196,0.12);
+      --toggle-bg: rgba(0,0,0,0.06);
+      --toggle-hover: rgba(0,0,0,0.1);
+      --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      overflow: hidden;
+      height: 100vh;
+      background: var(--bg);
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      color: var(--text);
+      line-height: 1.7;
+    }
+
+    html, body, .slide, .progress, .slide-number, .nav-hint,
+    .col-card, .tip, pre, .quote, .key-point, .flow-item, .tag,
+    .theme-toggle, .step-card, .nav-dot, .nav-dots, .nav-bar {
+      transition: background 0.4s ease, color 0.4s ease,
+                  border-color 0.4s ease, box-shadow 0.4s ease,
+                  opacity 0.4s ease;
+    }
+
+    .progress {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 3px;
+      background: var(--progress-bg);
+      z-index: 100;
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .slide-number {
+      position: fixed;
+      top: 16px;
+      right: 20px;
+      font-size: 0.8rem;
+      color: var(--text3);
+      z-index: 50;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .nav-hint {
+      position: fixed;
+      bottom: 56px;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 0.75rem;
+      color: var(--text3);
+      z-index: 50;
+      white-space: nowrap;
+    }
+
+    .nav-arrow {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 48px;
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 60;
+      opacity: 0;
+      transition: opacity 0.25s;
+    }
+
+    .nav-arrow:hover { opacity: 1 !important; }
+    .nav-arrow svg { width: 24px; height: 24px; stroke: var(--text2); stroke-width: 2; fill: none; }
+
+    .nav-left {
+      left: 0;
+      background: linear-gradient(90deg, var(--bg), transparent);
+    }
+
+    .nav-right {
+      right: 0;
+      background: linear-gradient(270deg, var(--bg), transparent);
+    }
+
+    .nav-arrow.flash { opacity: 0.7; }
+
+    .theme-toggle {
+      position: fixed;
+      bottom: 8px;
+      right: 16px;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: var(--toggle-bg);
+      backdrop-filter: blur(8px);
+      border: 1px solid var(--border);
+      cursor: pointer;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0.5;
+      transition: opacity 0.25s, background 0.25s;
+    }
+
+    .theme-toggle:hover { opacity: 1; background: var(--toggle-hover); }
+    .theme-toggle svg { width: 20px; height: 20px; stroke: var(--text2); stroke-width: 2; fill: none; }
+
+    [data-theme="dark"] .icon-sun { display: block; }
+    [data-theme="dark"] .icon-moon { display: none; }
+    [data-theme="light"] .icon-sun { display: none; }
+    [data-theme="light"] .icon-moon { display: block; }
+
+    .slides {
+      position: relative;
+      width: 100%;
+      height: 100vh;
+    }
+
+    .slide {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 6vh 8vw;
+      opacity: 0;
+      transform: translateX(60px);
+      pointer-events: none;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--border-strong) transparent;
+    }
+
+    .slide::-webkit-scrollbar { width: 4px; }
+    .slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+
+    .slide.active {
+      opacity: 1;
+      transform: translateX(0);
+      pointer-events: auto;
+    }
+
+    .slide > * {
+      max-width: 860px;
+      width: 100%;
+    }
+
+    .slide > .tag { width: auto; }
+
+    .slide-cover {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+    }
+
+    .slide-cover h1 {
+      background: var(--progress-bg);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 900;
+      line-height: 1.35;
+      margin-bottom: 0.5rem;
+    }
+
+    .slide-cover .subtitle {
+      font-size: clamp(0.95rem, 2vw, 1.25rem);
+      color: var(--text2);
+      font-weight: 400;
+    }
+
+    .slide-cover .divider {
+      width: 60px;
+      height: 2px;
+      margin: 1.8rem auto;
+      background: var(--progress-bg);
+      border-radius: 1px;
+    }
+
+    .slide-cover .meta {
+      font-size: 0.9rem;
+      color: var(--text3);
+    }
+
+    .slide-end {
+      text-align: center;
+      align-items: center;
+      background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%);
+    }
+
+    .slide-end h2 {
+      font-size: clamp(1.6rem, 3.5vw, 2.2rem);
+      font-weight: 700;
+      margin-bottom: 1rem;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 16px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 500;
+      margin-bottom: 1.2rem;
+    }
+
+    .tag-section {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .tag-lesson {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    .tag-orange {
+      background: var(--orange-bg);
+      color: var(--orange);
+      border: 1px solid var(--orange-border);
+    }
+
+    .tag-red {
+      background: var(--red-bg);
+      color: var(--red);
+      border: 1px solid var(--red-border);
+    }
+
+    h2 {
+      font-size: clamp(1.4rem, 3vw, 1.8rem);
+      font-weight: 700;
+      margin-bottom: 1.2rem;
+      line-height: 1.3;
+    }
+
+    h3 {
+      font-size: clamp(0.95rem, 1.5vw, 1.15rem);
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+
+    h4 {
+      font-size: clamp(0.9rem, 1.2vw, 1rem);
+      font-weight: 600;
+      margin-bottom: 0.4rem;
+    }
+
+    p {
+      margin-bottom: 0.8rem;
+      color: var(--text2);
+      font-size: clamp(0.85rem, 1.4vw, 0.95rem);
+    }
+
+    .cols {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 1rem;
+    }
+
+    .col-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .col-card h3 { font-size: clamp(0.9rem, 1.3vw, 1rem); margin-bottom: 0.6rem; }
+    .col-card p { font-size: clamp(0.82rem, 1.2vw, 0.88rem); margin-bottom: 0.4rem; }
+
+    .green-card { border-color: var(--green-border); background: var(--green-bg); }
+    .red-card { border-color: var(--red-border); background: var(--red-bg); }
+    .accent-card { border-color: var(--accent-border); background: var(--accent-bg); }
+    .orange-card { border-color: var(--orange-border); background: var(--orange-bg); }
+
+    pre {
+      background: var(--code-bg);
+      border: 1px solid var(--code-border);
+      border-radius: 10px;
+      padding: 18px 24px;
+      margin: 1rem 0;
+      overflow-x: auto;
+      font-size: clamp(0.78rem, 1.2vw, 0.88rem);
+      line-height: 1.6;
+    }
+
+    code {
+      font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+      color: var(--code-text);
+    }
+
+    pre code { color: var(--code-text); }
+
+    .inline-code {
+      background: var(--surface3);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85em;
+      color: var(--accent);
+    }
+
+    .key-point {
+      background: var(--key-bg);
+      border: 1px solid var(--key-border);
+      border-radius: 10px;
+      padding: 16px 22px;
+      margin: 1rem 0;
+    }
+
+    .key-point p { color: var(--text); font-size: clamp(0.85rem, 1.3vw, 0.92rem); }
+
+    .quote {
+      background: var(--quote-bg);
+      border-left: 3px solid var(--quote-border);
+      padding: 14px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 1rem 0;
+      font-size: clamp(0.85rem, 1.3vw, 0.92rem);
+      color: var(--text2);
+    }
+
+    .quote em {
+      color: var(--accent);
+      font-weight: 600;
+      font-style: normal;
+    }
+
+    .flow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 1rem 0;
+      flex-wrap: wrap;
+    }
+
+    .flow-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 18px;
+      font-size: clamp(0.8rem, 1.2vw, 0.88rem);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .flow-item.green { border-color: var(--green-border); background: var(--green-bg); color: var(--green); }
+    .flow-item.accent { border-color: var(--accent-border); background: var(--accent-bg); color: var(--accent); }
+    .flow-item.red { border-color: var(--red-border); background: var(--red-bg); color: var(--red); }
+    .flow-item.orange { border-color: var(--orange-border); background: var(--orange-bg); color: var(--orange); }
+
+    .flow-arrow { color: var(--text3); font-size: 1.2rem; }
+
+    .steps { margin-top: 1rem; }
+
+    .step-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .step-card:last-child { border-bottom: none; }
+
+    .step-label {
+      padding: 3px 12px;
+      border-radius: 6px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .step-label.waterfall {
+      background: var(--accent-bg);
+      color: var(--accent);
+      border: 1px solid var(--accent-border);
+    }
+
+    .step-label.agile {
+      background: var(--green-bg);
+      color: var(--green);
+      border: 1px solid var(--green-border);
+    }
+
+    .step-body {
+      font-size: clamp(0.82rem, 1.3vw, 0.9rem);
+      color: var(--text2);
+    }
+
+    .step-body strong { color: var(--text); }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1rem 0;
+      font-size: clamp(0.8rem, 1.2vw, 0.88rem);
+    }
+
+    .data-table th {
+      background: var(--accent-bg);
+      color: var(--accent);
+      padding: 10px 16px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid var(--accent-border);
+    }
+
+    .data-table td {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text2);
+    }
+
+    .data-table code { font-size: 0.85rem; }
+
+    .icon-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-top: 1rem;
+    }
+
+    .icon-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 20px;
+      box-shadow: var(--shadow);
+    }
+
+    .icon-card h4 { margin-bottom: 0.3rem; }
+    .icon-card p { font-size: clamp(0.8rem, 1.1vw, 0.85rem); margin-bottom: 0; }
+
+    .dir-tree {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px 24px;
+      margin: 1rem 0;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: clamp(0.78rem, 1.1vw, 0.85rem);
+      line-height: 1.8;
+      color: var(--text2);
+      white-space: pre;
+      overflow-x: auto;
+    }
+
+    .dir-tree .dir { color: var(--accent); font-weight: 600; }
+    .dir-tree .file { color: var(--green); }
+    .dir-tree .comment { color: var(--text3); font-size: 0.8rem; }
+
+    ul {
+      padding-left: 1.2rem;
+      margin: 0.5rem 0;
+    }
+
+    ul li {
+      font-size: clamp(0.82rem, 1.3vw, 0.9rem);
+      color: var(--text2);
+      margin-bottom: 0.3rem;
+    }
+
+    ul li strong { color: var(--text); }
+
+    /* Nav bar */
+    .nav-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 90;
+      padding: 8px 0 10px;
+      pointer-events: none;
+    }
+
+    .nav-dots {
+      display: flex;
+      align-items: center;
+      position: relative;
+      background: var(--toggle-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border);
+      border-radius: 24px;
+      padding: 8px 18px;
+      gap: 6px;
+      pointer-events: auto;
+      transition: background 0.25s, transform 0.25s;
+    }
+
+    .nav-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text3);
+      border: none;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      opacity: 0.4;
+      flex-shrink: 0;
+      outline: none;
+    }
+
+    .nav-dot:hover { opacity: 0.9; transform: scale(1.3); }
+
+    .nav-dot.active {
+      background: var(--accent);
+      opacity: 1;
+      width: 24px;
+      border-radius: 4px;
+      box-shadow: 0 0 8px var(--accent);
+    }
+
+    .nav-dot .dot-tip {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--surface2);
+      border: 1px solid var(--border-strong);
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.7rem;
+      color: var(--text2);
+      white-space: nowrap;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      box-shadow: var(--shadow);
+    }
+
+    .nav-dot:hover .dot-tip { opacity: 1; }
+
+    .nav-dots.dragging { background: var(--border-strong); transform: scaleY(1.25); }
+    .nav-dots.dragging .nav-dot { opacity: 0.7; }
+    .nav-dots.dragging .nav-dot.active { opacity: 1; width: 28px; box-shadow: 0 0 12px var(--accent); }
+    .nav-dots.dragging .nav-dot .dot-tip { opacity: 0 !important; }
+
+    .drag-label {
+      position: absolute;
+      bottom: calc(100% + 10px);
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--accent);
+      color: white;
+      padding: 5px 14px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.15s;
+      white-space: nowrap;
+    }
+
+    .nav-dots.dragging .drag-label { opacity: 1; }
+
+    @media (max-width: 768px) {
+      .slide { padding: 4vh 5vw; }
+      .cols { grid-template-columns: 1fr; }
+      .flow { flex-direction: column; }
+      .flow-arrow { transform: rotate(90deg); }
+      .icon-grid { grid-template-columns: 1fr; }
+      .nav-dots { padding: 6px 12px; gap: 4px; }
+      .nav-dot { width: 6px; height: 6px; }
+      .nav-dot.active { width: 18px; }
+    }
+
+    @media (hover: none) { .nav-hint { display: none; } }
+  </style>
+</head>
+<body>
+  <div class="progress" id="progress"></div>
+  <div class="slide-number" id="slideNum"></div>
+  <div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+
+  <div class="nav-arrow nav-left flash" id="navLeft">
+    <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+  </div>
+  <div class="nav-arrow nav-right flash" id="navRight">
+    <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+    <svg class="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+    <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+  </button>
+
+  <div class="slides" id="slides">
+
+    <!-- Slide 1: Cover -->
+    <div class="slide slide-cover active">
+      <h1>Claude Code<br>基础使用指南</h1>
+      <div class="divider"></div>
+      <p class="subtitle">从安装到日常开发，快速上手 Anthropic 官方 CLI 工具</p>
+      <p class="meta">2026.05</p>
+    </div>
+
+    <!-- Slide 2: What is Claude Code -->
+    <div class="slide">
+      <span class="tag tag-section">认识 Claude Code</span>
+      <h2>什么是 Claude Code？</h2>
+      <p>Anthropic 官方推出的 <strong>命令行 AI 编程助手</strong>，直接运行在终端中，深度集成你的代码库。</p>
+      <div class="cols">
+        <div class="col-card accent-card">
+          <h3>核心能力</h3>
+          <ul>
+            <li>理解整个项目代码库</li>
+            <li>读写文件、执行终端命令</li>
+            <li>多步骤任务自主完成</li>
+            <li>Git 操作、PR 创建</li>
+          </ul>
+        </div>
+        <div class="col-card green-card">
+          <h3>产品形态</h3>
+          <ul>
+            <li>CLI（终端命令行）</li>
+            <li>桌面应用（Mac / Windows）</li>
+            <li>Web 应用（claude.ai/code）</li>
+            <li>IDE 插件（VS Code / JetBrains）</li>
+          </ul>
+        </div>
+      </div>
+      <div class="key-point">
+        <p><strong>一句话理解：</strong>Claude Code = 能直接操作你电脑的 AI 编程搭档，不只是聊天，而是真正干活。</p>
+      </div>
+    </div>
+
+    <!-- Slide 3: Installation -->
+    <div class="slide">
+      <span class="tag tag-lesson">安装</span>
+      <h2>全局安装 Claude Code</h2>
+      <p>前提条件：Node.js 18+ 和 npm。</p>
+      <pre><code># 全局安装
+npm install -g @anthropic-ai/claude-code
+
+# 验证安装
+claude --version
+
+# 首次启动（会引导登录认证）
+claude</code></pre>
+      <div class="cols">
+        <div class="col-card green-card">
+          <h3>安装后首次运行</h3>
+          <p>Claude Code 会引导你完成 Anthropic 账号认证。支持 OAuth 登录或 API Key 两种方式。</p>
+        </div>
+        <div class="col-card accent-card">
+          <h3>更新到最新版</h3>
+          <pre style="margin:0;padding:12px 16px;font-size:0.82rem;"><code>npm update -g @anthropic-ai/claude-code</code></pre>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Global ~/.claude -->
+    <div class="slide">
+      <span class="tag tag-section">目录结构</span>
+      <h2>全局配置：~/.claude/</h2>
+      <p>用户主目录下的 <span class="inline-code">~/.claude/</span> 存放全局配置和个人偏好。</p>
+      <div class="dir-tree">
+<span class="dir">~/.claude/</span>
+├── <span class="file">settings.json</span>       <span class="comment"># 全局设置（权限、环境变量）</span>
+├── <span class="file">settings.local.json</span>  <span class="comment"># 本地覆盖设置（不入 git）</span>
+├── <span class="file">credentials.json</span>     <span class="comment"># 认证信息</span>
+├── <span class="dir">skills/</span>              <span class="comment"># 全局 Skills（自定义技能）</span>
+├── <span class="dir">projects/</span>            <span class="comment"># 项目级记忆 & 配置</span>
+│   └── <span class="dir">-path-to-project/</span>
+│       ├── <span class="file">CLAUDE.md</span>      <span class="comment"># 项目指令（跨会话持久）</span>
+│       └── <span class="dir">memory/</span>         <span class="comment"># 自动记忆文件</span>
+└── <span class="file">scheduled_tasks.json</span>  <span class="comment"># 定时任务</span>
+      </div>
+      <div class="key-point">
+        <p><strong>关键文件：</strong><span class="inline-code">settings.json</span> 控制全局行为，比如自动允许哪些工具、hooks 配置等。</p>
+      </div>
+    </div>
+
+    <!-- Slide 5: Project .claude -->
+    <div class="slide">
+      <span class="tag tag-section">目录结构</span>
+      <h2>项目配置：项目根/.claude/</h2>
+      <p>每个项目可以在根目录下创建 <span class="inline-code">.claude/</span> 文件夹，存放项目级配置。</p>
+      <div class="dir-tree">
+<span class="dir">your-project/</span>
+├── <span class="dir">.claude/</span>
+│   ├── <span class="file">settings.json</span>     <span class="comment"># 项目级设置（可入 git 共享给团队）</span>
+│   ├── <span class="file">settings.local.json</span> <span class="comment"># 本地覆盖（不入 git）</span>
+│   └── <span class="file">commands/</span>         <span class="comment"># 自定义斜杠命令</span>
+│       └── <span class="file">review.md</span>     <span class="comment"># /review 命令的 prompt</span>
+├── <span class="file">CLAUDE.md</span>            <span class="comment"># 项目指令文件（可入 git）</span>
+└── <span class="file">.claudeignore</span>       <span class="comment"># 排除文件（类似 .gitignore）</span>
+      </div>
+      <div class="cols" style="margin-top:1rem;">
+        <div class="col-card green-card">
+          <h3>CLAUDE.md</h3>
+          <p>项目的"AI 说明书"。告诉 Claude 你的代码规范、架构约定、注意事项。每次会话自动加载。</p>
+        </div>
+        <div class="col-card accent-card">
+          <h3>优先级</h3>
+          <p>项目级 <span class="inline-code">settings.json</span> 覆盖全局设置。<span class="inline-code">settings.local.json</span> 优先级最高（不入版本控制）。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: CLAUDE.md -->
+    <div class="slide">
+      <span class="tag tag-lesson">配置</span>
+      <h2>CLAUDE.md — 项目级指令文件</h2>
+      <p>放在项目根目录，每次会话自动注入到 Claude 的上下文中。相当于给 AI 写的 onboarding 文档。</p>
+      <div class="cols">
+        <div class="col-card" style="grid-column: span 2;">
+          <h3>CLAUDE.md 示例</h3>
+          <pre style="margin:0.5rem 0 0 0;font-size:0.82rem;"><code># 项目规范
+
+## 技术栈
+- 前端：React + TypeScript + Tailwind CSS
+- 后端：Node.js + Express
+- 数据库：PostgreSQL
+
+## 代码规范
+- 使用函数式组件，不用 class 组件
+- API 路由统一放在 src/routes/ 下
+- 提交信息用中文，格式：`类型: 描述`
+
+## 注意事项
+- 不要修改 src/generated/ 下的文件（自动生成）
+- 环境变量统一放在 .env.local</code></pre>
+        </div>
+      </div>
+      <div class="quote">
+        <em>多个 CLAUDE.md 可以共存</em>：根目录一个、子目录各一个（如 <span class="inline-code">src/backend/CLAUDE.md</span>），Claude 会根据当前工作上下文自动加载相关的文件。
+      </div>
+    </div>
+
+    <!-- Slide 7: Basic Commands -->
+    <div class="slide">
+      <span class="tag tag-section">基本命令</span>
+      <h2>启动与对话</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>命令</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>claude</code></td><td>在当前目录启动交互式会话</td></tr>
+          <tr><td><code>claude "修复登录 bug"</code></td><td>用单条提示启动，执行完自动退出</td></tr>
+          <tr><td><code>claude -p "解释这个函数"</code></td><td>非交互模式（pipe 模式），输出到 stdout</td></tr>
+          <tr><td><code>cat log.txt | claude -p "分析错误"</code></td><td>管道输入，结合其他命令使用</td></tr>
+          <tr><td><code>claude --resume</code></td><td>恢复上次中断的会话</td></tr>
+          <tr><td><code>claude update</code></td><td>更新 Claude Code 到最新版</td></tr>
+        </tbody>
+      </table>
+      <div class="key-point">
+        <p><strong>核心交互：</strong>启动后直接用自然语言描述需求，Claude 会读取代码、执行命令、修改文件。遇到权限敏感操作会弹窗确认。</p>
+      </div>
+    </div>
+
+    <!-- Slide 8: Slash Commands -->
+    <div class="slide">
+      <span class="tag tag-section">基本命令</span>
+      <h2>常用斜杠命令</h2>
+      <p>在交互会话中输入 <span class="inline-code">/</span> 开头的命令快速触发功能。</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>命令</th><th>功能</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>/help</code></td><td>查看帮助信息</td></tr>
+          <tr><td><code>/init</code></td><td>初始化项目 CLAUDE.md</td></tr>
+          <tr><td><code>/review</code></td><td>代码审查当前分支的变更</td></tr>
+          <tr><td><code>/compact</code></td><td>压缩上下文（会话过长时使用）</td></tr>
+          <tr><td><code>/clear</code></td><td>清空当前会话历史</td></tr>
+          <tr><td><code>/model</code></td><td>切换模型（Opus / Sonnet / Haiku）</td></tr>
+          <tr><td><code>/cost</code></td><td>查看当前会话 token 用量和费用</td></tr>
+          <tr><td><code>/memory</code></td><td>查看和编辑持久化记忆</td></tr>
+          <tr><td><code>/config</code></td><td>打开配置管理</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Slide 8.5: Shortcuts & Tips -->
+    <div class="slide">
+      <span class="tag tag-orange">实用技巧</span>
+      <h2>快捷键与交互技巧</h2>
+      <table class="data-table">
+        <thead>
+          <tr><th>快捷键 / 语法</th><th>说明</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><code>@file.js</code></td><td>引用文件到上下文，支持 Tab 补全路径</td></tr>
+          <tr><td><code>@src/</code></td><td>引用整个目录，Claude 会读取其中关键文件</td></tr>
+          <tr><td><code>Esc</code> (一次)</td><td>中断当前生成，已输出内容保留</td></tr>
+          <tr><td><code>Esc</code> (两次)</td><td>退出 Claude Code 会话</td></tr>
+          <tr><td><code>Shift+Tab</code></td><td>切换 Plan 模式（只规划不执行）</td></tr>
+          <tr><td><code>Tab</code></td><td>路径自动补全</td></tr>
+          <tr><td><code>! command</code></td><td>在对话中直接执行 shell 命令（如 <code>!git status</code>）</td></tr>
+          <tr><td><code>#keyword</code></td><td>触发记忆搜索，回忆之前对话中的内容</td></tr>
+        </tbody>
+      </table>
+      <div class="cols" style="margin-top:0.8rem;">
+        <div class="col-card green-card">
+          <h3>高效工作流</h3>
+          <ul>
+            <li><strong>先 Plan 再执行：</strong>用 Shift+Tab 切规划模式，确认方案后再执行</li>
+            <li><strong>精准引用：</strong>用 @ 指定文件，避免 Claude 搜索无关代码</li>
+            <li><strong>及时中断：</strong>方向错了立刻 Esc</li>
+          </ul>
+        </div>
+        <div class="col-card orange-card">
+          <h3>省 token 技巧</h3>
+          <ul>
+            <li>需求描述具体比模糊更省</li>
+            <li>用 @ 定向引用，别满项目搜索</li>
+            <li>定期 /compact 压缩上下文</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 9: Context Window -->
+    <div class="slide">
+      <span class="tag tag-lesson">核心概念</span>
+      <h2>Context 上下文窗口</h2>
+      <p>Claude Code 的"工作记忆"——它能同时看到和记住的内容范围。</p>
+      <div class="flow">
+        <div class="flow-item accent">系统提示</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item accent">CLAUDE.md</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item green">对话历史</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item green">文件内容</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item orange">工具输出</div>
+      </div>
+      <div class="cols">
+        <div class="col-card green-card">
+          <h3>上下文管理</h3>
+          <ul>
+            <li><strong>自动压缩：</strong>对话过长时自动摘要压缩旧内容</li>
+            <li><strong>/compact：</strong>手动触发压缩</li>
+            <li><strong>Prompt Cache：</strong>缓存不变的上下文部分，降低成本</li>
+          </ul>
+        </div>
+        <div class="col-card orange-card">
+          <h3>实际影响</h3>
+          <ul>
+            <li>上下文越精准，回答质量越高</li>
+            <li>项目越大越需要 CLAUDE.md 引导</li>
+            <li>及时 /compact 保持效率</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 10: Skills -->
+    <div class="slide">
+      <span class="tag tag-lesson">核心概念</span>
+      <h2>Skills 技能系统</h2>
+      <p>Skills 是 Claude Code 的可扩展插件——封装特定领域的知识和工作流。</p>
+      <div class="icon-grid">
+        <div class="icon-card">
+          <h4>内置 Skills</h4>
+          <p>Claude Code 自带的技能：代码审查、安全审查、初始化等。通过斜杠命令触发。</p>
+        </div>
+        <div class="icon-card">
+          <h4>自定义 Skills</h4>
+          <p>用 Markdown 文件定义 prompt 和行为，放在 <span class="inline-code">~/.claude/skills/</span>（全局）或项目 <span class="inline-code">.claude/commands/</span> 下。</p>
+        </div>
+        <div class="icon-card">
+          <h4>Skill 结构</h4>
+          <p>一个 .md 文件 = 一个 Skill。文件名即命令名，文件内容即 prompt 模板。</p>
+        </div>
+        <div class="icon-card">
+          <h4>触发方式</h4>
+          <p>在对话中输入 <span class="inline-code">/skill-name</span> 或 <span class="inline-code">/project:skill-name</span> 即可调用。</p>
+        </div>
+      </div>
+      <div class="quote">
+        <em>Skill 本质是结构化的 prompt</em>——把重复性的复杂任务封装成一键触发的工作流。
+      </div>
+    </div>
+
+    <!-- Slide 11: Skill Creator -->
+    <div class="slide">
+      <span class="tag tag-section">进阶</span>
+      <h2>内置 Skill Creator</h2>
+      <p>Claude Code 内置了 Skill 创建能力，帮你快速生成自定义技能。</p>
+      <div class="steps">
+        <div class="step-card">
+          <span class="step-label agile">Step 1</span>
+          <div class="step-body"><strong>描述需求</strong> — 在对话中告诉 Claude 你想创建什么技能。例如："帮我做一个每次提交前自动检查代码规范的 skill"</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">Step 2</span>
+          <div class="step-body"><strong>生成模板</strong> — Claude 会生成 <span class="inline-code">.md</span> 格式的 skill 文件，包含 prompt、触发条件和行为定义</div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">Step 3</span>
+          <div class="step-body"><strong>放置文件</strong> — 全局 skill 放 <span class="inline-code">~/.claude/skills/</span>，项目 skill 放 <span class="inline-code">.claude/commands/</span></div>
+        </div>
+        <div class="step-card">
+          <span class="step-label agile">Step 4</span>
+          <div class="step-body"><strong>测试迭代</strong> — 用 <span class="inline-code">/your-skill</span> 触发测试，根据效果修改 prompt 内容</div>
+        </div>
+      </div>
+      <div class="key-point">
+        <p><strong>实践建议：</strong>好的 Skill = 清晰的触发条件 + 明确的输出格式 + 具体的约束边界。多迭代几次比一次写完美更有效。</p>
+      </div>
+    </div>
+
+    <!-- Slide: AI Coding 工作流 -->
+    <div class="slide">
+      <span class="tag tag-section">进阶</span>
+      <h2>AI Coding 工作流框架</h2>
+      <p>随着 AI 编程能力增强，社区涌现出系统化的工作流框架，帮助开发者更高效地使用 AI。</p>
+      <table class="data-table">
+        <thead>
+          <tr><th>维度</th><th>OpenSpec</th><th>BMad Method</th><th>Superpowers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td><strong>核心焦点</strong></td><td>规范管理</td><td>敏捷流程</td><td>代码质量</td></tr>
+          <tr><td><strong>设计哲学</strong></td><td>流动至上</td><td>规模至上</td><td>质量至上</td></tr>
+          <tr><td><strong>学习曲线</strong></td><td>低</td><td>中高</td><td>中</td></tr>
+          <tr><td><strong>适合团队</strong></td><td>个人到企业</td><td>中大型团队</td><td>个人到小型团队</td></tr>
+        </tbody>
+      </table>
+      <div class="cols">
+        <div class="col-card accent-card">
+          <h3>共同趋势</h3>
+          <ul>
+            <li>从临时对话 → 系统化工作流</li>
+            <li>从单一 Agent → 多代理协作</li>
+          </ul>
+        </div>
+        <div class="col-card green-card">
+          <h3>如何选择</h3>
+          <ul>
+            <li>重视规范和文档 → OpenSpec</li>
+            <li>大型项目多角色 → BMad</li>
+            <li>强调 TDD 和质量 → Superpowers</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide: OpenSpec -->
+    <div class="slide">
+      <span class="tag tag-lesson">工作流</span>
+      <h2>OpenSpec — 规范驱动开发</h2>
+      <div class="quote">流动而非僵化，迭代而非瀑布，简单而非复杂，适配遗留系统而非仅限新项目。</div>
+      <div class="flow">
+        <div class="flow-item accent">/opsx:propose</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item accent">/opsx:apply</div>
+        <span class="flow-arrow">→</span>
+        <div class="flow-item accent">/opsx:archive</div>
+      </div>
+      <pre><code># 1. 提议：创建变更文件夹
+/opsx:propose "add-dark-mode"
+→ proposal.md / specs/ / design.md / tasks.md
+
+# 2. 实施：逐任务执行
+/opsx:apply  →  逐个任务实施并验证
+
+# 3. 归档：更新规范
+/opsx:archive  →  移至归档目录</code></pre>
+      <div class="cols">
+        <div class="col-card accent-card">
+          <h3>核心理念</h3>
+          <ul>
+            <li>规范先于代码，构建前达成共识</li>
+            <li>轻量灵活，工具无关</li>
+            <li>支持 20+ AI 编码助手</li>
+          </ul>
+        </div>
+        <div class="col-card">
+          <h3>适用场景</h3>
+          <ul>
+            <li>规范先行的团队项目</li>
+            <li>遗留系统渐进改进</li>
+            <li>多人协作的企业环境</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide: BMad Method -->
+    <div class="slide">
+      <span class="tag tag-lesson">工作流</span>
+      <h2>BMad Method — 敏捷 AI 驱动开发</h2>
+      <div class="quote">"Build More Architect Dreams" — 规模自适应的 AI 敏捷开发框架，从错误修复到企业系统。</div>
+      <div class="cols">
+        <div class="col-card accent-card">
+          <h3>核心特性</h3>
+          <ul>
+            <li><strong>12+ 专业代理：</strong>PM、架构师、开发者、UX、SM</li>
+            <li><strong>规模自适应：</strong>根据复杂度自动调整规划深度</li>
+            <li><strong>Party Mode：</strong>多代理协作讨论</li>
+            <li><strong>完整生命周期：</strong>头脑风暴 → 部署</li>
+          </ul>
+        </div>
+        <div class="col-card green-card">
+          <h3>模块生态</h3>
+          <ul>
+            <li><strong>BMM：</strong>核心框架，34+ 工作流</li>
+            <li><strong>BMB：</strong>自定义代理和工作流构建器</li>
+            <li><strong>TEA：</strong>基于风险的测试策略</li>
+            <li><strong>CIS：</strong>创新、头脑风暴、设计思维</li>
+          </ul>
+        </div>
+      </div>
+      <div class="key-point">
+        <p><strong>定位：</strong>企业级敏捷框架，适合需要多角色协作的大型项目和专业领域。</p>
+      </div>
+    </div>
+
+    <!-- Slide: Superpowers -->
+    <div class="slide">
+      <span class="tag tag-lesson">工作流</span>
+      <h2>Superpowers — 代理技能框架</h2>
+      <div class="quote">测试驱动、系统化、降低复杂度、<em>证据优于声明</em>。</div>
+      <div class="flow">
+        <div class="flow-item">brainstorming</div><span class="flow-arrow">→</span>
+        <div class="flow-item">worktrees</div><span class="flow-arrow">→</span>
+        <div class="flow-item">plans</div><span class="flow-arrow">→</span>
+        <div class="flow-item">subagent</div><span class="flow-arrow">→</span>
+        <div class="flow-item green">TDD</div><span class="flow-arrow">→</span>
+        <div class="flow-item">review</div><span class="flow-arrow">→</span>
+        <div class="flow-item orange">finish</div>
+      </div>
+      <div class="cols">
+        <div class="col-card">
+          <h3>7 步流程</h3>
+          <ul>
+            <li>苏格拉底式设计完善</li>
+            <li>Git worktree 隔离工作区</li>
+            <li>2-5 分钟小任务拆分</li>
+            <li>子代理 + 两阶段审查</li>
+            <li>RED-GREEN-REFACTOR 循环</li>
+            <li>按计划代码审查</li>
+            <li>验证 + 合并/PR</li>
+          </ul>
+        </div>
+        <div class="col-card green-card">
+          <h3>核心理念</h3>
+          <ul>
+            <li><strong>强制性流程：</strong>不是建议，是要求</li>
+            <li><strong>自动触发：</strong>代理自动检查技能</li>
+            <li><strong>TDD 核心：</strong>测试先行，删除无测试代码</li>
+            <li><strong>子代理架构：</strong>并行深度审查</li>
+          </ul>
+          <p style="margin-top:0.5rem;">适合极端重视代码质量和 TDD 实践的团队。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 12: Summary -->
+    <div class="slide slide-end">
+      <h2>快速上手清单</h2>
+      <div class="cols" style="text-align:left; margin-top:1rem;">
+        <div class="col-card green-card">
+          <h3>5 分钟启动</h3>
+          <ul>
+            <li>npm install -g @anthropic-ai/claude-code</li>
+            <li>claude 首次启动完成认证</li>
+            <li>cd 到你的项目目录</li>
+            <li>直接描述需求开始工作</li>
+          </ul>
+        </div>
+        <div class="col-card accent-card">
+          <h3>推荐配置</h3>
+          <ul>
+            <li>写好 CLAUDE.md（项目规范）</li>
+            <li>配置 .claude/settings.json</li>
+            <li>创建常用 Skill 提升效率</li>
+            <li>学会 /compact 管理上下文</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="nav-bar" id="navBar"></div>
+
+  <script>
+  (function() {
+    var slides = document.querySelectorAll('.slide');
+    var total = slides.length;
+    var current = 0;
+    var isAnimating = false;
+
+    var progress = document.getElementById('progress');
+    var slideNum = document.getElementById('slideNum');
+    var navLeft = document.getElementById('navLeft');
+    var navRight = document.getElementById('navRight');
+    var themeToggle = document.getElementById('themeToggle');
+
+    // Generate nav dots with drag support
+    var navBar = document.getElementById('navBar');
+    var dotsContainer = document.createElement('div');
+    dotsContainer.className = 'nav-dots';
+    var dots = [];
+    var slideLabels = [];
+    var dotPositions = [];
+
+    slides.forEach(function(slide, i) {
+      var h2 = slide.querySelector('h2');
+      var tag = slide.querySelector('.tag');
+      var label = h2 ? h2.textContent.trim() : (tag ? tag.textContent.trim() : '');
+      if (label.length > 16) label = label.substring(0, 14) + '…';
+      slideLabels.push(label);
+      var dot = document.createElement('button');
+      dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+      dot.innerHTML = '<span class="dot-tip">' + (i + 1) + (label ? '. ' + label : '') + '</span>';
+      dotsContainer.appendChild(dot);
+      dots.push(dot);
+    });
+
+    var dragLabel = document.createElement('div');
+    dragLabel.className = 'drag-label';
+    dotsContainer.appendChild(dragLabel);
+    navBar.appendChild(dotsContainer);
+
+    function updateUI() {
+      progress.style.width = ((current + 1) / total * 100) + '%';
+      slideNum.textContent = (current + 1) + ' / ' + total;
+      dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+    }
+
+    function updateSlide(newIdx, direction) {
+      if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+      isAnimating = true;
+      var oldSlide = slides[current];
+      var newSlide = slides[newIdx];
+      var exitX = direction === 'next' ? '-60px' : '60px';
+      var enterX = direction === 'next' ? '60px' : '-60px';
+
+      oldSlide.classList.remove('active');
+      newSlide.style.transition = 'none';
+      newSlide.style.transform = 'translateX(' + enterX + ')';
+      newSlide.classList.add('active');
+      void newSlide.offsetWidth;
+      newSlide.style.transition = '';
+      newSlide.style.transform = '';
+      oldSlide.style.transform = 'translateX(' + exitX + ')';
+
+      current = newIdx;
+      updateUI();
+
+      setTimeout(function() {
+        oldSlide.style.transform = '';
+        isAnimating = false;
+      }, 460);
+    }
+
+    function nextSlide() { updateSlide(current + 1, 'next'); }
+    function prevSlide() { updateSlide(current - 1, 'prev'); }
+
+    // Keyboard
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); nextSlide(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); prevSlide(); }
+    });
+
+    // Click
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.theme-toggle') || e.target.closest('.nav-bar')) return;
+      var w = window.innerWidth;
+      var x = e.clientX;
+      var y = e.clientY;
+      if (y > window.innerHeight * 0.88) return;
+      if (x < w * 0.35) prevSlide();
+      else if (x > w * 0.65) nextSlide();
+    });
+
+    // Touch
+    var touchStartX = -1;
+    document.addEventListener('touchstart', function(e) {
+      if (e.target.closest('.nav-bar')) { touchStartX = -1; return; }
+      touchStartX = e.touches[0].clientX;
+    });
+    document.addEventListener('touchend', function(e) {
+      if (touchStartX === -1) return;
+      var dx = e.changedTouches[0].clientX - touchStartX;
+      touchStartX = -1;
+      if (Math.abs(dx) > 50) {
+        if (dx < 0) nextSlide();
+        else prevSlide();
+      }
+    });
+
+    // Nav arrows
+    navLeft.addEventListener('click', prevSlide);
+    navRight.addEventListener('click', nextSlide);
+
+    // Theme
+    var saved = localStorage.getItem('slide-theme');
+    if (saved) document.documentElement.setAttribute('data-theme', saved);
+    themeToggle.addEventListener('click', function() {
+      var html = document.documentElement;
+      var next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+      html.setAttribute('data-theme', next);
+      localStorage.setItem('slide-theme', next);
+    });
+
+    // Drag state
+    var isDragging = false;
+
+    function getIdxFromX(clientX) {
+      var closest = 0, minDist = Infinity;
+      dotPositions.forEach(function(cx, i) {
+        var d = Math.abs(clientX - cx);
+        if (d < minDist) { minDist = d; closest = i; }
+      });
+      return closest;
+    }
+
+    function jumpTo(idx) {
+      if (idx === current || idx < 0 || idx >= total) return;
+      isAnimating = false;
+      slides[current].classList.remove('active');
+      slides[current].style.transform = '';
+      slides[idx].style.transition = 'none';
+      slides[idx].style.transform = '';
+      slides[idx].classList.add('active');
+      void slides[idx].offsetWidth;
+      slides[idx].style.transition = '';
+      current = idx;
+      updateUI();
+    }
+
+    function updateDragLabel() {
+      dragLabel.textContent = (current + 1) + ' / ' + total + (slideLabels[current] ? '  ' + slideLabels[current] : '');
+    }
+
+    // Mouse drag
+    dotsContainer.addEventListener('mousedown', function(e) {
+      e.preventDefault();
+      isDragging = true;
+      dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+      dotsContainer.classList.add('dragging');
+      var idx = getIdxFromX(e.clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      var idx = getIdxFromX(e.clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    });
+
+    document.addEventListener('mouseup', function() {
+      if (!isDragging) return;
+      isDragging = false;
+      dotsContainer.classList.remove('dragging');
+    });
+
+    // Touch drag on nav bar
+    dotsContainer.addEventListener('touchstart', function(e) {
+      isDragging = true;
+      dotPositions = dots.map(function(d) { var r = d.getBoundingClientRect(); return r.left + r.width / 2; });
+      dotsContainer.classList.add('dragging');
+      var idx = getIdxFromX(e.touches[0].clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    }, { passive: true });
+
+    dotsContainer.addEventListener('touchmove', function(e) {
+      if (!isDragging) return;
+      e.preventDefault();
+      var idx = getIdxFromX(e.touches[0].clientX);
+      if (idx !== current) jumpTo(idx);
+      updateDragLabel();
+    }, { passive: false });
+
+    dotsContainer.addEventListener('touchend', function() {
+      isDragging = false;
+      dotsContainer.classList.remove('dragging');
+    });
+
+    // Flash arrows on load
+    setTimeout(function() {
+      navLeft.classList.remove('flash');
+      navRight.classList.remove('flash');
+    }, 1500);
+
+    updateUI();
+  })();
+  </script>
+</body>
+</html>

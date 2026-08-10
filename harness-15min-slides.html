@@ -1,0 +1,946 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>从 Vibe Coding 到 Harness Engineering</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  [data-theme="dark"] {
+    --bg: #0b0b14;
+    --bg2: #0f0f1c;
+    --surface: #161628;
+    --surface2: #1c1c36;
+    --surface3: #22223e;
+    --border: rgba(255,255,255,0.06);
+    --border-strong: rgba(255,255,255,0.12);
+    --text: #e6e6f2;
+    --text2: #9090ac;
+    --text3: #606078;
+    --accent: #7b6cf0;
+    --accent2: #a8a0ff;
+    --green: #00d4aa;
+    --green-bg: rgba(0,212,170,0.08);
+    --green-border: rgba(0,212,170,0.2);
+    --red: #ff6b6b;
+    --red-bg: rgba(255,107,107,0.08);
+    --red-border: rgba(255,107,107,0.2);
+    --orange: #f0b848;
+    --orange-bg: rgba(240,184,72,0.08);
+    --orange-border: rgba(240,184,72,0.2);
+    --accent-bg: rgba(123,108,240,0.08);
+    --accent-border: rgba(123,108,240,0.18);
+    --code-bg: #111124;
+    --code-border: rgba(123,108,240,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 16px rgba(0,0,0,0.4);
+    --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
+    --quote-bg: rgba(123,108,240,0.06);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(123,108,240,0.1), rgba(0,212,170,0.06));
+    --key-border: rgba(123,108,240,0.18);
+    --toggle-bg: rgba(255,255,255,0.08);
+    --toggle-hover: rgba(255,255,255,0.14);
+    --progress-bg: linear-gradient(90deg, #7b6cf0, #00d4aa);
+  }
+
+  [data-theme="light"] {
+    --bg: #f4f4fb;
+    --bg2: #eaeaf4;
+    --surface: #ffffff;
+    --surface2: #f0f0fa;
+    --surface3: #e6e6f2;
+    --border: rgba(0,0,0,0.07);
+    --border-strong: rgba(0,0,0,0.12);
+    --text: #1a1a30;
+    --text2: #5a5a78;
+    --text3: #9898ac;
+    --accent: #5b4cc4;
+    --accent2: #7b6cf0;
+    --green: #009a7c;
+    --green-bg: rgba(0,154,124,0.06);
+    --green-border: rgba(0,154,124,0.18);
+    --red: #d44040;
+    --red-bg: rgba(212,64,64,0.06);
+    --red-border: rgba(212,64,64,0.18);
+    --orange: #b88020;
+    --orange-bg: rgba(184,128,32,0.06);
+    --orange-border: rgba(184,128,32,0.18);
+    --accent-bg: rgba(91,76,196,0.06);
+    --accent-border: rgba(91,76,196,0.15);
+    --code-bg: #1a1a30;
+    --code-border: rgba(91,76,196,0.12);
+    --code-text: #00d4aa;
+    --shadow: 0 2px 12px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+    --quote-bg: rgba(91,76,196,0.04);
+    --quote-border: var(--accent);
+    --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+    --key-border: rgba(91,76,196,0.12);
+    --toggle-bg: rgba(0,0,0,0.06);
+    --toggle-hover: rgba(0,0,0,0.1);
+    --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+  }
+
+  html, body, .slide, .progress, .slide-number, .nav-hint,
+  .col-card, .tip, pre, .quote, .key-point, .flow-item, .tag,
+  .theme-toggle, .tip-num, .loop-card, .step-card {
+    transition: background 0.4s ease, color 0.4s ease,
+                border-color 0.4s ease, box-shadow 0.4s ease,
+                opacity 0.4s ease;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  .progress {
+    position: fixed; top: 0; left: 0;
+    height: 3px;
+    background: var(--progress-bg);
+    z-index: 100;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .theme-toggle {
+    position: fixed;
+    bottom: 2.2vh;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 60;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--toggle-bg);
+    border: 1px solid var(--border-strong);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(8px);
+  }
+  .theme-toggle:hover { background: var(--toggle-hover); }
+  .theme-toggle svg { width: 20px; height: 20px; fill: var(--text2); }
+  [data-theme="dark"] .icon-sun { display: block; }
+  [data-theme="dark"] .icon-moon { display: none; }
+  [data-theme="light"] .icon-sun { display: none; }
+  [data-theme="light"] .icon-moon { display: block; }
+
+  .slides { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    padding: 6vh 8vw;
+    opacity: 0;
+    transform: translateX(60px);
+    transition: opacity 0.45s ease, transform 0.45s ease;
+    pointer-events: none;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border-strong) transparent;
+  }
+  .slide > * { max-width: 860px; width: 100%; }
+  .slide > .tag { width: auto; }
+  .slide::-webkit-scrollbar { width: 4px; }
+  .slide::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 4px; }
+  .slide.active { opacity: 1; transform: translateX(0); pointer-events: auto; }
+
+  .slide-number {
+    position: fixed; bottom: 2.5vh; right: 3vw;
+    font-size: 0.82rem; color: var(--text3);
+    z-index: 50; font-variant-numeric: tabular-nums; font-weight: 500;
+  }
+  .nav-hint {
+    position: fixed; bottom: 2.5vh; left: 3vw;
+    font-size: 0.72rem; color: var(--text3);
+    z-index: 50; opacity: 0.5;
+  }
+
+  h1 {
+    font-size: clamp(2rem, 5vw, 3.6rem);
+    font-weight: 900; line-height: 1.15;
+    margin-bottom: 1.2rem; letter-spacing: -0.02em;
+  }
+  h2 {
+    font-size: clamp(1.4rem, 3.2vw, 2.4rem);
+    font-weight: 700; line-height: 1.25;
+    margin-bottom: 1rem; color: var(--accent2);
+  }
+  h3 {
+    font-size: clamp(1rem, 2vw, 1.35rem);
+    font-weight: 600; line-height: 1.4;
+    margin-bottom: 0.6rem;
+  }
+  p, li {
+    font-size: clamp(0.92rem, 1.5vw, 1.12rem);
+    line-height: 1.8; color: var(--text);
+  }
+
+  ul { list-style: none; padding-left: 0; }
+  ul li {
+    position: relative; padding-left: 1.6em;
+    margin-bottom: 0.5em;
+  }
+  ul li::before {
+    content: ''; position: absolute;
+    left: 0.2em; top: 0.7em;
+    width: 5px; height: 5px; border-radius: 50%;
+    background: var(--accent);
+  }
+
+  .tag {
+    display: inline-block;
+    padding: 0.2rem 0.7rem;
+    border-radius: 20px;
+    font-size: 0.78rem; font-weight: 600;
+    margin-bottom: 0.8rem; letter-spacing: 0.02em;
+  }
+  .tag-lesson {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .tag-section {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+  .tag-red {
+    background: var(--red-bg);
+    color: var(--red);
+    border: 1px solid var(--red-border);
+  }
+
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--code-border);
+    border-radius: 10px;
+    padding: 1.4rem 1.6rem;
+    margin: 0.8rem 0;
+    overflow-x: auto;
+    font-size: clamp(0.72rem, 1.1vw, 0.88rem);
+    line-height: 1.75;
+    box-shadow: var(--shadow);
+  }
+  code {
+    font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+    color: var(--code-text);
+  }
+
+  .quote {
+    border-left: 3px solid var(--quote-border);
+    padding: 1rem 1.4rem;
+    margin: 1rem 0;
+    background: var(--quote-bg);
+    border-radius: 0 8px 8px 0;
+    font-size: clamp(0.95rem, 1.6vw, 1.15rem);
+    line-height: 1.75; color: var(--accent2);
+    font-weight: 500;
+  }
+  .quote .attr {
+    display: block; margin-top: 0.4rem;
+    font-size: 0.78rem; color: var(--text3);
+    font-weight: 400;
+  }
+
+  .key-point {
+    background: var(--key-bg);
+    border: 1px solid var(--key-border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    margin-top: 1rem;
+  }
+  .key-point p {
+    font-size: clamp(0.92rem, 1.4vw, 1.05rem);
+    font-weight: 500; line-height: 1.75;
+  }
+  .key-point strong { color: var(--accent2); }
+
+  .flow {
+    display: flex; align-items: center;
+    justify-content: center;
+    gap: 0.4rem; flex-wrap: wrap;
+    margin: 1.2rem 0;
+  }
+  .flow-item {
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    padding: 0.5rem 1rem; border-radius: 8px;
+    font-size: clamp(0.82rem, 1.3vw, 0.98rem);
+    font-weight: 500; white-space: nowrap;
+    box-shadow: var(--shadow);
+  }
+  .flow-arrow { color: var(--accent); font-size: 1.1rem; font-weight: 700; }
+  .flow-item.green { border-color: var(--green-border); color: var(--green); background: var(--green-bg); }
+  .flow-item.red { border-color: var(--red-border); color: var(--red); background: var(--red-bg); }
+  .flow-item.orange { border-color: var(--orange-border); color: var(--orange); background: var(--orange-bg); }
+
+  .cols {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 1.2rem; margin-top: 0.8rem;
+  }
+  .col-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .col-card h3 { margin-bottom: 0.7rem; }
+  .col-card.green-card h3 { color: var(--green); }
+  .col-card.orange-card h3 { color: var(--orange); }
+  .col-card.red-card h3 { color: var(--red); }
+  .col-card.accent-card h3 { color: var(--accent2); }
+  .col-card li {
+    font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+    margin-bottom: 0.4em; line-height: 1.65;
+  }
+
+  .tips {
+    display: grid; grid-template-columns: 1fr;
+    gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .tip {
+    display: flex; align-items: flex-start;
+    gap: 0.9rem; background: var(--surface);
+    border-radius: 10px; padding: 0.9rem 1.1rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+  }
+  .tip-num {
+    flex-shrink: 0; width: 30px; height: 30px;
+    border-radius: 50%;
+    background: var(--progress-bg);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.82rem; font-weight: 700; color: #fff;
+  }
+  .tip-text {
+    font-size: clamp(0.82rem, 1.2vw, 0.95rem);
+    line-height: 1.6;
+  }
+  .tip-text strong { color: var(--accent2); }
+
+  /* Loop cycle card */
+  .loop-card {
+    background: var(--surface);
+    border-radius: 12px; padding: 1.3rem;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--green);
+    box-shadow: var(--shadow);
+  }
+  .loop-card h4 {
+    font-size: clamp(0.9rem, 1.3vw, 1.05rem);
+    font-weight: 600; margin-bottom: 0.5rem;
+    color: var(--green);
+  }
+  .loop-card p {
+    font-size: clamp(0.82rem, 1.15vw, 0.92rem);
+    line-height: 1.65; color: var(--text2);
+  }
+
+  /* Step cards for waterfall+agile */
+  .steps {
+    display: flex; flex-direction: column;
+    gap: 0.6rem; margin-top: 0.8rem;
+  }
+  .step-card {
+    background: var(--surface);
+    border-radius: 10px; padding: 0.9rem 1.2rem;
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    display: flex; gap: 0.9rem; align-items: flex-start;
+  }
+  .step-label {
+    flex-shrink: 0;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .step-label.waterfall {
+    background: var(--accent-bg);
+    color: var(--accent2);
+    border: 1px solid var(--accent-border);
+  }
+  .step-label.agile {
+    background: var(--green-bg);
+    color: var(--green);
+    border: 1px solid var(--green-border);
+  }
+  .step-body {
+    font-size: clamp(0.85rem, 1.2vw, 0.95rem);
+    line-height: 1.65;
+  }
+  .step-body strong { color: var(--accent2); }
+
+  /* Cover */
+  .slide-cover {
+    text-align: center; align-items: center;
+    background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+  }
+  .slide-cover h1 {
+    background: var(--progress-bg);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    font-size: clamp(2.2rem, 5.5vw, 4rem);
+  }
+  .slide-cover .subtitle {
+    font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+    color: var(--text2); font-weight: 300;
+    line-height: 1.7; max-width: 600px;
+    letter-spacing: 0.04em;
+  }
+  .slide-cover .meta {
+    margin-top: 2.5rem; font-size: 0.82rem;
+    color: var(--text3);
+  }
+  .slide-cover .divider {
+    width: 60px; height: 2px; margin: 1.8rem auto;
+    background: var(--progress-bg); border-radius: 1px;
+  }
+
+  /* Lesson watermark */
+  .lesson-watermark {
+    position: fixed;
+    top: 2.5vh; right: 3vw;
+    font-size: clamp(5rem, 14vw, 10rem);
+    font-weight: 900; line-height: 1;
+    color: var(--accent);
+    opacity: 0;
+    pointer-events: none;
+    z-index: 10;
+    transition: opacity 0.5s ease;
+  }
+  .lesson-watermark.show { opacity: 0.08; }
+
+  /* Lesson title */
+  .slide-lesson {
+    text-align: center; align-items: center;
+  }
+  .slide-lesson h1 {
+    background: var(--progress-bg);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.2rem;
+  }
+  .slide-lesson .subtitle {
+    font-size: clamp(0.95rem, 1.8vw, 1.3rem);
+    color: var(--text2); font-weight: 300;
+    line-height: 1.6; max-width: 600px;
+  }
+
+  /* Nav Arrows */
+  .nav-arrow {
+    position: fixed;
+    top: 50%; transform: translateY(-50%);
+    z-index: 55;
+    width: 48px; height: 80px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease, background 0.3s ease;
+  }
+  .nav-arrow:hover { opacity: 1 !important; }
+  .nav-arrow svg {
+    width: 28px; height: 28px;
+    fill: none; stroke: var(--text2);
+    stroke-width: 2; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .nav-left {
+    left: 0;
+    background: linear-gradient(90deg, var(--bg) 0%, transparent 100%);
+    border-radius: 0 8px 8px 0;
+  }
+  .nav-right {
+    right: 0;
+    background: linear-gradient(270deg, var(--bg) 0%, transparent 100%);
+    border-radius: 8px 0 0 8px;
+  }
+  .nav-arrow.flash { opacity: 0.7; }
+
+  /* End slide */
+  .slide-end { text-align: center; align-items: center; }
+  .slide-end h2 {
+    font-size: clamp(1.4rem, 3vw, 2.2rem);
+    color: var(--text); margin-bottom: 1.2rem;
+  }
+
+  /* VS block */
+  .vs-block {
+    display: flex; align-items: stretch;
+    gap: 0; margin-top: 1rem;
+  }
+  .vs-side {
+    flex: 1; padding: 1.2rem 1.4rem;
+    border-radius: 12px;
+  }
+  .vs-side.red-side {
+    background: var(--red-bg);
+    border: 1px solid var(--red-border);
+    border-radius: 12px 0 0 12px;
+  }
+  .vs-side.green-side {
+    background: var(--green-bg);
+    border: 1px solid var(--green-border);
+    border-radius: 0 12px 12px 0;
+  }
+  .vs-side h4 {
+    font-size: clamp(0.88rem, 1.3vw, 1rem);
+    font-weight: 700; margin-bottom: 0.5rem;
+  }
+  .vs-side.red-side h4 { color: var(--red); }
+  .vs-side.green-side h4 { color: var(--green); }
+  .vs-side li {
+    font-size: clamp(0.78rem, 1.1vw, 0.88rem);
+    line-height: 1.65; margin-bottom: 0.3em;
+  }
+  .vs-divider {
+    width: 3px; background: var(--border-strong);
+    flex-shrink: 0;
+  }
+
+  @media (max-width: 768px) {
+    .slide { padding: 4vh 5vw; }
+    .cols { grid-template-columns: 1fr; }
+    .flow { flex-direction: column; align-items: stretch; }
+    .flow-arrow { transform: rotate(90deg); text-align: center; }
+    .nav-hint { display: none; }
+    .vs-block { flex-direction: column; }
+    .vs-side.red-side { border-radius: 12px 12px 0 0; }
+    .vs-side.green-side { border-radius: 0 0 12px 12px; }
+    .vs-divider { width: 100%; height: 3px; }
+  }
+  @media (hover: none) { .nav-hint { display: none; } }
+</style>
+</head>
+<body>
+
+<div class="progress" id="progress"></div>
+<div class="slide-number" id="slideNum"></div>
+<div class="nav-hint">← → 键 / 点击两侧 / 滑动切换</div>
+<div class="lesson-watermark" id="lessonWatermark"></div>
+
+<div class="nav-arrow nav-left flash" id="navLeft">
+  <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+</div>
+<div class="nav-arrow nav-right flash" id="navRight">
+  <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+</div>
+
+<button class="theme-toggle" id="themeToggle" aria-label="Toggle theme">
+  <svg class="icon-sun" viewBox="0 0 24 24"><path d="M12 7a5 5 0 100 10 5 5 0 000-10zm0-3a1 1 0 011 1v1a1 1 0 01-2 0V5a1 1 0 011-1zm0 15a1 1 0 011 1v1a1 1 0 01-2 0v-1a1 1 0 011-1zm9-7a1 1 0 01-1 1h-1a1 1 0 010-2h1a1 1 0 011 1zM5 12a1 1 0 01-1 1H3a1 1 0 010-2h1a1 1 0 011 1zm14.07-6.07a1 1 0 010 1.41l-.71.71a1 1 0 01-1.41-1.41l.71-.71a1 1 0 011.41 0zM7.05 17.95a1 1 0 010 1.41l-.71.71a1 1 0 01-1.41-1.41l.71-.71a1 1 0 011.41 0zm12.02 0a1 1 0 01-1.41 0l-.71-.71a1 1 0 011.41-1.41l.71.71a1 1 0 010 1.41zM7.05 6.05a1 1 0 01-1.41 0l-.71-.71a1 1 0 011.41-1.41l.71.71a1 1 0 010 1.41z"/></svg>
+  <svg class="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+</button>
+
+<div class="slides" id="slides">
+
+  <!-- ====== Slide 1: 封面 ====== -->
+  <div class="slide slide-cover active">
+    <span class="tag tag-section">Harness Engineering</span>
+    <h1>从 Vibe Coding<br>到 Harness Engineering</h1>
+    <div class="divider"></div>
+    <p class="subtitle">闭环规约 · 瀑布+敏捷混合 · 文档测试 · 质量量化 · 自驱动循环</p>
+    <p class="meta">15 分钟分享版</p>
+  </div>
+
+  <!-- ====== Slide 2: Vibe Coding 的困境 ====== -->
+  <div class="slide">
+    <span class="tag tag-red">问题</span>
+    <h2>Vibe Coding：开环的陷阱</h2>
+    <p>大多数团队用 AI 写代码的方式：写 prompt，看产出，觉得"差不多"就过了。整个过程没有验证环节。</p>
+    <div class="flow" style="margin-top:1.2rem;">
+      <div class="flow-item">模糊的指令</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">AI 自由发挥</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item red">凭感觉验收</div>
+    </div>
+    <div class="cols" style="margin-top:1.2rem;">
+      <div class="col-card red-card">
+        <h3 style="font-size:1rem;">Vibe Coding 的后果</h3>
+        <ul>
+          <li>Agent 对模糊处随机决策，改动范围失控</li>
+          <li>产出快，但审查慢，PR 堆积</li>
+          <li>bug 率没降，技术债在加速积累</li>
+        </ul>
+      </div>
+      <div class="col-card accent-card">
+        <h3 style="font-size:1rem;">根本原因</h3>
+        <ul>
+          <li>开环：发出指令 → 接受产出 → 没有验证</li>
+          <li>用人类时代的流程指挥 Agent</li>
+          <li>审查带宽被代码生成速度击穿</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 3: Harness 的闭环 ====== -->
+  <div class="slide">
+    <span class="tag tag-section">解法</span>
+    <h2>Harness Engineering：闭环</h2>
+    <div class="flow" style="margin-top:0.8rem;">
+      <div class="flow-item">结构化规约</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">Agent 受约束执行</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">自动化验证</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item orange">偏差纠正</div>
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>规约定义"对"是什么。自动化验证检查产出是否符合意图。偏差即时发现并纠正。闭环保证每一步可靠。</p>
+    </div>
+    <div class="vs-block" style="margin-top:1.2rem;">
+      <div class="vs-side red-side">
+        <h4>Vibe Coding</h4>
+        <ul>
+          <li>凭感觉写 prompt</li>
+          <li>接受结果，没有验证</li>
+          <li>质量靠人肉 review</li>
+        </ul>
+      </div>
+      <div class="vs-divider"></div>
+      <div class="vs-side green-side">
+        <h4>Harness Engineering</h4>
+        <ul>
+          <li>结构化规约约束 Agent</li>
+          <li>自动化测试验证产出</li>
+          <li>质量靠 CI 和测试覆盖</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 4: 瀑布+敏捷混合 ====== -->
+  <div class="slide">
+    <span class="tag tag-lesson">流程重设计</span>
+    <h2>瀑布 + 敏捷混合模式</h2>
+    <p>Agent 时代不需要纯敏捷，也不需要纯瀑布。需要的是两者的混合。</p>
+    <div class="steps" style="margin-top:1rem;">
+      <div class="step-card">
+        <span class="step-label waterfall">瀑布</span>
+        <div class="step-body"><strong>需求定义和架构决策</strong> — 前端写清楚 spec、模块边界、API 契约。这些必须在上游定死，不能交给 Agent 随机决策。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label waterfall">瀑布</span>
+        <div class="step-body"><strong>验收标准前置</strong> — spec 带验收标准，代码还没写就把验证条件定好。测试基建前置。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">敏捷</span>
+        <div class="step-body"><strong>Agent 快速迭代执行</strong> — 给 Agent 一个 spec，它端到端走完。不需要拆成前端、后端、测试再分别分配。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">敏捷</span>
+        <div class="step-body"><strong>持续验证和反馈</strong> — CI 跑测试，不过就打回去。Agent 拿到反馈自动修复，再提交，再验证。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 5: 文档测试（实例化需求） ====== -->
+  <div class="slide">
+    <span class="tag tag-lesson">文档测试</span>
+    <h2>针对文档进行测试</h2>
+    <p>测试不光是测代码。更关键的是测文档，测规约本身是否完整、可执行。</p>
+    <div class="key-point" style="margin-top:1rem;">
+      <p>通过<strong>实例化需求</strong>的方式，把模糊的业务描述变成可验证的实例。这些实例同时是需求文档、测试用例和验收标准。</p>
+    </div>
+    <pre><code>## Feature: 订单日期筛选
+
+**实例 1**: 默认状态 → 显示全部订单
+**实例 2**: 选择"最近 30 天" → 只显示范围内订单
+**实例 3**: 清除筛选 → 恢复全部显示
+**实例 4**: 跨时区 → 以用户本地时间为准
+**实例 5**: 筛选+翻页 → 第二页保持筛选状态</code></pre>
+    <p style="margin-top:0.8rem;">每个实例就是一个测试场景。文档写完了，测试清单也就出来了。</p>
+  </div>
+
+  <!-- ====== Slide 6: 语义推理解决认知爆炸 ====== -->
+  <div class="slide">
+    <span class="tag tag-lesson">文档测试</span>
+    <h2>语义推理：解决经验和认知的瓶颈</h2>
+    <div class="cols">
+      <div class="col-card red-card">
+        <h3>人的瓶颈</h3>
+        <ul>
+          <li>个人经验有限，业务场景想不全</li>
+          <li>系统复杂度指数增长，认知爆炸</li>
+          <li>边界 case 总是事后补，来不及</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3>AI 的补充</h3>
+        <ul>
+          <li>基于 spec 语义推理，补齐遗漏场景</li>
+          <li>技术边界（空值、类型、溢出）自动覆盖</li>
+          <li>从实例化需求直接生成测试代码</li>
+        </ul>
+      </div>
+    </div>
+    <div class="key-point" style="margin-top:1.2rem;">
+      <p>AI 读 spec，通过语义推理枚举场景。人补上业务语境的盲区（时区、交互状态、空状态展示）。两份合并才完整。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 7: 测试质量量化 ====== -->
+  <div class="slide">
+    <span class="tag tag-lesson">质量量化</span>
+    <h2>从验收标准到质量量化方案</h2>
+    <p>光有测试不够，还得能量化测试本身的质量。</p>
+    <div class="steps" style="margin-top:0.8rem;">
+      <div class="step-card">
+        <span class="step-label waterfall">第一层</span>
+        <div class="step-body"><strong>验收标准</strong> — 每个 spec 附带可执行的验证条件。"没标准的 spec 是空白支票。"</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label waterfall">第二层</span>
+        <div class="step-body"><strong>覆盖度量</strong> — 测试覆盖率、场景覆盖率。用数字说话，不用感觉说话。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">第三层</span>
+        <div class="step-body"><strong>质量趋势</strong> — 追踪每个迭代的 bug 发现率、回归拦截率、测试通过率。看趋势，不看快照。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">第四层</span>
+        <div class="step-body"><strong>对抗性验证</strong> — QO 用对抗性机制约束 AI：故意喂异常输入、边缘 case，确保测试套件真能拦住问题。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 8: 循环自驱动 ====== -->
+  <div class="slide">
+    <span class="tag tag-lesson">自驱动</span>
+    <h2>循环自驱动</h2>
+    <p>整个系统运转起来后，每个环节的产出都成为下一个环节的输入，形成自驱动的闭环。</p>
+    <div class="flow" style="margin-top:1.2rem;">
+      <div class="flow-item">结构化规约</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">Agent 执行</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">自动化测试</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item orange">偏差反馈</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">修正规约</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item" style="border-color:var(--accent-border);color:var(--accent2);background:var(--accent-bg);">再次执行</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:0.6rem;margin-top:1.2rem;">
+      <div class="loop-card">
+        <h4>代码→规约反馈</h4>
+        <p>测试跑不过，偏差信息回填到规约。规约越来越精确，Agent 的产出质量同步提升。</p>
+      </div>
+      <div class="loop-card">
+        <h4>规约→知识沉淀</h4>
+        <p>每次修正的规约成为项目知识库的一部分。新任务开工前 Agent 先读"病历本"，避免重复犯错。</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 9: Worktree 隔离归档 ====== -->
+  <div class="slide">
+    <span class="tag tag-lesson">工程实践</span>
+    <h2>Worktree：隔离、归档、可回溯</h2>
+    <p>多 Agent 并行开发时，代码隔离是硬需求。Git worktree 为每个 feature 提供独立的物理工作目录。</p>
+    <div class="cols" style="margin-top:0.8rem;">
+      <div class="col-card accent-card">
+        <h3 style="font-size:1rem;">隔离</h3>
+        <ul>
+          <li>每个 feature 独立 worktree</li>
+          <li>Agent A 改文件不影响 Agent B</li>
+          <li>依赖冲突天然隔离</li>
+        </ul>
+      </div>
+      <div class="col-card green-card">
+        <h3 style="font-size:1rem;">归档 + 可回溯</h3>
+        <ul>
+          <li>feature 完成后归档 worktree</li>
+          <li>出问题时秒级回溯到任意节点</li>
+          <li>每个 feature 的完整变更历史可审计</li>
+        </ul>
+      </div>
+    </div>
+    <div class="flow" style="margin-top:1rem;">
+      <div class="flow-item">新建 worktree</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">Agent 在隔离环境开发</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item">CI 验证通过</div>
+      <span class="flow-arrow">→</span>
+      <div class="flow-item green">合并归档</div>
+    </div>
+    <div class="key-point" style="margin-top:0.8rem;">
+      <p>worktree 让并行开发从"小心翼翼地分支管理"变成"每个 Agent 各干各的，验证完再合"。这是多 Agent 并行的基建前提。</p>
+    </div>
+  </div>
+
+  <!-- ====== Slide 10: 全景图 ====== -->
+  <div class="slide">
+    <span class="tag tag-section">全景</span>
+    <h2>从 Vibe Coding 到 Harness：一条路</h2>
+    <div class="steps" style="margin-top:0.5rem;">
+      <div class="step-card">
+        <span class="step-label waterfall">1</span>
+        <div class="step-body"><strong>写规约</strong> — 把模糊需求结构化，附带验收标准。实例化需求让文档本身变成测试。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label waterfall">2</span>
+        <div class="step-body"><strong>语义推理补全</strong> — AI 基于规约推理测试场景，人补业务盲区。两份合并 = 完整测试清单。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">3</span>
+        <div class="step-body"><strong>Agent 在隔离环境执行</strong> — worktree 隔离，受规约约束，改动范围可控。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">4</span>
+        <div class="step-body"><strong>自动化验证 + 质量量化</strong> — CI 跑测试，覆盖率、拦截率、趋势看板持续跟踪。</div>
+      </div>
+      <div class="step-card">
+        <span class="step-label agile">5</span>
+        <div class="step-body"><strong>偏差反馈 → 修正规约 → 自驱动循环</strong> — 系统越转越精确。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== Slide 11: 收尾 ====== -->
+  <div class="slide slide-end">
+    <h2>收尾</h2>
+    <div style="margin-bottom:1.5rem;text-align:left;max-width:580px;">
+      <ul>
+        <li>Vibe Coding 是开环，Harness Engineering 是闭环</li>
+        <li>流程重设计：瀑布管上游定义，敏捷管下游执行</li>
+        <li>文档测试 = 实例化需求 + 语义推理，解决认知爆炸</li>
+        <li>测试从"验收方案"升级为"质量量化方案"</li>
+        <li>闭环自驱动：偏差反馈修正规约，系统越转越好</li>
+        <li>Worktree 隔离归档，多 Agent 并行的基建前提</li>
+      </ul>
+    </div>
+    <div class="quote" style="margin-top:1rem;text-align:center;">
+      "工程永远是一件难受且充满对抗的事情。Harness 要做的是让对抗可量化、可追溯、可自驱。"
+    </div>
+  </div>
+
+</div>
+
+<script>
+const slides = document.querySelectorAll('.slide');
+const progress = document.getElementById('progress');
+const slideNum = document.getElementById('slideNum');
+const themeToggle = document.getElementById('themeToggle');
+let current = 0;
+let isAnimating = false;
+const total = slides.length;
+
+themeToggle.addEventListener('click', e => {
+  e.stopPropagation();
+  const html = document.documentElement;
+  const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  html.setAttribute('data-theme', next);
+  localStorage.setItem('slide-theme', next);
+});
+
+(function() {
+  const saved = localStorage.getItem('slide-theme');
+  if (saved) document.documentElement.setAttribute('data-theme', saved);
+})();
+
+const navLeft = document.getElementById('navLeft');
+const navRight = document.getElementById('navRight');
+const watermark = document.getElementById('lessonWatermark');
+let flashTimer = null;
+
+function getLesson(idx) {
+  if (idx === 1) return '问题';
+  if (idx >= 3 && idx <= 4) return '流程';
+  if (idx >= 5 && idx <= 6) return '文档测试';
+  if (idx === 7) return '量化';
+  if (idx === 8) return '自驱动';
+  if (idx === 9) return '工程';
+  return '';
+}
+
+function flashArrows() {
+  navLeft.classList.add('flash');
+  navRight.classList.add('flash');
+  clearTimeout(flashTimer);
+  flashTimer = setTimeout(() => {
+    navLeft.classList.remove('flash');
+    navRight.classList.remove('flash');
+  }, 1200);
+}
+
+navLeft.addEventListener('click', e => { e.stopPropagation(); updateSlide(current - 1, 'prev'); });
+navRight.addEventListener('click', e => { e.stopPropagation(); updateSlide(current + 1, 'next'); });
+
+function updateSlide(newIdx, direction) {
+  if (isAnimating || newIdx < 0 || newIdx >= total || newIdx === current) return;
+  isAnimating = true;
+  const oldSlide = slides[current];
+  const newSlide = slides[newIdx];
+  const exitX = direction === 'next' ? '-60px' : '60px';
+  const enterX = direction === 'next' ? '60px' : '-60px';
+  oldSlide.classList.remove('active');
+  newSlide.style.transition = 'none';
+  newSlide.style.transform = 'translateX(' + enterX + ')';
+  newSlide.classList.add('active');
+  void newSlide.offsetWidth;
+  newSlide.style.transition = '';
+  newSlide.style.transform = '';
+  oldSlide.style.transform = 'translateX(' + exitX + ')';
+  current = newIdx;
+  updateUI();
+  flashArrows();
+  setTimeout(() => { oldSlide.style.transform = ''; isAnimating = false; }, 460);
+}
+
+function updateUI() {
+  progress.style.width = ((current + 1) / total * 100) + '%';
+  slideNum.textContent = (current + 1) + ' / ' + total;
+  navLeft.style.display = current === 0 ? 'none' : '';
+  navRight.style.display = current === total - 1 ? 'none' : '';
+  const lesson = getLesson(current);
+  watermark.textContent = lesson;
+  watermark.classList.toggle('show', !!lesson);
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); updateSlide(current + 1, 'next'); }
+  else if (e.key === 'ArrowLeft') { e.preventDefault(); updateSlide(current - 1, 'prev'); }
+});
+
+let touchStartX = 0, touchStartY = 0;
+document.addEventListener('touchstart', e => {
+  touchStartX = e.changedTouches[0].screenX;
+  touchStartY = e.changedTouches[0].screenY;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  const dx = e.changedTouches[0].screenX - touchStartX;
+  const dy = e.changedTouches[0].screenY - touchStartY;
+  if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50) {
+    if (dx < 0) updateSlide(current + 1, 'next');
+    else updateSlide(current - 1, 'prev');
+  }
+}, { passive: true });
+
+document.addEventListener('click', e => {
+  if (e.target.closest('.theme-toggle') || e.target.closest('.nav-arrow')) return;
+  const x = e.clientX / window.innerWidth;
+  const y = e.clientY / window.innerHeight;
+  if (y > 0.88) return;
+  if (x > 0.65) updateSlide(current + 1, 'next');
+  else if (x < 0.35) updateSlide(current - 1, 'prev');
+});
+
+updateUI();
+flashArrows();
+</script>
+</body>
+</html>

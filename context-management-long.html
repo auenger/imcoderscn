@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Context 管理：1M 时代，AI 工程里最被低估的核心能力</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+[data-theme="light"] {
+  --bg: #f4f4fb;
+  --bg2: #eaeaf4;
+  --surface: #ffffff;
+  --surface2: #f0f0fa;
+  --surface3: #e6e6f2;
+  --border: rgba(0,0,0,0.07);
+  --border-strong: rgba(0,0,0,0.12);
+  --text: #1a1a30;
+  --text2: #5a5a78;
+  --text3: #9898ac;
+  --accent: #5b4cc4;
+  --accent2: #7b6cf0;
+  --green: #009a7c;
+  --green-bg: rgba(0,154,124,0.06);
+  --green-border: rgba(0,154,124,0.18);
+  --red: #d44040;
+  --red-bg: rgba(212,64,64,0.06);
+  --red-border: rgba(212,64,64,0.18);
+  --orange: #b88020;
+  --orange-bg: rgba(184,128,32,0.06);
+  --orange-border: rgba(184,128,32,0.18);
+  --accent-bg: rgba(91,76,196,0.06);
+  --accent-border: rgba(91,76,196,0.15);
+  --code-bg: #1a1a30;
+  --code-border: rgba(91,76,196,0.12);
+  --code-text: #00d4aa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06);
+  --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --quote-bg: rgba(91,76,196,0.04);
+  --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+  --key-border: rgba(91,76,196,0.12);
+  --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+}
+
+body {
+  font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.slides-container {
+  width: 1200px;
+  margin: 0 auto;
+}
+
+.slide {
+  min-height: 675px;
+  padding: 48px 96px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  border-top: 1px solid var(--border);
+}
+
+.slide-content {
+  max-width: 920px;
+}
+
+/* Cover */
+.slide-cover {
+  text-align: center;
+  align-items: center;
+  background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%);
+}
+.slide-cover h1 {
+  font-size: 2.8rem;
+  font-weight: 900;
+  line-height: 1.35;
+  background: var(--progress-bg);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.slide-cover .divider {
+  width: 60px; height: 2px; margin: 1.8rem auto;
+  background: var(--progress-bg); border-radius: 1px;
+}
+.slide-cover .subtitle {
+  font-size: 1.2rem;
+  color: var(--text2); line-height: 1.7;
+  max-width: 640px; margin: 0 auto;
+}
+.slide-cover .meta {
+  margin-top: 2.5rem; font-size: 0.85rem; color: var(--text3);
+}
+
+/* End */
+.slide-end {
+  text-align: center;
+  align-items: center;
+  background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%);
+}
+.slide-end .end-text {
+  font-size: 1.6rem;
+  font-weight: 700; line-height: 1.6;
+  max-width: 700px;
+}
+
+/* Tags */
+.tag {
+  display: inline-block; padding: 0.3em 1em;
+  border-radius: 20px; font-size: 0.78rem;
+  font-weight: 500; letter-spacing: 0.03em;
+  margin-bottom: 1rem;
+}
+.tag-lesson { background: var(--accent-bg); color: var(--accent2); border: 1px solid var(--accent-border); }
+.tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+
+/* Headings */
+.slide h2 {
+  font-size: 2rem;
+  font-weight: 700; line-height: 1.25;
+  margin-bottom: 1rem; color: var(--accent2);
+}
+.slide h3 {
+  font-size: 1.3rem;
+  font-weight: 700; margin-bottom: 1rem;
+}
+
+/* Paragraphs */
+.slide p {
+  font-size: 1.05rem;
+  color: var(--text2); line-height: 1.75;
+  margin-bottom: 1rem;
+}
+
+/* Key point */
+.key-point {
+  background: var(--key-bg);
+  border: 1px solid var(--key-border);
+  border-radius: 12px; padding: 1.2rem 1.5rem;
+  margin: 1.2rem 0;
+}
+.key-point p { color: var(--text); font-weight: 500; margin: 0; }
+
+/* Quote */
+.quote {
+  border-left: 3px solid var(--quote-border);
+  background: var(--quote-bg);
+  padding: 1rem 1.5rem; border-radius: 0 10px 10px 0;
+  margin: 1rem 0;
+  font-size: 1rem;
+  color: var(--text2); line-height: 1.7;
+}
+.quote em { color: var(--accent2); font-weight: 600; font-style: normal; }
+
+/* Code */
+pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 10px; padding: 1.2rem 1.5rem;
+  overflow-x: auto; margin: 1rem 0;
+}
+pre code {
+  font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace;
+  font-size: 0.85rem; color: var(--code-text);
+  line-height: 1.7;
+}
+
+/* Cols */
+.cols {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin: 1rem 0;
+}
+.col-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.2rem;
+}
+.col-card h4 {
+  font-size: 1rem; font-weight: 700; margin-bottom: 0.7rem;
+}
+.col-card p, .col-card li {
+  font-size: 0.9rem; color: var(--text2); line-height: 1.6;
+}
+.col-card ul { padding-left: 1.2rem; }
+.green-card { border-color: var(--green-border); }
+.green-card h4 { color: var(--green); }
+.red-card { border-color: var(--red-border); }
+.red-card h4 { color: var(--red); }
+.orange-card { border-color: var(--orange-border); }
+.orange-card h4 { color: var(--orange); }
+.accent-card { border-color: var(--accent-border); }
+.accent-card h4 { color: var(--accent2); }
+
+/* Flow */
+.flow {
+  display: flex; align-items: center; gap: 0.6rem;
+  flex-wrap: wrap; margin: 1rem 0;
+}
+.flow-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 0.7rem 1.2rem;
+  font-size: 0.9rem; font-weight: 500;
+  text-align: center; flex: 1; min-width: 100px;
+}
+.flow-item.green { border-color: var(--green-border); color: var(--green); }
+.flow-item.red { border-color: var(--red-border); color: var(--red); }
+.flow-item.orange { border-color: var(--orange-border); color: var(--orange); }
+.flow-item.accent { border-color: var(--accent-border); color: var(--accent2); }
+.flow-arrow { color: var(--text3); font-size: 1.2rem; flex-shrink: 0; }
+
+/* Steps */
+.steps { margin: 1rem 0; }
+.step-card {
+  display: flex; align-items: flex-start; gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem 1.2rem;
+  margin-bottom: 0.6rem;
+}
+.step-label {
+  flex-shrink: 0; padding: 0.25em 0.8em;
+  border-radius: 6px; font-size: 0.78rem;
+  font-weight: 600;
+}
+.step-label.waterfall { background: var(--accent-bg); color: var(--accent2); }
+.step-label.agile { background: var(--green-bg); color: var(--green); }
+.step-label.danger { background: var(--red-bg); color: var(--red); }
+.step-body { font-size: 0.92rem; color: var(--text2); line-height: 1.6; }
+.step-body strong { color: var(--text); }
+
+/* Icon grid */
+.icon-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 0.8rem; margin: 1rem 0;
+}
+.icon-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px; padding: 1.1rem;
+}
+.icon-card h4 {
+  font-size: 0.95rem; font-weight: 700; margin-bottom: 0.4rem;
+}
+.icon-card p {
+  font-size: 0.85rem; color: var(--text2); line-height: 1.55; margin: 0;
+}
+
+/* Data table */
+.data-table {
+  width: 100%; border-collapse: collapse; margin: 1rem 0;
+  font-size: 0.9rem;
+}
+.data-table th {
+  text-align: left; padding: 0.7rem 1rem;
+  background: var(--surface2);
+  color: var(--accent2); font-weight: 600;
+  border-bottom: 1px solid var(--border-strong);
+}
+.data-table td {
+  padding: 0.7rem 1rem;
+  border-bottom: 1px solid var(--border);
+  color: var(--text2);
+}
+.data-table td strong { color: var(--text); }
+
+/* VS block */
+.vs-block {
+  display: flex; gap: 0; margin: 1rem 0;
+  border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--border);
+}
+.vs-side {
+  flex: 1; padding: 1.2rem;
+}
+.vs-side h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.6rem; }
+.vs-side ul { padding-left: 1.2rem; }
+.vs-side li { font-size: 0.88rem; color: var(--text2); line-height: 1.6; margin-bottom: 0.3rem; }
+.red-side { background: var(--red-bg); }
+.red-side h4 { color: var(--red); }
+.green-side { background: var(--green-bg); }
+.green-side h4 { color: var(--green); }
+.accent-side { background: var(--accent-bg); }
+.accent-side h4 { color: var(--accent2); }
+.vs-divider {
+  width: 1px; background: var(--border);
+}
+
+/* Score bar */
+.score-bar {
+  display: flex; align-items: center; gap: 1rem;
+  margin-bottom: 0.6rem;
+}
+.score-label {
+  width: 80px; font-size: 0.85rem;
+  color: var(--text2); font-weight: 500;
+  flex-shrink: 0;
+}
+.score-track {
+  flex: 1; height: 28px;
+  background: var(--surface2);
+  border-radius: 6px; overflow: hidden;
+  position: relative;
+}
+.score-fill {
+  height: 100%; border-radius: 6px;
+  display: flex; align-items: center;
+  padding-left: 0.8rem;
+  font-size: 0.78rem; font-weight: 600; color: #fff;
+  background: var(--progress-bg);
+}
+
+/* Challenge list */
+.challenge-list { margin: 1rem 0; }
+.challenge-item {
+  display: flex; align-items: flex-start; gap: 1rem;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 10px; padding: 1rem;
+  margin-bottom: 0.6rem;
+}
+.challenge-num {
+  width: 32px; height: 32px; flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--red-bg);
+  color: var(--red); font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.85rem;
+  border: 1px solid var(--red-border);
+}
+.challenge-num.accent { background: var(--accent-bg); color: var(--accent2); border-color: var(--accent-border); }
+.challenge-body strong { color: var(--text); }
+.challenge-body p {
+  font-size: 0.88rem; margin: 0.3rem 0 0;
+}
+
+/* Alert bar */
+.alert-bar {
+  background: var(--red-bg);
+  border: 1px solid var(--red-border);
+  border-radius: 10px; padding: 1rem 1.3rem;
+  margin: 1rem 0;
+  display: flex; align-items: center; gap: 0.8rem;
+}
+.alert-bar .alert-icon {
+  font-size: 1.3rem; flex-shrink: 0;
+}
+.alert-bar .alert-text {
+  font-size: 0.95rem; color: var(--text); line-height: 1.6;
+}
+
+/* Era compare card */
+.era-compare {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 1rem; margin: 1rem 0;
+}
+.era-card {
+  border-radius: 12px; padding: 1.2rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+.era-card h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.6rem; }
+.era-card p { font-size: 0.88rem; color: var(--text2); line-height: 1.6; margin: 0; }
+.era-old { background: var(--surface2); }
+.era-old h4 { color: var(--text2); }
+.era-new { border-color: var(--accent-border); background: var(--accent-bg); }
+.era-new h4 { color: var(--accent2); }
+</style>
+</head>
+<body>
+
+<div class="slides-container">
+
+<!-- Slide 1: Cover -->
+<div class="slide slide-cover">
+<div class="slide-content">
+  <span class="tag tag-lesson">AI Engineering · 2026 更新</span>
+  <h1>Context 管理<br>1M 时代，最被低估的核心能力</h1>
+  <div class="divider"></div>
+  <p class="subtitle">窗口从 200K 涨到 1M，容量焦虑消失了。<br>但真正决定 AI 输出质量的，从来不是能塞多少，而是你往上下文里放了什么、没放什么、以什么顺序放。</p>
+  <p class="meta">杨正武 · 2026.06</p>
+</div>
+</div>
+
+<!-- Slide 2: Opening scenario -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-red">真实场景</span>
+  <h2>一个被反复验证的事实</h2>
+  <div class="alert-bar">
+    <span class="alert-icon">🪲</span>
+    <div class="alert-text">你把整个项目丢给 AI，说「帮我改一下登录页面的 bug」。AI 迅速改完了登录页面，但<strong>顺手把旁边的支付模块也「优化」了一下</strong>。</div>
+  </div>
+  <div class="key-point">
+    <p>它懂你的需求。但你的 context 里塞了太多跟登录页面无关的东西，<strong>它的注意力被稀释了</strong>。就像让一个人在嘈杂的工地里念电话号码，能听到，但记不全。</p>
+  </div>
+  <p style="margin-top:1.5rem; font-size:0.95rem;">Context 的质量决定了 AI 输出的质量，而 context 的质量跟 token 数量<strong>几乎无关</strong>——1M 窗口只会让这件事更反直觉，不是让它消失。</p>
+</div>
+</div>
+
+<!-- Slide 3: Attention Budget -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-section">核心认知</span>
+  <h2>注意力是有预算的</h2>
+  <div class="cols">
+    <div class="col-card red-card">
+      <h4>误解：容器模型</h4>
+      <p>Context window 是一个容器，窗口越大，能装的信息越多，AI 就越「了解」你的项目。1M 时代这个错觉尤其顽固。</p>
+    </div>
+    <div class="col-card green-card">
+      <h4>真相：预算模型</h4>
+      <p>Context window 是一个注意力预算池，每一条信息都在消耗这份预算。信息越多 ≠ 质量越好，往往恰恰相反。</p>
+    </div>
+  </div>
+  <div class="quote">
+    你在 Cursor 或 Claude Code 里打开一个项目——当前编辑的文件、@ 引入的文件、项目结构、linter 错误、terminal 输出、git diff、system prompt——<em>每一项都在消耗注意力预算</em>。窗口从 200K 涨到 1M，预算池变大了，但每条信息消耗的预算一分没少。
+  </div>
+</div>
+</div>
+
+<!-- Slide 4: Lost in the Middle -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-lesson">论文实证</span>
+  <h2>Lost in the Middle</h2>
+  <p style="margin-bottom:0.5rem;">2023 年 Stanford 等机构实验：把关键信息放在 context 的不同位置，测量模型回答准确率。</p>
+  <div style="margin:1.5rem 0;">
+    <div class="score-bar">
+      <div class="score-label">开头</div>
+      <div class="score-track"><div class="score-fill" style="width:95%; background:linear-gradient(90deg,#7b6cf0,#00d4aa);">~95%</div></div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label">中间</div>
+      <div class="score-track"><div class="score-fill" style="width:55%; background:linear-gradient(90deg,#ff6b6b,#ff6b6b);">~55%</div></div>
+    </div>
+    <div class="score-bar">
+      <div class="score-label">结尾</div>
+      <div class="score-track"><div class="score-fill" style="width:90%; background:linear-gradient(90deg,#7b6cf0,#00d4aa);">~90%</div></div>
+    </div>
+  </div>
+  <div class="key-point">
+    <p>2026 年的新模型在长上下文检索上确实进步了，中间位置的衰减没那么夸张。但<strong>衰减的形状没变</strong>——首尾仍比中间可靠。当你把 1M tokens 一股脑塞给 AI，中间那段被「扫过去」的概率依然显著高于两头。</p>
+  </div>
+  <p style="font-size:0.82rem; color:var(--text3); margin-top:0.8rem;">Self-attention 机制天然给首尾位置更高权重，这不是 bug，是 Transformer 架构的固有特性。模型在变好，但物理规律没变。</p>
+</div>
+</div>
+
+<!-- Slide 5: 1M era shift -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-orange">时代变化</span>
+  <h2>1M 时代：窗口大了，问题没消失</h2>
+  <p style="margin-bottom:0.8rem;">从 200K 到 1M，有些事变了，有些事一点没变。分清楚这两类，是 2026 年做 AI 工程的基本功：</p>
+  <div class="era-compare">
+    <div class="era-card era-old">
+      <h4>✓ 变了的</h4>
+      <p>· 容量焦虑消失，不用频繁 /compact<br>· 系统占用占比从 25-50% 降到 5-8%<br>· 大文件、整仓库可以一次性读进来<br>· KV cache 命中带来的成本红利更显著</p>
+    </div>
+    <div class="era-card era-new">
+      <h4>✗ 没变的</h4>
+      <p>· 注意力仍是有限预算<br>· 首尾仍比中间更受关注<br>· 无关信息仍在主动拉低输出质量<br>· 需求偏离、context 污染照常发生</p>
+    </div>
+  </div>
+  <div class="key-point" style="margin-top:0.8rem;">
+    <p>窗口变大解决的是<strong>「装不下」</strong>，没解决<strong>「看不清」</strong>。1M 时代真正的风险，是「反正装得下」这个念头本身——它让全塞进去变得零成本，于是所有人都开始全塞。</p>
+  </div>
+</div>
+</div>
+
+<!-- Slide 6: Signal-to-Noise -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-section">信噪比</span>
+  <h2>Context 管理的本质</h2>
+  <p>把 context 管理理解为 token 管理，是把问题想浅了。真正的 context 管理是在做<strong>信噪比优化</strong>——这件事跟窗口多大无关。</p>
+  <div class="vs-block" style="margin-top:1rem;">
+    <div class="vs-side red-side">
+      <h4>策略 A：大而全（1M 时代的默认诱惑）</h4>
+      <ul>
+        <li>整个项目文件结构</li>
+        <li>bug 所在文件 800 行代码</li>
+        <li>类型定义 + 测试文件</li>
+        <li>git diff + README + package.json</li>
+        <li>「反正 1M 装得下，多塞点没坏处」</li>
+      </ul>
+    </div>
+    <div class="vs-divider"></div>
+    <div class="vs-side green-side">
+      <h4>策略 B：精准裁剪</h4>
+      <ul>
+        <li>bug 相关函数 + 上下文（50 行）</li>
+        <li>输入输出类型定义</li>
+        <li>触发 bug 的测试用例</li>
+        <li>一行项目背景说明</li>
+      </ul>
+    </div>
+  </div>
+  <div class="key-point" style="margin-top:0.8rem;">
+    <p>AI 在 50 行代码里找 bug，和在 800 行代码里找 bug，是完全不同的任务。前者它真的在读每一行，后者它大概率只扫了前 200 行和后 200 行。<strong>多塞的 750 行不是免费的，它们在稀释信号。</strong></p>
+  </div>
+</div>
+</div>
+
+<!-- Slide 7: Requirement Drift -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-red">失败模式</span>
+  <h2>需求偏离：最常见的翻车方式</h2>
+  <p style="margin-bottom:0.8rem;">需求偏离不是一步到位的，而是一个渐变过程：</p>
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-label waterfall">Step 1</span>
+      <div class="step-body"><strong>明确任务</strong> — 给了一个清晰的需求</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label danger">Step 2</span>
+      <div class="step-body"><strong>顺便改改</strong> — AI 觉得「一起改了会更好」</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label danger">Step 3</span>
+      <div class="step-body"><strong>牵连扩散</strong> — 改了文件 A，文件 B 也需要调整</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label danger">Step 4</span>
+      <div class="step-body"><strong>继续顺便</strong> — 新的 context 又触发了新的「顺便」</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label waterfall">Step 5</span>
+      <div class="step-body"><strong>彻底跑偏</strong> — 你要的是改按钮颜色，AI 重构了整个组件体系</div>
+    </div>
+  </div>
+  <p style="font-size:0.88rem; color:var(--text3); margin-top:0.5rem;">人类漂移了自己能意识到，AI 漂移了它完全不知道，还觉得自己做得很好。1M 窗口让「顺便改改」能波及的范围更大了。</p>
+</div>
+</div>
+
+<!-- Slide 8: New failure mode — context bloat -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-red">1M 时代新失败模式</span>
+  <h2>Context 膨胀：装得下，所以全塞了</h2>
+  <p style="margin-bottom:0.8rem;">200K 时代，物理上限逼着你做裁剪。1M 时代，这个外部约束消失了，一个新的失败模式取而代之：</p>
+  <div class="challenge-list">
+    <div class="challenge-item">
+      <div class="challenge-num accent">1</div>
+      <div class="challenge-body"><strong>无脑全量加载</strong><p>整仓库 @ 进来，所有文档、所有历史对话都留着。「反正没超限」——但信噪比塌了。</p></div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num accent">2</div>
+      <div class="challenge-body"><strong>注意力稀释</strong><p>关键信息被埋在百万 token 中间，模型对它的「投入度」远低于你预期。检索得到 ≠ 真正理解。</p></div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num accent">3</div>
+      <div class="challenge-body"><strong>成本与延迟静默上涨</strong><p>1M 的 prefill 不便宜，cache miss 一次代价很大。膨胀的 context 让每次调用都更慢更贵，而你浑然不觉。</p></div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num accent">4</div>
+      <div class="challenge-body"><strong>假性安全</strong><p>因为「没报 context 超限」，你以为管理得很好。实际输出质量早就在悄悄下滑。</p></div>
+    </div>
+  </div>
+  <p style="font-size:0.88rem; color:var(--text3); margin-top:0.5rem;">200K 时代你被迫学会的裁剪纪律，1M 时代要靠自觉保持。这是更难的事。</p>
+</div>
+</div>
+
+<!-- Slide 9: Anti-drift strategies -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-section">防御策略</span>
+  <h2>怎么防住需求偏离与膨胀</h2>
+  <div class="icon-grid">
+    <div class="icon-card">
+      <h4 style="color:var(--accent2);">缩小 context 边界</h4>
+      <p>只给跟当前任务相关的文件和代码。「可能有用」和「确定有用」之间隔着巨大的信噪比差距。1M 不是不裁剪的理由。</p>
+    </div>
+    <div class="icon-card">
+      <h4 style="color:var(--green);">显式声明约束</h4>
+      <p>「只修改这个函数。不要重构。不要优化。只修 bug。」看似啰嗦，实际是在帮 AI 划定注意力边界。</p>
+    </div>
+    <div class="icon-card">
+      <h4 style="color:var(--orange);">分步执行 + 主动清理</h4>
+      <p>大任务拆成小步骤，每一步只加载必要的 context。做完一步清掉无关上下文，再做下一步。别让历史无限累积。</p>
+    </div>
+    <div class="icon-card">
+      <h4 style="color:var(--red);">及时纠偏</h4>
+      <p>AI 开始「自由发挥」时马上打断。不要指望它自己绕回来。每发现一次偏离就是一次重新校准的机会。</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Slide 10: Five Patterns -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-lesson">工程模式</span>
+  <h2>五个 Context 管理模式</h2>
+  <div class="cols">
+    <div class="col-card accent-card">
+      <h4>1. 渐进式加载</h4>
+      <p>不一次性塞满，按需加载。第一轮任务描述 + 核心文件，第二轮相关依赖，第三轮测试和边界情况。1M 时代依然成立。</p>
+    </div>
+    <div class="col-card accent-card">
+      <h4>2. 上下文裁剪</h4>
+      <p>定期清理已完成、不再需要的上下文。已修复的报错？删。上个任务的讨论？删。用完的文档？删。</p>
+    </div>
+    <div class="col-card green-card">
+      <h4>3. 结构化注入</h4>
+      <p>不是堆砌，是有结构的组织：任务 → 约束 → 相关代码 → 测试用例。帮 AI 快速定位每部分的角色。</p>
+    </div>
+    <div class="col-card green-card">
+      <h4>4. 场景隔离</h4>
+      <p>A 项目偏好不带入 B 项目。昨天的临时决策不自动出现在今天。跨场景流动看起来像「智能」，实际往往是「污染」。</p>
+    </div>
+  </div>
+  <div class="col-card orange-card" style="margin-top:0.6rem;">
+    <h4>5. 上下文预算（1M 时代重定义）</h4>
+    <p>预算不再是「别超限」，而是「别膨胀」。简单 bug 修复目标 1-2K tokens · 功能开发 5-10K · 架构重构 10-30K。一个简单修复塞了 200K？不是装得下就对了，是信噪比该检修了。</p>
+  </div>
+</div>
+</div>
+
+<!-- Slide 11: Claude Code Context Architecture -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-lesson">实战案例</span>
+  <h2>Claude Code 的 Context 分层架构</h2>
+  <p style="margin-bottom:0.8rem;">Claude Code 的 context 不是静态字符串，是每次 API 调用时动态组装的六层结构：</p>
+  <div class="steps">
+    <div class="step-card">
+      <span class="step-label waterfall">L1</span>
+      <div class="step-body"><strong>System Prompt</strong> — 身份声明 + 编码哲学 + 权限规则 + 风控约束，约 4-6K tokens</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label waterfall">L2</span>
+      <div class="step-body"><strong>Tool Definitions</strong> — 内置工具 + MCP 工具定义，约 20-50K tokens（MCP 按需加载 stub）</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">L3</span>
+      <div class="step-body"><strong>CLAUDE.md + Memory</strong> — 全局 → 用户 → 项目 → 子目录，按层级拼接注入</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">L4</span>
+      <div class="step-body"><strong>Dynamic Attachments</strong> — 日期、git status、plan 状态、技能列表，通过 &lt;system-reminder&gt; 注入</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">L5</span>
+      <div class="step-body"><strong>Tool Visibility</strong> — 动态控制模型能看到哪些工具，不可见 = 不可调用</div>
+    </div>
+    <div class="step-card">
+      <span class="step-label agile">L6</span>
+      <div class="step-body"><strong>Cache Optimization</strong> — 静态内容前置，动态内容后置，KV cache 复用率最大化（1M 时代这是省钱的核心）</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Slide 12: Where your input goes — 1M era -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-orange">Context 预算</span>
+  <h2>1M 窗口下，你的输入去了哪里</h2>
+  <p style="margin-bottom:0.6rem;">同样是 Claude Code 的系统开销，在 200K 和 1M 两个时代占比天差地别（<code>/context</code> 命令输出）：</p>
+  <table class="data-table">
+    <thead>
+      <tr><th>组成</th><th>绝对量</th><th>200K 时代占比</th><th>1M 时代占比</th></tr>
+    </thead>
+    <tbody>
+      <tr><td><strong>System Prompt</strong></td><td>~4K</td><td>2%</td><td>0.4%</td></tr>
+      <tr><td><strong>Tool 定义</strong></td><td>~20K</td><td>10%</td><td>2%</td></tr>
+      <tr><td><strong>MCP 工具</strong></td><td>~26K</td><td>13%</td><td>2.6%</td></tr>
+      <tr><td><strong>Memory / CLAUDE.md</strong></td><td>~4K</td><td>2%</td><td>0.4%</td></tr>
+      <tr><td><strong>系统合计</strong></td><td>~54K</td><td><strong style="color:var(--red);">~27%</strong></td><td><strong style="color:var(--green);">~5.4%</strong></td></tr>
+    </tbody>
+  </table>
+  <div class="key-point">
+    <p>系统开销的<strong>绝对量没变</strong>（还是 50K 上下），但占比从 27% 掉到 5%。容量焦虑确实没了。<strong>但别高兴太早</strong>——这恰好意味着：你省下的 95% 空间，全靠你的自觉来守护信噪比，再没有物理上限替你兜底。</p>
+  </div>
+  <div class="cols" style="margin-top:0.6rem;">
+    <div class="col-card accent-card">
+      <h4>缓存经济学</h4>
+      <p>静态内容（system + tools + CLAUDE.md）前置，共享 KV cache。1M 时代 cache 命中省下的钱更可观，cache miss 的代价也更痛。</p>
+    </div>
+    <div class="col-card green-card">
+      <h4>Compaction 仍要做</h4>
+      <p>1M 窗口让你更晚才触发自动压缩，但主动 /compact 的纪律依然有意义——压缩的不是空间，是噪声。</p>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Slide 13: Core shift -->
+<div class="slide">
+<div class="slide-content">
+  <span class="tag tag-section">认知升级</span>
+  <h2>从「写好 prompt」到「管好 context」</h2>
+  <div class="key-point" style="margin-top:0.5rem;">
+    <p>Prompt engineering 这个词容易让人产生错觉，以为 AI 工程的核心就是写好一段话。Prompt 只是 context 的一个组成部分。真正的能力在于：<strong>你知道在什么时间点，用什么结构，往 AI 的视野里放什么信息，不放什么信息。</strong></p>
+  </div>
+  <p style="margin-top:1.2rem;">这个能力的背后，是对注意力机制的直觉理解——1M 时代它只会更重要：</p>
+  <div class="challenge-list" style="margin-top:0.8rem;">
+    <div class="challenge-item">
+      <div class="challenge-num">1</div>
+      <div class="challenge-body"><strong>注意力是有限的</strong><p>不可能同时关注所有信息，预算用完就没有了。窗口再大也是有限预算。</p></div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num">2</div>
+      <div class="challenge-body"><strong>注意力是不均匀的</strong><p>开头和结尾的信息天然获得更高权重，中间的容易被忽略。百万 token 里这点更明显。</p></div>
+    </div>
+    <div class="challenge-item">
+      <div class="challenge-num">3</div>
+      <div class="challenge-body"><strong>注意力是容易被带偏的</strong><p>一条无关的信息不只是浪费预算，它在主动拉低整体输出质量。塞得越多，带偏面越广。</p></div>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Slide 14: Ending -->
+<div class="slide slide-end">
+<div class="slide-content">
+  <span class="tag tag-section">结语</span>
+  <h2>1M 窗口不是免责金牌，<br>注意力预算才是真相</h2>
+  <div class="divider" style="margin:1.5rem auto;"></div>
+  <p class="end-text">窗口变大，免除了你「装不下」的焦虑，却把「管不好」的责任完全交还给了你。</p>
+  <p style="margin-top:2rem; color:var(--text2); font-size:1rem; max-width:620px; line-height:1.8; margin-left:auto; margin-right:auto;">
+    做不好这件事的人，会在 1M 的「自由」里塞进整个世界，然后困惑 AI 为什么变笨了。<br>
+    做好这件事的人，会在一百万 token 的余裕里，依然只给 AI 它真正需要的那五百行。<br><br>
+    区别不在于窗口多大，在于你往它的视野里放了什么。
+  </p>
+</div>
+</div>
+
+</div>
+
+</body>
+</html>

@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EvoDev vs Feature-Workflow — FDD 概念映证分析</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f4fb; --bg2: #eaeaf4; --surface: #ffffff; --surface2: #f0f0fa; --surface3: #e6e6f2;
+  --border: rgba(0,0,0,0.07); --border-strong: rgba(0,0,0,0.12);
+  --text: #1a1a30; --text2: #5a5a78; --text3: #9898ac;
+  --accent: #5b4cc4; --accent2: #7b6cf0;
+  --green: #009a7c; --green-bg: rgba(0,154,124,0.06); --green-border: rgba(0,154,124,0.18);
+  --red: #d44040; --red-bg: rgba(212,64,64,0.06); --red-border: rgba(212,64,64,0.18);
+  --orange: #b88020; --orange-bg: rgba(184,128,32,0.06); --orange-border: rgba(184,128,32,0.18);
+  --accent-bg: rgba(91,76,196,0.06); --accent-border: rgba(91,76,196,0.15);
+  --code-bg: #1a1a30; --code-border: rgba(91,76,196,0.12); --code-text: #00d4aa;
+  --shadow: 0 2px 12px rgba(0,0,0,0.06); --shadow-lg: 0 8px 24px rgba(0,0,0,0.08);
+  --quote-bg: rgba(91,76,196,0.04); --quote-border: var(--accent);
+  --key-bg: linear-gradient(135deg, rgba(91,76,196,0.06), rgba(0,154,124,0.04));
+  --key-border: rgba(91,76,196,0.12);
+  --progress-bg: linear-gradient(90deg, #5b4cc4, #009a7c);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.7; }
+.slides-container { width: 1200px; margin: 0 auto; }
+.slide { min-height: 675px; padding: 48px 96px; display: flex; flex-direction: column; justify-content: center; border-top: 1px solid var(--border); position: relative; overflow: hidden; }
+.slide-content { max-width: 920px; width: 100%; }
+.slide-cover { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 40%, var(--accent-bg), transparent 70%); }
+.slide-cover h1 { font-size: 2.6rem; font-weight: 900; line-height: 1.35; background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.slide-cover .divider { width: 60px; height: 2px; margin: 1.8rem auto; background: var(--progress-bg); border-radius: 1px; }
+.slide-cover .subtitle { font-size: 1.1rem; color: var(--text2); margin-top: 0.5rem; }
+.slide-cover .meta { font-size: 0.85rem; color: var(--text3); margin-top: 1.5rem; }
+.slide-end { text-align: center; align-items: center; background: radial-gradient(ellipse at 50% 60%, var(--green-bg), transparent 70%); }
+h2 { font-size: 1.7rem; font-weight: 700; margin-bottom: 1.5rem; color: var(--text); }
+h3 { font-size: 1.2rem; font-weight: 600; margin-bottom: 0.8rem; color: var(--text); }
+.tag { display: inline-block; padding: 4px 14px; border-radius: 20px; font-size: 0.78rem; font-weight: 500; margin-bottom: 1rem; }
+.tag-lesson { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent-border); }
+.tag-section { background: var(--green-bg); color: var(--green); border: 1px solid var(--green-border); }
+.tag-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red-border); }
+.tag-orange { background: var(--orange-bg); color: var(--orange); border: 1px solid var(--orange-border); }
+.key-point { background: var(--key-bg); border: 1px solid var(--key-border); border-radius: 12px; padding: 1.2rem 1.5rem; margin: 1rem 0; }
+.key-point p { font-size: 0.95rem; line-height: 1.7; }
+.cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.col-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem 1.4rem; }
+.col-card h3 { margin-bottom: 0.6rem; font-size: 1rem; }
+.col-card p, .col-card li { font-size: 0.88rem; color: var(--text2); line-height: 1.6; }
+.col-card ul { padding-left: 1.2rem; }
+.green-card { border-color: var(--green-border); background: linear-gradient(135deg, var(--green-bg), var(--surface)); }
+.accent-card { border-color: var(--accent-border); background: linear-gradient(135deg, var(--accent-bg), var(--surface)); }
+.red-card { border-color: var(--red-border); background: linear-gradient(135deg, var(--red-bg), var(--surface)); }
+.orange-card { border-color: var(--orange-border); background: linear-gradient(135deg, var(--orange-bg), var(--surface)); }
+.flow { display: flex; align-items: center; gap: 0.6rem; margin: 1rem 0; flex-wrap: wrap; }
+.flow-item { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 1rem; font-size: 0.85rem; white-space: nowrap; }
+.flow-item.green { background: var(--green-bg); border-color: var(--green-border); color: var(--green); }
+.flow-item.accent { background: var(--accent-bg); border-color: var(--accent-border); color: var(--accent); }
+.flow-item.red { background: var(--red-bg); border-color: var(--red-border); color: var(--red); }
+.flow-arrow { color: var(--text3); font-size: 1.2rem; }
+.steps { margin: 1rem 0; }
+.step-card { display: flex; gap: 1rem; align-items: flex-start; padding: 0.8rem 0; border-bottom: 1px solid var(--border); }
+.step-card:last-child { border-bottom: none; }
+.step-label { display: inline-block; padding: 2px 10px; border-radius: 6px; font-size: 0.72rem; font-weight: 600; white-space: nowrap; flex-shrink: 0; }
+.step-label.waterfall { background: var(--accent-bg); color: var(--accent); }
+.step-label.agile { background: var(--green-bg); color: var(--green); }
+.step-body { font-size: 0.9rem; color: var(--text2); }
+.step-body strong { color: var(--text); }
+.quote { background: var(--quote-bg); border-left: 3px solid var(--quote-border); padding: 1rem 1.4rem; margin: 1rem 0; border-radius: 0 8px 8px 0; font-size: 0.9rem; color: var(--text2); }
+.quote em { color: var(--accent); font-weight: 600; font-style: normal; }
+pre { background: var(--code-bg); border: 1px solid var(--code-border); border-radius: 10px; padding: 1.2rem 1.4rem; margin: 1rem 0; overflow-x: auto; }
+pre code { color: var(--code-text); font-family: 'SF Mono', 'Fira Code', 'JetBrains Mono', monospace; font-size: 0.82rem; line-height: 1.6; }
+.data-table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 0.88rem; }
+.data-table th { background: var(--accent-bg); color: var(--accent); font-weight: 600; text-align: left; padding: 0.6rem 1rem; border-bottom: 2px solid var(--accent-border); }
+.data-table td { padding: 0.55rem 1rem; border-bottom: 1px solid var(--border); color: var(--text2); }
+.data-table tr:hover td { background: var(--surface2); }
+.score-bar { display: flex; align-items: center; gap: 0.8rem; margin: 0.4rem 0; }
+.score-label { width: 120px; font-size: 0.82rem; color: var(--text2); text-align: right; flex-shrink: 0; }
+.score-track { flex: 1; height: 22px; background: var(--surface3); border-radius: 11px; overflow: hidden; }
+.score-fill { height: 100%; border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 600; color: white; background: var(--progress-bg); }
+.s5 { width: 50%; } .s8 { width: 80%; } .s9 { width: 90%; } .s10 { width: 100%; }
+.vs-block { display: flex; margin: 1rem 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+.vs-side { flex: 1; padding: 1.2rem 1.4rem; }
+.vs-side h4 { font-size: 0.95rem; margin-bottom: 0.6rem; }
+.vs-side ul { padding-left: 1.2rem; font-size: 0.85rem; color: var(--text2); }
+.vs-side li { margin-bottom: 0.3rem; }
+.red-side { background: var(--red-bg); }
+.red-side h4 { color: var(--red); }
+.green-side { background: var(--green-bg); }
+.green-side h4 { color: var(--green); }
+.vs-divider { width: 2px; background: var(--border); }
+.loop-card { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 0 10px 10px 0; padding: 1rem 1.4rem; margin: 0.8rem 0; }
+.loop-card h4 { font-size: 0.95rem; color: var(--green); margin-bottom: 0.4rem; }
+.loop-card p { font-size: 0.88rem; color: var(--text2); }
+.icon-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin: 1rem 0; }
+.icon-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 1.2rem; }
+.icon-card h4 { font-size: 0.95rem; margin-bottom: 0.5rem; }
+.icon-card p { font-size: 0.85rem; color: var(--text2); }
+ul.clean-list { list-style: none; padding: 0; }
+ul.clean-list li { padding: 0.3rem 0; font-size: 0.9rem; color: var(--text2); }
+ul.clean-list li::before { content: "•"; color: var(--accent); margin-right: 0.5rem; }
+p { font-size: 0.92rem; color: var(--text2); line-height: 1.7; }
+.section-num { font-size: 4rem; font-weight: 900; background: var(--progress-bg); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; opacity: 0.15; position: absolute; top: 30px; right: 60px; }
+</style>
+</head>
+<body>
+<div class="slides-container">
+
+<!-- Slide 1: Cover -->
+<div class="slide slide-cover">
+<div class="slide-content">
+<span class="tag tag-lesson">研究报告</span>
+<h1>EvoDev 论文 vs Feature-Workflow 实践<br>FDD 概念映证分析</h1>
+<div class="divider"></div>
+<p class="subtitle">从学术论文到工程实践：特性驱动开发如何重塑 AI Coding 工作流</p>
+<p class="meta">基于 EvoDev (arXiv:2511.02399) · Feature-Workflow Plugin · 55 个已完成特性归档<br>2026-05-11</p>
+</div>
+</div>
+
+<!-- Slide 2: Background -->
+<div class="slide">
+<span class="section-num">01</span>
+<div class="slide-content">
+<span class="tag tag-section">背景</span>
+<h2>EvoDev 论文核心主张</h2>
+<div class="quote">
+EvoDev 不再将开发过程组织为线性的 to-do 列表，而是引入 <em>Feature Map（特性地图）</em>作为 DAG 结构，显式建模特性依赖关系，并通过三层上下文传播支持迭代式开发。
+</div>
+<div class="cols">
+<div class="col-card accent-card">
+<h3>论文三个阶段</h3>
+<div class="flow">
+<div class="flow-item accent">Overall Design</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item accent">Feature Map</div>
+<span class="flow-arrow">→</span>
+<div class="flow-item accent">Iterative Dev</div>
+</div>
+<p>灵感来源：经典 FDD 方法论</p>
+</div>
+<div class="col-card green-card">
+<h3>论文核心创新</h3>
+<ul>
+<li>Feature Map 作为 DAG 建模依赖</li>
+<li>三层上下文：Business / Design / Implementation</li>
+<li>依赖关系驱动的上下文传播</li>
+<li>在 Android 开发任务上超越 Claude Code 56.8%</li>
+</ul>
+</div>
+</div>
+<div class="key-point">
+<p><strong>验证问题：</strong>Feature-Workflow 这套工程实践是否与 EvoDev 的 FDD + Feature Map 理论框架相互映证？HS_jarvis 的 55 个特性归档是否构成实证？</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 3: Core Mapping -->
+<div class="slide">
+<span class="section-num">02</span>
+<div class="slide-content">
+<span class="tag tag-section">核心映证</span>
+<h2>核心概念对照表</h2>
+<table class="data-table">
+<thead><tr><th>EvoDev 论文概念</th><th>Feature-Workflow 实现</th><th>映证度</th></tr></thead>
+<tbody>
+<tr><td><strong>Feature-Driven Development</strong></td><td>整个 workflow 以 Feature 为核心组织单元</td><td>★★★★★</td></tr>
+<tr><td><strong>Feature Map (DAG)</strong></td><td>queue.yaml + archive-log.yaml + dependencies</td><td>★★★★☆</td></tr>
+<tr><td><strong>特性分解</strong></td><td>/new-feature + /split-feature 智能拆分</td><td>★★★★★</td></tr>
+<tr><td><strong>依赖建模</strong></td><td>spec.md 中显式 dependencies 字段</td><td>★★★★★</td></tr>
+<tr><td><strong>三层上下文传播</strong></td><td>spec.md 分层结构实现等价机制</td><td>★★★★☆</td></tr>
+<tr><td><strong>迭代式开发</strong></td><td>/dev-agent 自动循环调度</td><td>★★★★★</td></tr>
+<tr><td><strong>全局总体设计</strong></td><td>project-context.md + 父特性 module index</td><td>★★★★★</td></tr>
+<tr><td><strong>多智能体协作</strong></td><td>DevSubAgent 独立 200k context 并行</td><td>★★★★★</td></tr>
+</tbody>
+</table>
+<div class="key-point">
+<p><strong>结论：</strong>8 项核心概念全部映证，其中 6 项完全一致，2 项高度吻合。Feature-Workflow 是 EvoDev 理论框架的完整工程化实现。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 4: FDD 5-Stage Mapping -->
+<div class="slide">
+<span class="section-num">03</span>
+<div class="slide-content">
+<span class="tag tag-lesson">方法论映证</span>
+<h2>FDD 五阶段映射</h2>
+<p>EvoDev 将 FDD 经典五阶段抽象为三阶段，Feature-Workflow 实现了等价映射：</p>
+<div class="steps">
+<div class="step-card">
+<span class="step-label waterfall">FDD 1</span>
+<div class="step-body"><strong>Build Overall Model</strong> → EvoDev: Overall Design → FW: <em>/init-project + project-context.md</em></div>
+</div>
+<div class="step-card">
+<span class="step-label waterfall">FDD 2</span>
+<div class="step-body"><strong>Build Features List</strong> → EvoDev: Feature Map Gen → FW: <em>/new-feature + /split-feature</em></div>
+</div>
+<div class="step-card">
+<span class="step-label waterfall">FDD 3</span>
+<div class="step-body"><strong>Plan by Feature</strong> → EvoDev: Feature Map Gen → FW: <em>queue.yaml 依赖排序</em></div>
+</div>
+<div class="step-card">
+<span class="step-label agile">FDD 4</span>
+<div class="step-body"><strong>Design by Feature</strong> → EvoDev: Iterative Dev → FW: <em>spec.md 技术方案 + task.md</em></div>
+</div>
+<div class="step-card">
+<span class="step-label agile">FDD 5</span>
+<div class="step-body"><strong>Build by Feature</strong> → EvoDev: Iterative Dev → FW: <em>/implement-feature + /verify-feature</em></div>
+</div>
+</div>
+<div class="key-point">
+<p><strong>关键一致性：</strong>两者都遵循"先全局设计 → 再特性分解 → 按依赖迭代开发"的流程。FDD 的每个阶段都能在 Feature-Workflow 中找到精确的 skill 或文件对应。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 5: Feature Map -->
+<div class="slide">
+<span class="section-num">04</span>
+<div class="slide-content">
+<span class="tag tag-section">Feature Map</span>
+<h2>Feature Map 结构映证</h2>
+<div class="cols">
+<div class="col-card accent-card">
+<h3>EvoDev: 单一 DAG</h3>
+<p>一个显式的有向无环图，每个节点包含三层上下文（Business / Design / Implementation），信息沿依赖边传播。</p>
+<pre><code>Feature Set A ← Business + Design + Impl
+Feature Set B ← depends on A
+Feature Set C ← depends on A, B</code></pre>
+</div>
+<div class="col-card green-card">
+<h3>FW: 三文件组合等价</h3>
+<p>queue.yaml（动态 DAG 边）+ archive-log.yaml（历史节点）+ spec.md（节点内部三层上下文）</p>
+<pre><code>queue.yaml:     pending/blocked/active
+archive-log.yaml: 55 completed nodes
+spec.md:       3-layer context per node</code></pre>
+</div>
+</div>
+<p style="margin-top:0.8rem; font-size:0.88rem; color:var(--text2);"><strong>实际归档中的依赖 DAG（从 archive-log.yaml 提取）：</strong></p>
+<pre><code>feat-redesign-system (设计令牌基础)
+  └→ feat-redesign-layout (全局布局)
+       ├→ feat-redesign-timeline    (Timeline)
+       ├→ feat-redesign-knowledge-map (知识图谱)
+       └→ feat-redesign-explorer    (浏览器)
+
+feat-p3-governance-engine (治理引擎)
+  └→ feat-p3-board-ecosystem (生态集成)
+       depends: [governance-engine, board-redesign]</code></pre>
+</div>
+</div>
+
+<!-- Slide 6: 3-Layer Context -->
+<div class="slide">
+<span class="section-num">05</span>
+<div class="slide-content">
+<span class="tag tag-section">上下文传播</span>
+<h2>三层上下文映证</h2>
+<div class="vs-block">
+<div class="vs-side red-side">
+<h4>EvoDev 论文</h4>
+<ul>
+<li><strong>Business-layer</strong>：功能范围 + 接口定义</li>
+<li><strong>Design-layer</strong>：UI 组件 + 数据实体</li>
+<li><strong>Implementation-layer</strong>：代码变更记录</li>
+<li>信息沿依赖边自动传播到后续特性</li>
+</ul>
+</div>
+<div class="vs-divider"></div>
+<div class="vs-side green-side">
+<h4>Feature-Workflow spec.md</h4>
+<ul>
+<li><strong>Description</strong> + User Value Points + Gherkin</li>
+<li><strong>Technical Solution</strong> + Context Analysis</li>
+<li><strong>Reference Code</strong> + Related Features + Archive Patterns</li>
+<li>/start-feature 时加载前置特性的实现摘要</li>
+</ul>
+</div>
+</div>
+<p style="margin-top:1rem; font-size:0.88rem;"><strong>实际案例（feat-redesign-layout 的 spec.md）：</strong></p>
+<div class="quote">
+Related Features:<br>
+• feat-redesign-system (前置) — 提供 Bento Grid 设计令牌和 shadcn/ui 组件<br>
+• feat-p2-board-scaffold (已完成) — 建立了当前 layout.tsx，需完全重写<br>
+• feat-p2-e2e-playwright (已完成) — E2E 测试中有导航断言，布局变更需更新<br><br>
+Archive Implementation Patterns:<br>
+• 当前布局: Sidebar 使用 <em>position: fixed w-60</em><br>
+• 页面路由: / /services /artifacts /knowledge-map /timeline
+</div>
+<div class="key-point">
+<p><strong>这正是论文描述的"通过依赖关系传播设计层和实现层上下文"的实际体现。</strong></p>
+</div>
+</div>
+</div>
+
+<!-- Slide 7: Feature Split -->
+<div class="slide">
+<span class="section-num">06</span>
+<div class="slide-content">
+<span class="tag tag-section">特性分解</span>
+<h2>特性拆分策略对比</h2>
+<div class="cols">
+<div class="col-card">
+<h3>EvoDev</h3>
+<ul class="clean-list">
+<li>Feature Extractor agent 自动分解</li>
+<li>Feature Planner agent 按内聚性分组</li>
+<li>上限 4 个 Feature Sets</li>
+<li>未明确处理父特性</li>
+<li>拆分标准：功能内聚 + 依赖保持</li>
+</ul>
+</div>
+<div class="col-card green-card">
+<h3>Feature-Workflow</h3>
+<ul class="clean-list">
+<li>/new-feature: AI 分析用户价值点</li>
+<li>3+ 价值点时建议拆分</li>
+<li>/split-feature: 按业务领域拆分</li>
+<li><strong>父特性转为 module index（只读索引）</strong></li>
+<li>拆分标准：<strong>按用户价值</strong>非技术层</li>
+</ul>
+</div>
+</div>
+<div class="key-point">
+<p><strong>Feature-Workflow 的超越：</strong>父特性转 module index 机制是 EvoDev 未涉及的创新点。拆分后父特性成为只读的子特性索引表 + 依赖图 + 进度跟踪器，保持了全局视角。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 8: Multi-Agent -->
+<div class="slide">
+<span class="section-num">07</span>
+<div class="slide-content">
+<span class="tag tag-lesson">多智能体</span>
+<h2>多智能体协作对比</h2>
+<div class="vs-block">
+<div class="vs-side red-side">
+<h4>EvoDev: 6 个专精 Agent</h4>
+<ul>
+<li>Business Analyst</li>
+<li>Architect</li>
+<li>Feature Extractor</li>
+<li>Feature Planner</li>
+<li>Chief Programmer</li>
+<li>Programmer</li>
+<li style="margin-top:0.5rem; color:var(--text3);">顺序执行特性集</li>
+</ul>
+</div>
+<div class="vs-divider"></div>
+<div class="vs-side green-side">
+<h4>FW: 1 SubAgent + 15 Skills</h4>
+<ul>
+<li>/dev-agent 调度层</li>
+<li>DevSubAgent 独立 200k context</li>
+<li>15 个原子 skill 可组合</li>
+<li>max_concurrent 并行执行</li>
+<li style="margin-top:0.5rem; color:var(--text3);">物理隔离（worktree）</li>
+</ul>
+</div>
+</div>
+<div class="icon-grid" style="margin-top:1rem;">
+<div class="icon-card" style="border-left:3px solid var(--green);">
+<h4>物理隔离</h4>
+<p>每个特性独立 git worktree + 独立文件系统，比 EvoDev 的逻辑隔离更安全</p>
+</div>
+<div class="icon-card" style="border-left:3px solid var(--accent);">
+<h4>并行开发</h4>
+<p>多 SubAgent 并行执行，max_concurrent 参数控制并发数，EvoDev 未重点讨论</p>
+</div>
+<div class="icon-card" style="border-left:3px solid var(--orange);">
+<h4>容错恢复</h4>
+<p>SubAgent 超时保护 + 自动重试 + /dev-agent --resume 状态恢复</p>
+</div>
+<div class="icon-card" style="border-left:3px solid var(--red);">
+<h4>Skill 可组合</h4>
+<p>15 个原子 skill 按需链式调用，比 6 个固定 agent 更灵活</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Slide 9: FW Innovations -->
+<div class="slide">
+<span class="section-num">08</span>
+<div class="slide-content">
+<span class="tag tag-orange">超越论文</span>
+<h2>Feature-Workflow 的 5 项创新</h2>
+<div class="loop-card">
+<h4>1. 物理隔离（Worktree-Based Isolation）</h4>
+<p>每个特性创建独立 git worktree，彻底消除并行开发时的文件冲突风险。EvoDev 在同一仓库中顺序开发。</p>
+</div>
+<div class="loop-card">
+<h4>2. 父特性 Module Index 机制</h4>
+<p>/split-feature 将拆分后的父特性转为只读索引（含子特性表格 + 依赖图 + 进度跟踪），EvoDev 的 Feature Map 未涉及。</p>
+</div>
+<div class="loop-card">
+<h4>3. 三文档递进收窄</h4>
+<p>spec.md (What) → task.md (How) → checklist.md (Done)，比 EvoDev 的单一 Feature Schema 更有层次感。</p>
+</div>
+<div class="loop-card">
+<h4>4. 归档即知识积累</h4>
+<p>archive-log.yaml + evidence/ 构成组织级知识库。55 个特性的实现细节、耗时、验证结果被完整保留。</p>
+</div>
+<div class="loop-card">
+<h4>5. 插件化分发</h5>
+<p>作为 company-ai-marketplace 标准插件，可跨项目复用。EvoDev 是研究原型，未考虑工业化。</p>
+</div>
+</div>
+</div>
+
+<!-- Slide 10: Paper Inspiration -->
+<div class="slide">
+<span class="section-num">09</span>
+<div class="slide-content">
+<span class="tag tag-lesson">理论启发</span>
+<h2>EvoDev 论文的启发价值</h2>
+<p>尽管 Feature-Workflow 在工程化上更成熟，论文提供了理论框架层面的启发：</p>
+<div class="cols">
+<div class="col-card accent-card">
+<h3>形式化 Feature Map</h3>
+<p>论文将依赖关系明确为 DAG，形式化了三层上下文模型。可考虑从 queue.yaml + archive-log.yaml 自动生成可视化 DAG。</p>
+</div>
+<div class="col-card accent-card">
+<h3>上下文传播形式化</h3>
+<p>论文精确描述了"信息沿依赖关系流动"。可考虑在 /start-feature 时自动注入所有前置特性的实现摘要，建立显式传播日志。</p>
+</div>
+</div>
+<div class="cols">
+<div class="col-card orange-card">
+<h3>模型行为对齐问题</h3>
+<p>论文发现 Claude 系列倾向于多轮自编辑和修复，会提前实现后续迭代的特性。DevSubAgent 同样可能遇到此问题，应在 prompt 设计中加以防范。</p>
+</div>
+<div class="col-card green-card">
+<h3>迭代开发的成本效率</h3>
+<p>论文证明迭代开发在 GPT-4.1 和 Claude-3.5-Sonnet 上与单次生成成本相当，但产出质量更高。这与 Feature-Workflow 的实践经验一致。</p>
+</div>
+</div>
+</div>
+</div>
+
+<!-- Slide 11: Ratings -->
+<div class="slide">
+<span class="section-num">10</span>
+<div class="slide-content">
+<span class="tag tag-section">映证评级</span>
+<h2>映证度量化评级</h2>
+<div class="score-bar"><span class="score-label">方法论一致性</span><div class="score-track"><div class="score-fill s10">10/10 完全遵循 FDD</div></div></div>
+<div class="score-bar"><span class="score-label">Feature Map</span><div class="score-track"><div class="score-fill s9">9/10 功能等价</div></div></div>
+<div class="score-bar"><span class="score-label">上下文传播</span><div class="score-track"><div class="score-fill s9">9/10 实际有效</div></div></div>
+<div class="score-bar"><span class="score-label">依赖建模</span><div class="score-track"><div class="score-fill s10">10/10 显式声明</div></div></div>
+<div class="score-bar"><span class="score-label">迭代开发</span><div class="score-track"><div class="score-fill s10">10/10 自动循环</div></div></div>
+<div class="score-bar"><span class="score-label">质量保证</span><div class="score-track"><div class="score-fill s10">10/10 Gherkin + Evidence</div></div></div>
+<div class="score-bar"><span class="score-label">知识积累</span><div class="score-track"><div class="score-fill s10">10/10 远超论文</div></div></div>
+<div class="score-bar"><span class="score-label">工程化程度</span><div class="score-track"><div class="score-fill s10">10/10 物理隔离 + 插件化</div></div></div>
+</div>
+</div>
+
+<!-- Slide 12: Conclusion -->
+<div class="slide slide-end">
+<div class="slide-content">
+<span class="tag tag-section">结论</span>
+<h2>映证结论</h2>
+<div class="key-point" style="text-align:center;">
+<p style="font-size:1.05rem;"><strong>Feature-Workflow 与 EvoDev 在 FDD 核心理念上高度一致，且在工程实践上更为成熟。</strong></p>
+</p>
+</div>
+<div style="margin-top:1.5rem;">
+<div class="cols">
+<div class="col-card green-card" style="text-align:center;">
+<h3>FDD 方法论映证</h3>
+<p>完全遵循 FDD 五阶段流程</p>
+</div>
+<div class="col-card green-card" style="text-align:center;">
+<h3>Feature Map 映证</h3>
+<p>queue + archive + spec 三文件组合等价 DAG</p>
+</div>
+</div>
+<div class="cols">
+<div class="col-card green-card" style="text-align:center;">
+<h3>三层上下文映证</h3>
+<p>Description / Technical / Reference 三层映射</p>
+</div>
+<div class="col-card green-card" style="text-align:center;">
+<h3>55 个归档 = 实证</h3>
+<p>每个特性的完整生命周期文档即为方法论有效性的实证</p>
+</div>
+</div>
+</div>
+<p style="text-align:center; margin-top:1.5rem; color:var(--text3); font-size:0.85rem;">EvoDev (arXiv:2511.02399) · Feature-Workflow Plugin · HS_jarvis Features Archive</p>
+</div>
+</div>
+
+</div>
+</body>
+</html>

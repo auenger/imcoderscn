@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>测机 Agent · 编排辅助与错误诊断</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#F8FAFC;--surface:#FFFFFF;--surface2:#F1F5F9;
+  --border:#E2E8F0;--border2:#CBD5E1;
+  --text:#1E293B;--text2:#64748B;--text3:#94A3B8;
+  --font:'Fira Sans',-apple-system,BlinkMacSystemFont,sans-serif;
+  --mono:'Fira Code','SF Mono',Monaco,Consolas,monospace;
+  --r:10px;--rs:6px;
+  --a:#2563EB;--a-l:#3B82F6;--a-bg:#EFF6FF;--a-bd:rgba(37,99,235,.2);
+  --b:#D97706;--b-l:#F59E0B;--b-bg:#FFFBEB;--b-bd:rgba(217,119,6,.2);
+  --c:#16A34A;--c-l:#22C55E;--c-bg:#F0FDF4;--c-bd:rgba(22,163,74,.2);
+  --ct:#7C3AED;--ct-bg:#F5F3FF;--ct-bd:rgba(124,58,237,.2);
+  --red:#DC2626;--red-bg:#FEF2F2;
+  --gold:#F59E0B;--gold-bg:#FEF3C7;--gold-bd:rgba(245,158,11,.2);
+  --tr:200ms ease;
+}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+html{font-size:16px;scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased}
+
+.nav{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between}
+.nav-left{display:flex;align-items:center;gap:12px}
+.nav-logo{width:30px;height:30px;background:linear-gradient(135deg,#F59E0B,#D97706);border-radius:var(--rs);display:flex;align-items:center;justify-content:center}
+.nav-logo svg{width:16px;height:16px;color:#fff}
+.nav-title{font-size:14px;font-weight:700}
+.nav-links{display:flex;gap:4px}
+.nav-link{padding:6px 12px;font-size:12px;font-weight:600;color:var(--text2);border-radius:var(--rs);cursor:pointer;transition:all var(--tr);border:none;background:none;font-family:var(--font)}
+.nav-link:hover{background:var(--surface2);color:var(--text)}
+.nav-link.active{background:var(--gold-bg);color:#92400E}
+
+.hero{max-width:1200px;margin:0 auto;padding:48px 32px 32px}
+.hero-tag{display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:var(--gold-bg);color:#92400E;border:1px solid var(--gold-bd);border-radius:20px;font-size:11px;font-weight:600;margin-bottom:12px}
+.hero h1{font-size:32px;font-weight:800;letter-spacing:-.5px;line-height:1.2;margin-bottom:10px}
+.hero-desc{font-size:15px;color:var(--text2);max-width:720px;line-height:1.7}
+.container{max-width:1200px;margin:0 auto;padding:0 32px 80px}
+
+.sec{margin-bottom:56px}
+.sec-head{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.sec-num{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0}
+.sec-num.blue{background:var(--a-bg);color:var(--a);border:1.5px solid var(--a-bd)}
+.sec-num.amber{background:var(--b-bg);color:var(--b);border:1.5px solid var(--b-bd)}
+.sec-num.green{background:var(--c-bg);color:var(--c);border:1.5px solid var(--c-bd)}
+.sec-num.purple{background:var(--ct-bg);color:var(--ct);border:1.5px solid var(--ct-bd)}
+.sec-num.gold{background:var(--gold-bg);color:#92400E;border:1.5px solid var(--gold-bd)}
+.sec-title{font-size:18px;font-weight:700}
+.sec-sub{font-size:13px;color:var(--text3);margin-left:4px}
+
+.callout{display:flex;align-items:flex-start;gap:10px;padding:14px 18px;border-radius:var(--r);margin-bottom:16px;font-size:13px;font-weight:500;line-height:1.6}
+.callout svg{width:18px;height:18px;flex-shrink:0;margin-top:1px}
+.callout.blue{background:var(--a-bg);border:1px solid var(--a-bd);color:#1D4ED8}
+.callout.amber{background:var(--b-bg);border:1px solid var(--b-bd);color:#92400E}
+.callout.green{background:var(--c-bg);border:1px solid var(--c-bd);color:#166534}
+.callout.purple{background:var(--ct-bg);border:1px solid var(--ct-bd);color:#6D28D9}
+.callout.gold{background:var(--gold-bg);border:1px solid var(--gold-bd);color:#78350F}
+
+.card-grid{display:grid;gap:14px}
+.card-grid.c3{grid-template-columns:repeat(3,1fr)}
+.card-grid.c2{grid-template-columns:repeat(2,1fr)}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;transition:all var(--tr)}
+.card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-1px)}
+.card-icon{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.card-icon svg{width:18px;height:18px}
+.card-icon.blue{background:var(--a-bg);border:1px solid var(--a-bd);color:var(--a)}
+.card-icon.amber{background:var(--b-bg);border:1px solid var(--b-bd);color:var(--b)}
+.card-icon.green{background:var(--c-bg);border:1px solid var(--c-bd);color:var(--c)}
+.card-icon.purple{background:var(--ct-bg);border:1px solid var(--ct-bd);color:var(--ct)}
+.card-icon.gold{background:var(--gold-bg);border:1px solid var(--gold-bd);color:var(--gold)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:6px}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.7}
+.card-tag{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;margin-top:10px}
+.card-tag.blue{background:var(--a-bg);color:var(--a)}
+.card-tag.amber{background:var(--b-bg);color:var(--b)}
+.card-tag.green{background:var(--c-bg);color:var(--c)}
+.card-tag.gold{background:var(--gold-bg);color:#92400E}
+.card-tag.red{background:var(--red-bg);color:var(--red)}
+
+/* Pipeline Steps */
+.pipeline{display:flex;gap:0;position:relative}
+.pipe-step{flex:1;background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px 18px;position:relative;text-align:center;transition:all var(--tr)}
+.pipe-step:hover{border-color:var(--border2);transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.06)}
+.pipe-step::after{content:'';position:absolute;right:-14px;top:50%;transform:translateY(-50%);width:0;height:0;border-left:12px solid var(--border);border-top:10px solid transparent;border-bottom:10px solid transparent;z-index:2}
+.pipe-step:last-child::after{display:none}
+.pipe-step .step-n{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;margin-bottom:10px}
+.pipe-step .step-n.blue{background:var(--a-bg);color:var(--a);border:1.5px solid var(--a-bd)}
+.pipe-step .step-n.amber{background:var(--b-bg);color:var(--b);border:1.5px solid var(--b-bd)}
+.pipe-step .step-n.green{background:var(--c-bg);color:var(--c);border:1.5px solid var(--c-bd)}
+.pipe-step .step-n.gold{background:var(--gold-bg);color:#92400E;border:1.5px solid var(--gold-bd)}
+.pipe-step h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.pipe-step p{font-size:11px;color:var(--text2);line-height:1.6}
+
+/* Agent flow */
+.agent-flow{display:grid;grid-template-columns:1fr 48px 1fr 48px 1fr 48px 1fr 48px 1fr;gap:0;align-items:stretch}
+.af-node{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:18px 16px;position:relative;transition:all var(--tr)}
+.af-node:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06);transform:translateY(-1px)}
+.af-node.highlight{border:2px solid var(--gold);background:linear-gradient(135deg,#FFFBEB,#fff);box-shadow:0 0 0 4px rgba(245,158,11,.08)}
+.af-node.highlight-green{border:2px solid var(--c);background:linear-gradient(135deg,var(--c-bg),#fff);box-shadow:0 0 0 4px rgba(22,163,74,.08)}
+.af-node.highlight-red{border:2px solid var(--red);background:linear-gradient(135deg,var(--red-bg),#fff);box-shadow:0 0 0 4px rgba(220,38,38,.08)}
+.af-node-num{position:absolute;top:-10px;left:14px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 6px rgba(245,158,11,.3)}
+.af-node h4{font-size:13px;font-weight:700;margin-bottom:6px}
+.af-node p{font-size:11px;color:var(--text2);line-height:1.6}
+.af-node .af-tag{display:inline-block;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:600;margin-top:8px}
+.af-arrow{display:flex;align-items:center;justify-content:center}
+.af-arrow svg{color:var(--text3)}
+
+/* Error diagnosis tree */
+.diag-tree{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:32px 24px;position:relative;overflow:hidden}
+.diag-tree::before{content:'';position:absolute;inset:0;background-image:radial-gradient(circle,var(--border) 1px,transparent 1px);background-size:24px 24px;opacity:.4;pointer-events:none}
+.diag-row{display:flex;gap:24px;align-items:stretch;position:relative;z-index:1;margin-bottom:20px}
+.diag-row:last-child{margin-bottom:0}
+.diag-col{flex:1;display:flex;flex-direction:column;gap:12px}
+.diag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:14px 16px;transition:all var(--tr);position:relative}
+.diag-card:hover{border-color:var(--border2);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.diag-card h5{font-size:12px;font-weight:700;margin-bottom:4px;display:flex;align-items:center;gap:6px}
+.diag-card p{font-size:11px;color:var(--text2);line-height:1.5}
+.diag-card .diag-indicator{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+/* Connector lines */
+.connector-center{display:flex;align-items:center;justify-content:center;padding:0 4px;flex-shrink:0}
+
+/* Timeline */
+.timeline{position:relative;padding-left:32px}
+.timeline::before{content:'';position:absolute;left:14px;top:0;bottom:0;width:2px;background:repeating-linear-gradient(180deg,var(--border2) 0,var(--border2) 6px,transparent 6px,transparent 12px)}
+.tl-item{position:relative;margin-bottom:24px}
+.tl-item:last-child{margin-bottom:0}
+.tl-dot{position:absolute;left:-25px;top:4px;width:12px;height:12px;border-radius:50%;border:2px solid}
+.tl-dot.blue{border-color:var(--a);background:var(--a-bg)}
+.tl-dot.amber{border-color:var(--b);background:var(--b-bg)}
+.tl-dot.green{border-color:var(--c);background:var(--c-bg)}
+.tl-dot.gold{border-color:var(--gold);background:var(--gold-bg)}
+.tl-dot.red{border-color:var(--red);background:var(--red-bg)}
+.tl-content{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:16px 20px}
+.tl-content h4{font-size:13px;font-weight:700;margin-bottom:4px}
+.tl-content p{font-size:12px;color:var(--text2);line-height:1.6}
+.tl-content .tl-meta{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap}
+.tl-badge{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600}
+
+/* Decision diamond */
+.decision-grid{display:grid;grid-template-columns:1fr 120px 1fr;gap:0;align-items:center}
+.decision-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:20px;text-align:center}
+.decision-diamond{width:80px;height:80px;transform:rotate(45deg);background:var(--gold-bg);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin:0 auto}
+.decision-diamond span{transform:rotate(-45deg);font-size:11px;font-weight:700;color:#92400E;text-align:center}
+
+/* Error cause table */
+.err-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:8px}
+.err-table th{text-align:left;padding:8px 12px;background:var(--surface2);font-weight:600;color:var(--text2);border-bottom:2px solid var(--border);font-size:11px}
+.err-table td{padding:8px 12px;border-bottom:1px solid var(--border);vertical-align:top}
+.err-table tr:last-child td{border-bottom:none}
+.err-table code{font-family:var(--mono);font-size:10px;background:var(--surface);padding:1px 6px;border-radius:3px;border:1px solid var(--border)}
+
+/* Evolution roadmap */
+.evo-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;transition:all var(--tr)}
+.evo-card:hover{border-color:var(--border2);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+.evo-header{padding:16px 20px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border)}
+.evo-header.gold{background:var(--gold-bg);border-bottom:1px solid var(--gold-bd)}
+.evo-header.blue{background:var(--a-bg);border-bottom:1px solid var(--a-bd)}
+.evo-header.green{background:var(--c-bg);border-bottom:1px solid var(--c-bd)}
+.evo-header.purple{background:var(--ct-bg);border-bottom:1px solid var(--ct-bd)}
+.evo-body{padding:16px 20px}
+.evo-item{display:flex;align-items:flex-start;gap:8px;margin-bottom:10px;font-size:12px;color:var(--text2);line-height:1.6}
+.evo-item:last-child{margin-bottom:0}
+.evo-item svg{width:14px;height:14px;flex-shrink:0;margin-top:2px}
+.evo-item svg.blue{color:var(--a)}
+.evo-item svg.amber{color:var(--b)}
+.evo-item svg.green{color:var(--c)}
+.evo-item svg.gold{color:var(--gold)}
+.evo-item svg.purple{color:var(--ct)}
+.evo-phase{padding:3px 10px;border-radius:20px;font-size:10px;font-weight:700;flex-shrink:0}
+.evo-phase.gold{background:var(--gold-bg);color:#92400E}
+.evo-phase.blue{background:var(--a-bg);color:var(--a)}
+.evo-phase.green{background:var(--c-bg);color:var(--c)}
+.evo-phase.purple{background:var(--ct-bg);color:var(--ct)}
+
+/* Responsive */
+@media(max-width:1024px){
+  .card-grid.c3,.card-grid.c2{grid-template-columns:1fr}
+  .pipeline{flex-direction:column}
+  .pipe-step::after{content:'';right:50%;top:auto;bottom:-14px;transform:translateX(50%) rotate(90deg)}
+  .agent-flow{grid-template-columns:1fr;gap:0}
+  .af-arrow{padding:8px 0}
+  .af-arrow svg{transform:rotate(90deg)}
+  .diag-row{flex-direction:column}
+  .decision-grid{grid-template-columns:1fr;gap:16px}
+  .decision-diamond{transform:rotate(0deg);width:auto;height:auto;padding:12px;border-radius:var(--r)}
+  .decision-diamond span{transform:none}
+}
+@media(max-width:640px){
+  .hero{padding:32px 16px 20px}
+  .hero h1{font-size:24px}
+  .container{padding:0 16px 60px}
+  .nav-links{display:none}
+}
+
+@keyframes fadeInUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+.sec{animation:fadeInUp .5s ease both}
+.sec:nth-child(2){animation-delay:.05s}
+.sec:nth-child(3){animation-delay:.1s}
+.sec:nth-child(4){animation-delay:.15s}
+.sec:nth-child(5){animation-delay:.2s}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-left">
+    <div class="nav-logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4v4l3 3"/></svg>
+    </div>
+    <span class="nav-title">测机 Agent · 编排辅助与诊断</span>
+  </div>
+  <div class="nav-links">
+    <button class="nav-link active" onclick="scrollToSec('evolution')">演进路径</button>
+    <button class="nav-link" onclick="scrollToSec('orchestration')">流程编排</button>
+    <button class="nav-link" onclick="scrollToSec('diagnosis')">错误诊断</button>
+    <button class="nav-link" onclick="scrollToSec('cause')">原因分析</button>
+    <button class="nav-link" onclick="scrollToSec('ops')">运维进化</button>
+  </div>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-tag">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4v4l3 3"/></svg>
+    Agent Design v2.0 — 编排辅助与错误诊断
+  </div>
+  <h1>测机 Agent · 编排辅助与错误诊断</h1>
+  <p class="hero-desc">
+    单设备接口测试已就绪，三端数据链路已打通。下一步关键：Agent 辅助人工完成业务线流程化测试，编排推荐测试步骤，并在出现错误时快速定位错误端和原因分析。人操作设备，Agent 负责编排引导和问题诊断。
+  </p>
+</div>
+
+<div class="container">
+
+<!-- SECTION 1: 系统演进阶段 -->
+<div class="sec" id="evolution">
+  <div class="sec-head">
+    <div class="sec-num gold">1</div>
+    <div class="sec-title">系统演进 · 四阶段能力建设</div>
+    <div class="sec-sub">从单接口验证到业务线智能编排</div>
+  </div>
+
+  <div class="callout gold">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+    <span>当前前三阶段已完成：设备厂商可点对点对接测机服务开发接口；测机服务与 EAP 原子化方法打通、实时通信；三端解耦联通并支持监控运维。Agent 的设计锚点在第四阶段 — 辅助人工进行测试用例编排和错误定位诊断。</span>
+  </div>
+
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
+    <!-- Stage 1 -->
+    <div class="card" style="border-color:var(--a-bd);position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;padding:4px 10px;background:var(--a);color:#fff;font-size:9px;font-weight:700;border-radius:0 0 0 var(--rs)">已完成</div>
+      <div class="card-icon blue">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--a)">阶段一 · 设备对接</div>
+      <div class="card-desc">设备厂商与测机服务点对点测试对接。厂商可独立完成接口开发和调试，不依赖其他系统。</div>
+      <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap">
+        <span class="card-tag blue">接口开发</span>
+        <span class="card-tag blue">联调验证</span>
+      </div>
+    </div>
+    <!-- Stage 2 -->
+    <div class="card" style="border-color:var(--a-bd);position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;padding:4px 10px;background:var(--a);color:#fff;font-size:9px;font-weight:700;border-radius:0 0 0 var(--rs)">已完成</div>
+      <div class="card-icon amber">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--b)">阶段二 · 数据打通</div>
+      <div class="card-desc">测机模拟与 EAP 服务原子化方法打通。实时通信、数据抓取、状态展示全部就绪。</div>
+      <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap">
+        <span class="card-tag amber">原子化方法</span>
+        <span class="card-tag amber">实时通信</span>
+      </div>
+    </div>
+    <!-- Stage 3 -->
+    <div class="card" style="border-color:var(--a-bd);position:relative;overflow:hidden">
+      <div style="position:absolute;top:0;right:0;padding:4px 10px;background:var(--a);color:#fff;font-size:9px;font-weight:700;border-radius:0 0 0 var(--rs)">已完成</div>
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--c)">阶段三 · 三端联通</div>
+      <div class="card-desc">设备→测机服务→EAP 三端解耦且数据打通。支持业务场景的监控与运维，实时数据可视化。</div>
+      <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap">
+        <span class="card-tag green">场景监控</span>
+        <span class="card-tag green">数据运维</span>
+      </div>
+    </div>
+    <!-- Stage 4 -->
+    <div class="card" style="border-color:var(--gold-bd);background:linear-gradient(135deg,#FFFBEB,#fff);position:relative;overflow:hidden;box-shadow:0 0 0 3px rgba(245,158,11,.1)">
+      <div style="position:absolute;top:0;right:0;padding:4px 10px;background:var(--gold);color:#fff;font-size:9px;font-weight:700;border-radius:0 0 0 var(--rs)">Agent 核心</div>
+      <div class="card-icon gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 4v4l3 3"/></svg>
+      </div>
+      <div class="card-title" style="color:#92400E">阶段四 · Agent 辅助</div>
+      <div class="card-desc">Agent 辅助人工进行测试用例编排和流程化测试，人操作设备、Agent 引导步骤并在出错时快速定位诊断。</div>
+      <div style="margin-top:10px;display:flex;gap:4px;flex-wrap:wrap">
+        <span class="card-tag gold">编排辅助</span>
+        <span class="card-tag gold">错误诊断</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 2: Agent 流程编排 -->
+<div class="sec" id="orchestration">
+  <div class="sec-head">
+    <div class="sec-num gold">2</div>
+    <div class="sec-title">测试编排 Agent · 辅助流程化测试</div>
+    <div class="sec-sub">Agent 引导步骤，人操作设备，协作完成业务线测试</div>
+  </div>
+
+  <div class="callout gold">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+    <span>编排 Agent 的核心职责：将多个原子化测试接口按业务场景组装成推荐测试流程，引导测机人员按步骤操作设备。Agent 在每一步判定结果、记录数据。失败时触发错误诊断链路，帮助快速定位问题。</span>
+  </div>
+
+  <!-- Orchestration Flow -->
+  <div style="margin-bottom:32px">
+    <div class="sec-head">
+      <div class="sec-num gold" style="width:24px;height:24px;font-size:10px">→</div>
+      <div class="sec-title" style="font-size:14px">人机协作编排流程</div>
+    </div>
+
+    <div class="agent-flow">
+      <div class="af-node highlight">
+        <div class="af-node-num">1</div>
+        <h4>Agent 推荐编排</h4>
+        <p>选择业务场景（如：Panel 过站全流程），Agent 推荐测试步骤序列：连线检查→状态上报→Alarm 上报→过站确认→量测数据→下料完成</p>
+        <div class="af-tag" style="background:var(--gold-bg);color:#92400E">Agent 推荐</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node highlight">
+        <div class="af-node-num">2</div>
+        <h4>引导人工操作</h4>
+        <p>Agent 逐步提示当前该做什么：显示待测接口、期望操作、注意事项。测机人员按引导操作设备，Agent 监听响应数据</p>
+        <div class="af-tag" style="background:var(--gold-bg);color:#92400E">人工操作</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node">
+        <div class="af-node-num" style="background:var(--c)">3</div>
+        <h4>结果实时判定</h4>
+        <p>操作完成后 Agent 自动校验响应数据：判定 Pass/Fail，记录耗时和原始数据。Pass 提示进入下一步；Fail 暂停并触发诊断</p>
+        <div class="af-tag" style="background:var(--c-bg);color:var(--c)">Agent 判定</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node highlight-red">
+        <div class="af-node-num" style="background:var(--red)">4</div>
+        <h4>错误快速诊断</h4>
+        <p>Fail 时 Agent 立即诊断：定位错误在 MES/设备/EAP 哪一端，分析可能原因，给出处置建议供人工决策</p>
+        <div class="af-tag" style="background:var(--red-bg);color:var(--red)">错误诊断</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node highlight-green">
+        <div class="af-node-num" style="background:var(--c)">5</div>
+        <h4>全流程报告</h4>
+        <p>完整业务线测试报告：每个节点耗时、通过/失败状态、错误诊断结论、整体通过率和瓶颈分析</p>
+        <div class="af-tag" style="background:var(--c-bg);color:var(--c)">报告输出</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Test Case Example -->
+  <div style="margin-bottom:32px">
+    <div class="sec-head">
+      <div class="sec-num gold" style="width:24px;height:24px;font-size:10px">★</div>
+      <div class="sec-title" style="font-size:14px">业务线编排示例 · Panel 过站全流程</div>
+    </div>
+
+    <div class="pipeline">
+      <div class="pipe-step">
+        <div class="step-n gold">1</div>
+        <h4>设备连接</h4>
+        <p>EQP-EAP-001 连线检查，确认设备在线状态</p>
+      </div>
+      <div class="pipe-step">
+        <div class="step-n gold">2</div>
+        <h4>状态初始化</h4>
+        <p>EQP-EAP-002 上报初始运行状态和设备参数</p>
+      </div>
+      <div class="pipe-step">
+        <div class="step-n gold">3</div>
+        <h4>Panel 过站</h4>
+        <p>EQP-EAP-007 扫码→EQP-EAP-008 过站确认</p>
+      </div>
+      <div class="pipe-step">
+        <div class="step-n gold">4</div>
+        <h4>量测采集</h4>
+        <p>EQP-EAP-012 涨缩量测→EQP-EAP-014 缺陷检测</p>
+      </div>
+      <div class="pipe-step">
+        <div class="step-n green">5</div>
+        <h4>数据汇总</h4>
+        <p>EQP-EAP-020 量测结果→EQP-EAP-022 生产报告</p>
+      </div>
+      <div class="pipe-step">
+        <div class="step-n green">6</div>
+        <h4>下料完成</h4>
+        <p>EQP-EAP-025 下料确认→EQP-EAP-028 设备就绪</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Agent Decision Logic -->
+  <div>
+    <div class="sec-head">
+      <div class="sec-num gold" style="width:24px;height:24px;font-size:10px">◇</div>
+      <div class="sec-title" style="font-size:14px">Agent 判定逻辑 · 每步操作后的结果处理</div>
+    </div>
+
+    <div class="card-grid c3">
+      <div class="card" style="border-left:3px solid var(--c)">
+        <div class="card-title" style="color:var(--c)">Pass · 提示下一步</div>
+        <div class="card-desc">
+          <div style="margin-bottom:6px"><strong>判定条件：</strong>响应状态码正确 + 返回数据格式匹配 + 耗时在阈值内</div>
+          <div><strong>Agent 动作：</strong>记录结果 → 提示测机人员进入下一个操作步骤 → 更新进度</div>
+        </div>
+        <div class="card-tag green">正常路径</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--b)">
+        <div class="card-title" style="color:var(--b)">Warn · 建议重试</div>
+        <div class="card-desc">
+          <div style="margin-bottom:6px"><strong>判定条件：</strong>响应超时但未超最大重试次数 / 数据部分字段缺失</div>
+          <div><strong>Agent 动作：</strong>提示测机人员可重试 → 记录重试日志 → 重试成功则继续，失败降级为 Fail</div>
+        </div>
+        <div class="card-tag amber">建议重试</div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--red)">
+        <div class="card-title" style="color:var(--red)">Fail · 触发诊断</div>
+        <div class="card-desc">
+          <div style="margin-bottom:6px"><strong>判定条件：</strong>响应状态码异常 / 数据校验失败 / 重试耗尽 / 设备无响应</div>
+          <div><strong>Agent 动作：</strong>暂停流程 → 收集上下文快照 → 启动错误诊断 → 输出诊断报告供人工决策</div>
+        </div>
+        <div class="card-tag red">需诊断</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 3: 错误诊断定位 -->
+<div class="sec" id="diagnosis">
+  <div class="sec-head">
+    <div class="sec-num gold">3</div>
+    <div class="sec-title">错误诊断 Agent · 三端快速定位</div>
+    <div class="sec-sub">错误在 MES？设备？还是 EAP？秒级定位</div>
+  </div>
+
+  <div class="callout gold">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <span>错误诊断是 Agent 最核心的价值。当测机人员按流程操作后某个节点 Fail，Agent 需要回答两个问题：1）错误发生在哪一端（MES/设备/EAP）？2）可能的原因是什么？这决定了问题该由谁来处理。</span>
+  </div>
+
+  <!-- Diagnosis Timeline -->
+  <div class="timeline">
+    <div class="tl-item">
+      <div class="tl-dot gold"></div>
+      <div class="tl-content">
+        <h4>1. 错误捕获 · 上下文快照</h4>
+        <p>节点 Fail 的瞬间，Agent 自动捕获：请求报文、期望响应、实际响应、耗时、设备状态、EAP 日志片段、MES 下发参数。所有原始数据打包为诊断上下文。</p>
+        <div class="tl-meta">
+          <span class="tl-badge" style="background:var(--gold-bg);color:#92400E">自动触发</span>
+          <span class="tl-badge" style="background:var(--surface2);color:var(--text2)">耗时 &lt;1s</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot blue"></div>
+      <div class="tl-content">
+        <h4>2. 端侧定位 · 错误归属判定</h4>
+        <p>Agent 按优先级逐端排查：先检查设备响应数据是否完整（设备侧）→ 再检查 EAP 服务日志是否有异常（EAP 侧）→ 最后检查 MES 下发参数是否正确（MES 侧）。通过规则引擎 + 历史模式匹配确定错误归属。</p>
+        <div class="tl-meta">
+          <span class="tl-badge" style="background:var(--a-bg);color:var(--a)">规则引擎</span>
+          <span class="tl-badge" style="background:var(--gold-bg);color:#92400E">模式匹配</span>
+          <span class="tl-badge" style="background:var(--surface2);color:var(--text2)">耗时 2-5s</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot amber"></div>
+      <div class="tl-content">
+        <h4>3. 原因分析 · 深度推理</h4>
+        <p>定位端侧后，Agent 进入原因分析：对比同类设备历史错误、检查是否为已知问题、判断是否为环境因素（网络/负载）、评估是否需要重测。输出结构化诊断报告。</p>
+        <div class="tl-meta">
+          <span class="tl-badge" style="background:var(--b-bg);color:var(--b)">历史比对</span>
+          <span class="tl-badge" style="background:var(--b-bg);color:var(--b)">环境分析</span>
+          <span class="tl-badge" style="background:var(--surface2);color:var(--text2)">耗时 3-8s</span>
+        </div>
+      </div>
+    </div>
+    <div class="tl-item">
+      <div class="tl-dot green"></div>
+      <div class="tl-content">
+        <h4>4. 诊断报告 · 处置建议</h4>
+        <p>输出完整诊断报告：错误端归属、可能原因 Top3、历史同类案例、建议处置方式（重测/跳过/人工介入）。人工确认后决定是否继续流程。</p>
+        <div class="tl-meta">
+          <span class="tl-badge" style="background:var(--c-bg);color:var(--c)">人工确认</span>
+          <span class="tl-badge" style="background:var(--c-bg);color:var(--c)">建议处置</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Diagnosis Decision Tree -->
+  <div style="margin-top:32px">
+    <div class="sec-head">
+      <div class="sec-num gold" style="width:24px;height:24px;font-size:10px">◆</div>
+      <div class="sec-title" style="font-size:14px">诊断决策树 · 错误端定位逻辑</div>
+    </div>
+
+    <div class="diag-tree">
+      <!-- Root -->
+      <div style="text-align:center;margin-bottom:20px">
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;background:var(--red-bg);border:1.5px solid rgba(220,38,38,.25);border-radius:var(--r)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--red)" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+          <span style="font-size:13px;font-weight:700;color:var(--red)">测试节点 Fail</span>
+        </div>
+        <div style="margin-top:8px">
+          <svg width="24" height="28" viewBox="0 0 24 28"><path d="M12 0 L12 20 M7 14 L12 20 L17 14" stroke="var(--text3)" stroke-width="1.5" fill="none"/></svg>
+        </div>
+      </div>
+
+      <!-- Three branches -->
+      <div class="diag-row">
+        <!-- Device Branch -->
+        <div class="diag-col">
+          <div style="text-align:center;margin-bottom:12px">
+            <span style="display:inline-block;padding:4px 12px;background:var(--a-bg);border:1px solid var(--a-bd);border-radius:20px;font-size:11px;font-weight:700;color:var(--a)">检查设备侧</span>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--a)">
+            <h5><span class="diag-indicator" style="background:var(--red)"></span>设备无响应</h5>
+            <p>超时未返回数据 → 网络断连 / 设备宕机 / 协议异常</p>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--a)">
+            <h5><span class="diag-indicator" style="background:var(--b)"></span>数据格式异常</h5>
+            <p>响应字段缺失或类型错误 → 固件版本不匹配 / 协议实现偏差</p>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--a)">
+            <h5><span class="diag-indicator" style="background:var(--b)"></span>设备状态异常</h5>
+            <p>返回错误状态码 → Alarm 未清除 / 设备未就绪 / 操作冲突</p>
+          </div>
+          <div style="text-align:center;margin-top:8px;padding:8px 12px;background:var(--a-bg);border:1px solid var(--a-bd);border-radius:var(--rs)">
+            <span style="font-size:11px;font-weight:700;color:var(--a)">归属：设备厂商处理</span>
+          </div>
+        </div>
+
+        <!-- EAP Branch -->
+        <div class="diag-col">
+          <div style="text-align:center;margin-bottom:12px">
+            <span style="display:inline-block;padding:4px 12px;background:var(--c-bg);border:1px solid var(--c-bd);border-radius:20px;font-size:11px;font-weight:700;color:var(--c)">检查 EAP 侧</span>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--c)">
+            <h5><span class="diag-indicator" style="background:var(--red)"></span>服务端 5xx</h5>
+            <p>EAP 服务内部错误 → 查日志堆栈 / 检查服务健康度</p>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--c)">
+            <h5><span class="diag-indicator" style="background:var(--b)"></span>业务逻辑拒绝</h5>
+            <p>返回 4xx 业务错误 → 参数校验失败 / 状态机不匹配 / 重复请求</p>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--c)">
+            <h5><span class="diag-indicator" style="background:var(--b)"></span>EAP 超时</h5>
+            <p>测机收到设备响应但 EAP 处理超时 → EAP 负载高 / 依赖服务慢</p>
+          </div>
+          <div style="text-align:center;margin-top:8px;padding:8px 12px;background:var(--c-bg);border:1px solid var(--c-bd);border-radius:var(--rs)">
+            <span style="font-size:11px;font-weight:700;color:var(--c)">归属：EAP 团队处理</span>
+          </div>
+        </div>
+
+        <!-- MES Branch -->
+        <div class="diag-col">
+          <div style="text-align:center;margin-bottom:12px">
+            <span style="display:inline-block;padding:4px 12px;background:var(--ct-bg);border:1px solid var(--ct-bd);border-radius:20px;font-size:11px;font-weight:700;color:var(--ct)">检查 MES 侧</span>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--ct)">
+            <h5><span class="diag-indicator" style="background:var(--red)"></span>MES 下发参数错误</h5>
+            <p>配方参数/工艺参数与预期不符 → MES 配置错误 / 版本不一致</p>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--ct)">
+            <h5><span class="diag-indicator" style="background:var(--b)"></span>工艺流程冲突</h5>
+            <p>MES 要求的操作与设备当前状态冲突 → 工艺流程配置有误</p>
+          </div>
+          <div class="diag-card" style="border-left:3px solid var(--ct)">
+            <h5><span class="diag-indicator" style="background:var(--b)"></span>MES 未下发指令</h5>
+            <p>设备就绪但 MES 未下发下一步指令 → MES 流程卡住 / 消息丢失</p>
+          </div>
+          <div style="text-align:center;margin-top:8px;padding:8px 12px;background:var(--ct-bg);border:1px solid var(--ct-bd);border-radius:var(--rs)">
+            <span style="font-size:11px;font-weight:700;color:var(--ct)">归属：MES 团队处理</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 4: 错误原因分析 -->
+<div class="sec" id="cause">
+  <div class="sec-head">
+    <div class="sec-num gold">4</div>
+    <div class="sec-title">原因分析 · 错误分类与处置策略</div>
+    <div class="sec-sub">不只是定位，更要分析为什么</div>
+  </div>
+
+  <div class="callout gold">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--gold)"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    <span>定位错误归属是第一步，分析原因是第二步。Agent 需要结合历史错误库、设备型号特征、当前环境状态，给出结构化的原因分析和处置建议，帮助相关团队快速修复问题。</span>
+  </div>
+
+  <!-- Error Category Table -->
+  <div class="card" style="margin-bottom:24px">
+    <div class="card-title" style="margin-bottom:12px">错误分类矩阵 · 原因→影响→处置</div>
+    <table class="err-table">
+      <thead>
+        <tr><th>错误分类</th><th>典型表现</th><th>可能原因</th><th>Agent 建议</th><th>优先级</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--red)">超时无响应</strong></td>
+          <td>设备/EAP 在阈值内未返回</td>
+          <td>网络抖动、设备宕机、服务过载、防火墙阻断</td>
+          <td>自动重试 3 次→仍失败则标记为<strong>环境问题</strong>，建议检查网络和服务健康</td>
+          <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--red-bg);color:var(--red)">P0 紧急</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--b)">协议不匹配</strong></td>
+          <td>字段缺失、类型错误、枚举值越界</td>
+          <td>固件版本与接口定义不一致、自定义接口未对齐</td>
+          <td>对比当前固件版本与接口库版本→标记<strong>版本偏差</strong>，建议升级固件或调整接口定义</td>
+          <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--b-bg);color:var(--b)">P1 重要</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--a)">状态机冲突</strong></td>
+          <td>设备拒绝操作、EAP 返回业务异常</td>
+          <td>设备当前状态不允许该操作、MES 流程配置错误</td>
+          <td>查询设备当前状态→对比操作前置条件→标记<strong>流程配置问题</strong></td>
+          <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--a-bg);color:var(--a)">P1 重要</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--ct)">数据异常</strong></td>
+          <td>量测值越界、Alarm 码未知、Panel 数据格式异常</td>
+          <td>传感器故障、设备校准偏移、新 Alarm 码未录入</td>
+          <td>与历史数据分布对比→判断是<strong>偶发波动</strong>还是<strong>持续偏移</strong>，建议校准或录入</td>
+          <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--ct-bg);color:var(--ct)">P2 一般</span></td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--c)">间歇性失败</strong></td>
+          <td>同一个接口时而 Pass 时而 Fail</td>
+          <td>资源竞争、负载波动、时序依赖、缓冲区溢出</td>
+          <td>统计失败频率和时段→分析是否有<strong>负载相关性</strong>，建议在低负载时重测验证</td>
+          <td><span style="padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--c-bg);color:var(--c)">P2 一般</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Cause Analysis Flow -->
+  <div>
+    <div class="sec-head">
+      <div class="sec-num gold" style="width:24px;height:24px;font-size:10px">→</div>
+      <div class="sec-title" style="font-size:14px">原因分析流程 · Agent 推理链路</div>
+    </div>
+
+    <div class="agent-flow" style="grid-template-columns:1fr 48px 1fr 48px 1fr 48px 1fr">
+      <div class="af-node">
+        <div class="af-node-num" style="background:var(--red)">A</div>
+        <h4>原始错误捕获</h4>
+        <p>请求报文 + 实际响应 + 期望响应 + 设备状态 + EAP 日志 + 耗时</p>
+        <div class="af-tag" style="background:var(--red-bg);color:var(--red)">上下文快照</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node highlight">
+        <div class="af-node-num">B</div>
+        <h4>规则匹配 + 历史比对</h4>
+        <p>将错误特征与已知规则库匹配：超时？格式错？状态码？同时比对同型号设备的历史错误记录</p>
+        <div class="af-tag" style="background:var(--gold-bg);color:#92400E">Agent 推理</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node">
+        <div class="af-node-num" style="background:var(--ct)">C</div>
+        <h4>原因排序</h4>
+        <p>按可能性排序 Top3 原因，标注置信度。如：协议不匹配(85%)>固件版本偏差(60%)>网络问题(20%)</p>
+        <div class="af-tag" style="background:var(--ct-bg);color:var(--ct)">置信度排序</div>
+      </div>
+      <div class="af-arrow">
+        <svg width="28" height="28" viewBox="0 0 28 28"><path d="M4 14 L20 14 M14 8 L20 14 L14 20" stroke="currentColor" stroke-width="2" fill="none"/></svg>
+      </div>
+      <div class="af-node highlight-green">
+        <div class="af-node-num" style="background:var(--c)">D</div>
+        <h4>处置建议输出</h4>
+        <p>结构化诊断报告：错误归属端 + 原因 Top3 + 历史案例 + 建议操作 + 是否可重测继续</p>
+        <div class="af-tag" style="background:var(--c-bg);color:var(--c)">诊断报告</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 5: 运维 Agent 进化 -->
+<div class="sec" id="ops">
+  <div class="sec-head">
+    <div class="sec-num purple">5</div>
+    <div class="sec-title">进化路径 · 从测试 Agent 到运维 Agent</div>
+    <div class="sec-sub">Agent 的能力递进和场景扩展</div>
+  </div>
+
+  <div class="callout purple">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--ct)"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+    <span>编排辅助 Agent 是起点。当 Agent 在测试场景中积累了足够的错误模式库和诊断经验后，自然进化为运维 Agent — 在生产环境中实时监控运行数据，动态抓取异常，主动预警。</span>
+  </div>
+
+  <!-- Evolution Cards -->
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:32px">
+    <!-- Phase 1 -->
+    <div class="evo-card" style="border-color:var(--gold-bd)">
+      <div class="evo-header gold">
+        <span class="evo-phase gold">Phase 1</span>
+        <h4 style="font-size:13px;font-weight:700">编排辅助 Agent</h4>
+      </div>
+      <div class="evo-body">
+        <div class="evo-item">
+          <svg class="gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>业务线测试步骤的编排推荐和操作引导</span>
+        </div>
+        <div class="evo-item">
+          <svg class="gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>辅助人工按流程完成设备操作和测试验证</span>
+        </div>
+        <div class="evo-item">
+          <svg class="gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>测试流程中 Fail 节点的快速定位和原因分析</span>
+        </div>
+        <div class="evo-item">
+          <svg class="gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>错误原因分析和处置建议生成</span>
+        </div>
+        <div class="evo-item">
+          <svg class="gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>测试报告与诊断报告输出</span>
+        </div>
+        <div style="margin-top:10px;padding:6px 10px;background:var(--gold-bg);border-radius:var(--rs);font-size:10px;font-weight:600;color:#92400E">当前阶段 · 人机协作</div>
+      </div>
+    </div>
+
+    <!-- Phase 2 -->
+    <div class="evo-card" style="border-color:var(--a-bd)">
+      <div class="evo-header blue">
+        <span class="evo-phase blue">Phase 2</span>
+        <h4 style="font-size:13px;font-weight:700">回归测试 Agent</h4>
+      </div>
+      <div class="evo-body">
+        <div class="evo-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>基于历史测试结果自动生成回归用例</span>
+        </div>
+        <div class="evo-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>接口变更时自动评估影响范围</span>
+        </div>
+        <div class="evo-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>版本升级前后自动对比测试结果</span>
+        </div>
+        <div class="evo-item">
+          <svg class="blue" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>兼容性风险预警</span>
+        </div>
+        <div style="margin-top:10px;padding:6px 10px;background:var(--a-bg);border-radius:var(--rs);font-size:10px;font-weight:600;color:var(--a)">Phase 1 积累后启动</div>
+      </div>
+    </div>
+
+    <!-- Phase 3 -->
+    <div class="evo-card" style="border-color:var(--c-bd)">
+      <div class="evo-header green">
+        <span class="evo-phase green">Phase 3</span>
+        <h4 style="font-size:13px;font-weight:700">监控运维 Agent</h4>
+      </div>
+      <div class="evo-body">
+        <div class="evo-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>生产环境实时数据流监控</span>
+        </div>
+        <div class="evo-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>动态抓取运行异常，主动预警</span>
+        </div>
+        <div class="evo-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>复用测试阶段的错误模式库</span>
+        </div>
+        <div class="evo-item">
+          <svg class="green" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>异常时自动定位和原因分析（复用诊断能力）</span>
+        </div>
+        <div style="margin-top:10px;padding:6px 10px;background:var(--c-bg);border-radius:var(--rs);font-size:10px;font-weight:600;color:var(--c)">测试 Agent 经验迁移</div>
+      </div>
+    </div>
+
+    <!-- Phase 4 -->
+    <div class="evo-card" style="border-color:var(--ct-bd)">
+      <div class="evo-header purple">
+        <span class="evo-phase purple">Phase 4</span>
+        <h4 style="font-size:13px;font-weight:700">智能运维 Agent</h4>
+      </div>
+      <div class="evo-body">
+        <div class="evo-item">
+          <svg class="purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>预测性维护：基于数据趋势预判设备故障</span>
+        </div>
+        <div class="evo-item">
+          <svg class="purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>自愈能力：对已知错误模式自动执行修复脚本</span>
+        </div>
+        <div class="evo-item">
+          <svg class="purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>跨产线知识共享：同类型设备错误经验复用</span>
+        </div>
+        <div class="evo-item">
+          <svg class="purple" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>根因分析报告自动生成和工单派发</span>
+        </div>
+        <div style="margin-top:10px;padding:6px 10px;background:var(--ct-bg);border-radius:var(--rs);font-size:10px;font-weight:600;color:var(--ct)">远期目标</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key capability transfer -->
+  <div>
+    <div class="sec-head">
+      <div class="sec-num purple" style="width:24px;height:24px;font-size:10px">★</div>
+      <div class="sec-title" style="font-size:14px">能力迁移路径 · 测试经验如何复用到运维</div>
+    </div>
+
+    <div class="card-grid c2">
+      <div class="card" style="border-left:3px solid var(--gold)">
+        <div class="card-title">测试阶段积累的资产</div>
+        <div class="card-desc" style="margin-top:8px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></span>
+            <span><strong>错误模式库</strong> — 历史测试中积累的各类错误特征和匹配规则</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></span>
+            <span><strong>诊断规则引擎</strong> — 错误定位和原因分析的决策树</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></span>
+            <span><strong>设备行为画像</strong> — 不同型号设备的正常响应基线和异常模式</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--gold);flex-shrink:0"></span>
+            <span><strong>业务线拓扑</strong> — 测试流程中积累的完整业务链路知识</span>
+          </div>
+        </div>
+      </div>
+      <div class="card" style="border-left:3px solid var(--c)">
+        <div class="card-title">运维阶段复用的方式</div>
+        <div class="card-desc" style="margin-top:8px">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+            <span><strong>实时数据比对</strong> — 将生产数据与测试基线对比，快速识别异常</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+            <span><strong>诊断规则直接复用</strong> — 同样的三端定位逻辑，从测试场景迁移到生产场景</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+            <span><strong>设备画像告警</strong> — 基于历史基线，生产数据偏移时主动告警</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:6px;font-size:12px">
+            <span style="width:6px;height:6px;border-radius:50%;background:var(--c);flex-shrink:0"></span>
+            <span><strong>业务链路追踪</strong> — 复用编排知识，在生产环境追踪完整业务流程</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SECTION 6: Summary -->
+<div class="sec">
+  <div class="sec-head">
+    <div class="sec-num gold">6</div>
+    <div class="sec-title">Agent 核心能力总结</div>
+  </div>
+  <div class="card-grid c3">
+    <div class="card" style="border-color:var(--gold-bd);background:linear-gradient(135deg,#FFFBEB,#fff)">
+      <div class="card-icon gold">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="card-title" style="color:#92400E">编排辅助引导</div>
+      <div class="card-desc">将散装的原子化接口测试组装成业务线测试流程推荐，Agent 逐步引导人工操作，记录数据并实时判定结果。</div>
+      <div class="card-tag gold">核心能力</div>
+    </div>
+    <div class="card" style="border-color:var(--red);background:linear-gradient(135deg,var(--red-bg),#fff)">
+      <div class="card-icon" style="background:var(--red-bg);border:1px solid rgba(220,38,38,.2);color:var(--red)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--red)">三端错误定位</div>
+      <div class="card-desc">Fail 发生时秒级定位错误归属端（设备/EAP/MES），结合规则引擎和历史模式匹配，给出端侧归属判定。</div>
+      <div class="card-tag red">关键价值</div>
+    </div>
+    <div class="card" style="border-color:var(--c-bd);background:linear-gradient(135deg,var(--c-bg),#fff)">
+      <div class="card-icon green">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+      </div>
+      <div class="card-title" style="color:var(--c)">运维 Agent 进化</div>
+      <div class="card-desc">测试阶段积累的错误模式库和诊断规则迁移到运维场景。从测试辅助进化为实时监控、动态抓取异常、主动预警。</div>
+      <div class="card-tag green">长期演进</div>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- FOOTER -->
+<div style="max-width:1200px;margin:0 auto;padding:0 32px 40px">
+  <div style="border-top:1px solid var(--border);padding-top:20px;display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text3)">
+    <span>测机 Agent · 编排辅助与错误诊断 v2.0</span>
+    <span>编排引导 · 错误定位 · 运维进化</span>
+  </div>
+</div>
+
+<script>
+function scrollToSec(id) {
+  const el = document.getElementById(id);
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+    event.target.classList.add('active');
+  }
+}
+
+const sections = document.querySelectorAll('.sec[id]');
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const id = entry.target.id;
+      document.querySelectorAll('.nav-link').forEach(l => {
+        l.classList.toggle('active', l.textContent.includes(getNavLabel(id)));
+      });
+    }
+  });
+}, { threshold: 0.3 });
+sections.forEach(s => observer.observe(s));
+
+function getNavLabel(id) {
+  const map = { evolution: '演进', orchestration: '编排', diagnosis: '诊断', cause: '原因', ops: '运维' };
+  return map[id] || '';
+}
+</script>
+</body>
+</html>
