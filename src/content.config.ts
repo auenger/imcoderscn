@@ -13,18 +13,4 @@ const blog = defineCollection({
   }),
 });
 
-const podcast = defineCollection({
-  type: 'content',
-  schema: z.object({
-    title: z.string(),
-    description: z.string(),
-    pubDate: z.coerce.date(),
-    tags: z.array(z.string()).default([]),
-    duration: z.string().optional(),
-    audioUrl: z.string().optional(),
-    guest: z.string().optional(),
-    draft: z.boolean().default(false),
-  }),
-});
-
-export const collections = { blog, podcast };
+export const collections = { blog };

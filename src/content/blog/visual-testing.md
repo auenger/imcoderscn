@@ -3,8 +3,6 @@ title: "下一代自动化测试：视觉驱动的新范式"
 description: "深入讨论 Visual Replay Tester 的设计理念，探索基于视觉的自动化测试解决方案"
 pubDate: 2026-03-08
 tags: ["自动化测试", "Playwright", "VLM"]
-duration: "52分钟"
-guest: "杨正武"
 draft: false
 ---
 

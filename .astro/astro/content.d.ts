@@ -166,6 +166,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: any
 } & { render(): Render[".md"] };
+"ai-agent-future.md": {
+	id: "ai-agent-future.md";
+  slug: "ai-agent-future";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
 "ai-catfish-transformation.md": {
 	id: "ai-catfish-transformation.md";
   slug: "ai-catfish-transformation";
@@ -292,6 +299,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: any
 } & { render(): Render[".md"] };
+"neuro-ide-design.md": {
+	id: "neuro-ide-design.md";
+  slug: "neuro-ide-design";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
 "neuro-ide.md": {
 	id: "neuro-ide.md";
   slug: "neuro-ide";
@@ -313,6 +327,13 @@ declare module 'astro:content' {
   collection: "blog";
   data: any
 } & { render(): Render[".md"] };
+"visual-testing.md": {
+	id: "visual-testing.md";
+  slug: "visual-testing";
+  body: string;
+  collection: "blog";
+  data: any
+} & { render(): Render[".md"] };
 "voice-agent-cascaded-full-duplex.md": {
 	id: "voice-agent-cascaded-full-duplex.md";
   slug: "voice-agent-cascaded-full-duplex";
@@ -328,41 +349,16 @@ declare module 'astro:content' {
   data: any
 } & { render(): Render[".md"] };
 };
-"podcast": {
-"ai-agent-future.md": {
-	id: "ai-agent-future.md";
-  slug: "ai-agent-future";
-  body: string;
-  collection: "podcast";
-  data: any
-} & { render(): Render[".md"] };
-"lark-cli-agent2agent.md": {
-	id: "lark-cli-agent2agent.md";
-  slug: "lark-cli-agent2agent";
-  body: string;
-  collection: "podcast";
-  data: any
-} & { render(): Render[".md"] };
-"neuro-ide-design.md": {
-	id: "neuro-ide-design.md";
-  slug: "neuro-ide-design";
-  body: string;
-  collection: "podcast";
-  data: any
-} & { render(): Render[".md"] };
-"visual-testing.md": {
-	id: "visual-testing.md";
-  slug: "visual-testing";
-  body: string;
-  collection: "podcast";
-  data: any
-} & { render(): Render[".md"] };
-};
 
 	};
 
 	type DataEntryMap = {
-		
+		"podcast": Record<string, {
+  id: string;
+  collection: "podcast";
+  data: any;
+}>;
+
 	};
 
 	type AnyEntryMap = ContentEntryMap & DataEntryMap;

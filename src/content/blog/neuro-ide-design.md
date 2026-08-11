@@ -3,8 +3,6 @@ title: "Neuro-IDE：重构 AI 开发体验"
 description: "分享 Neuro-IDE 的设计理念，探讨如何打造以 Markdown 为核心的 AI 原生开发环境"
 pubDate: 2026-03-10
 tags: ["IDE", "Electron", "设计思维"]
-duration: "38分钟"
-guest: "杨正武"
 draft: false
 ---
 

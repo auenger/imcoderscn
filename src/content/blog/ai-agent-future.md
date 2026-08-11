@@ -3,8 +3,6 @@ title: "AI Agent 的未来：从工具到协作伙伴"
 description: "探讨 AI Agent 技术发展趋势，以及如何构建真正可靠的 AI 工程环境"
 pubDate: 2026-03-13
 tags: ["AI Agent", "工程实践", "未来展望"]
-duration: "45分钟"
-guest: "杨正武"
 draft: false
 ---
 

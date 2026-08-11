@@ -1,71 +1,4 @@
-<!DOCTYPE html><script>
-  // 移动端菜单切换
-  let menuOpen = false;
-
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-    const nav = document.querySelector('.navbar-nav');
-    const hamburger = document.querySelector('.hamburger');
-    const navbar = document.querySelector('.navbar');
-
-    if (nav && hamburger && navbar) {
-      nav.classList.toggle('active', menuOpen);
-      hamburger.classList.toggle('active', menuOpen);
-      navbar.classList.toggle('menu-open', menuOpen);
-      // 防止背景滚动
-      document.body.style.overflow = menuOpen ? 'hidden' : '';
-    }
-  }
-
-  // 点击导航链接后关闭菜单
-  document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('.navbar-nav a');
-    navLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          menuOpen = false;
-          const nav = document.querySelector('.navbar-nav');
-          const hamburger = document.querySelector('.hamburger');
-          const navbar = document.querySelector('.navbar');
-          if (nav && hamburger && navbar) {
-            nav.classList.remove('active');
-            hamburger.classList.remove('active');
-            navbar.classList.remove('menu-open');
-            document.body.style.overflow = '';
-          }
-        }
-      });
-    });
-
-    // 点击遮罩层关闭菜单
-    const navbar = document.querySelector('.navbar');
-    if (navbar) {
-      navbar.addEventListener('click', (e) => {
-        if (e.target === navbar && menuOpen) {
-          toggleMenu();
-        }
-      });
-    }
-  });
-
-  // 窗口大小变化时重置菜单状态
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-      menuOpen = false;
-      const nav = document.querySelector('.navbar-nav');
-      const hamburger = document.querySelector('.hamburger');
-      const navbar = document.querySelector('.navbar');
-      if (nav && hamburger && navbar) {
-        nav.classList.remove('active');
-        hamburger.classList.remove('active');
-        navbar.classList.remove('menu-open');
-        document.body.style.overflow = '';
-      }
-    }
-  });
-
-  window.toggleMenu = toggleMenu;
-</script> <html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><!-- Favicon --><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武</title><meta name="description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><!-- Open Graph --><meta property="og:type" content="website"><meta property="og:site_name" content="杨正武 · imcoders"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><meta property="og:description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta property="og:url" content="https://imcoders.cn/blog/visual-replay-tester/"><meta property="og:image" content="https://imcoders.cn/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:image:alt" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><!-- Twitter --><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><meta name="twitter:description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta name="twitter:image" content="https://imcoders.cn/og-default.png"><!-- 微信 / 结构化数据 --><meta itemprop="name" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><meta itemprop="description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta itemprop="image" content="https://imcoders.cn/og-default.png"><!-- 微信 JS-SDK：自定义“微信内打开网页后点分享”的卡片 --><script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script><script>(function(){const signUrl = "/api/wx-sign";
+<!DOCTYPE html><html lang="zh-CN"> <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="theme-color" content="#111016"><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"><link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png"><link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png"><link rel="shortcut icon" href="/monket-snow2.ico"><title>Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武</title><meta name="description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta property="og:type" content="website"><meta property="og:site_name" content="杨正武 · imcoders"><meta property="og:locale" content="zh_CN"><meta property="og:title" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><meta property="og:description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta property="og:url" content="https://imcoders.cn/blog/visual-replay-tester/"><meta property="og:image" content="https://imcoders.cn/og-default.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta name="twitter:card" content="summary_large_image"><meta name="twitter:title" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><meta name="twitter:description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta name="twitter:image" content="https://imcoders.cn/og-default.png"><meta itemprop="name" content="Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武"><meta itemprop="description" content="基于 Electron + Playwright + MCP 的 AI 驱动测试平台"><meta itemprop="image" content="https://imcoders.cn/og-default.png"><script src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script><script>(function(){const signUrl = "/api/wx-sign";
 const shareTitle = "Visual Replay Tester：下一代桌面自动化测试工具 - 杨正武";
 const shareDesc = "基于 Electron + Playwright + MCP 的 AI 驱动测试平台";
 const shareLink = "https://imcoders.cn/blog/visual-replay-tester/";
@@ -78,25 +11,17 @@ const shareImg = "https://imcoders.cn/og-default.png";
           .then(function (r) { return r.json(); })
           .then(function (d) {
             if (!d || !d.signature) return;
-            wx.config({
-              debug: false,
-              appId: d.appId,
-              timestamp: d.timestamp,
-              nonceStr: d.nonceStr,
-              signature: d.signature,
-              jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
-            });
+            wx.config({ debug: false, appId: d.appId, timestamp: d.timestamp, nonceStr: d.nonceStr, signature: d.signature, jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'] });
             wx.ready(function () {
               wx.updateAppMessageShareData({ title: shareTitle, desc: shareDesc, link: shareLink, imgUrl: shareImg });
               wx.updateTimelineShareData({ title: shareTitle, link: shareLink, imgUrl: shareImg });
             });
-            wx.error(function (res) { console.warn('[wx-sign] config failed:', res && res.errMsg); });
           })
-          .catch(function (e) { console.error('wx-sign failed', e); });
+          .catch(function (error) { console.error('wx-sign failed', error); });
       })();
-    })();</script><link rel="stylesheet" href="/_astro/_slug_.BapUKss4.css">
-<link rel="stylesheet" href="/_astro/_slug_.C91PZkZW.css"></head> <body> <nav class="navbar" id="navbar"> <div class="container"> <a href="/" class="navbar-brand"> <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
-杨正武<span>.imcoders</span> </a> <button class="hamburger" onclick="toggleMenu()" aria-label="切换菜单"> <span></span> <span></span> <span></span> </button> <ul class="navbar-nav"> <li><a href="/">首页</a></li> <li><a href="/#about">核心理念</a></li> <li><a href="/#projects">代表作品</a></li> <li><a href="/#skills">技术领域</a></li> <li><a href="/blog">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main>  <script>(function(){const shareText = "基于 Electron + Playwright + MCP 的 AI 驱动测试平台\n\nhttps://imcoders.cn/blog/visual-replay-tester/";
+    })();</script><link rel="stylesheet" href="/_astro/_slug_.DXtD3eBH.css">
+<link rel="stylesheet" href="/_astro/_slug_.kYoaq4Za.css"></head> <body> <nav class="site-nav" aria-label="主导航"> <div class="site-nav-inner"> <a href="/" class="site-brand" aria-label="杨正武个人站首页"> <img src="/monket-snow2.png" alt="">
+杨正武<b>/IMCODERS</b> </a> <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-links" aria-label="打开导航菜单"> <span></span><span></span><span></span> </button> <ul class="site-links" id="site-links"> <li><a href="/">首页</a></li> <li><a href="/#projects">作品</a></li> <li><a href="/blog" aria-current="page">博客</a></li> <li><a href="/#contact">联系</a></li> </ul> </div> </nav> <main> <script>(function(){const shareText = "基于 Electron + Playwright + MCP 的 AI 驱动测试平台\n\nhttps://imcoders.cn/blog/visual-replay-tester/";
 
     // 分享功能
     window.shareArticle = async function() {
@@ -118,7 +43,7 @@ const shareImg = "https://imcoders.cn/og-default.png";
         alert('复制失败，请手动复制');
       }
     };
-  })();</script>  <article class="article-container" data-astro-cid-4sn4zg3r> <header class="article-header" data-astro-cid-4sn4zg3r> <div class="article-meta" data-astro-cid-4sn4zg3r> <time class="article-date" data-astro-cid-4sn4zg3r> <i class="far fa-calendar" data-astro-cid-4sn4zg3r></i> 2026年3月13日 </time> <span class="article-author" data-astro-cid-4sn4zg3r> <i class="far fa-user" data-astro-cid-4sn4zg3r></i> 杨正武 </span> <div class="article-tags" data-astro-cid-4sn4zg3r> <span class="tag" data-astro-cid-4sn4zg3r>自动化测试</span><span class="tag" data-astro-cid-4sn4zg3r>Playwright</span><span class="tag" data-astro-cid-4sn4zg3r>MCP</span><span class="tag" data-astro-cid-4sn4zg3r>AI Agent</span> </div> </div> <h1 class="article-title" data-astro-cid-4sn4zg3r>Visual Replay Tester：下一代桌面自动化测试工具</h1> <p class="article-description" data-astro-cid-4sn4zg3r>基于 Electron + Playwright + MCP 的 AI 驱动测试平台</p> <button class="share-button" onclick="shareArticle()" data-astro-cid-4sn4zg3r> <i class="fas fa-share-alt" data-astro-cid-4sn4zg3r></i>
+  })();</script>   <article class="article-container" data-astro-cid-4sn4zg3r> <header class="article-header" data-astro-cid-4sn4zg3r> <div class="article-meta" data-astro-cid-4sn4zg3r> <time class="article-date" data-astro-cid-4sn4zg3r> <i class="far fa-calendar" data-astro-cid-4sn4zg3r></i> 2026年3月13日 </time> <span class="article-author" data-astro-cid-4sn4zg3r> <i class="far fa-user" data-astro-cid-4sn4zg3r></i> 杨正武 </span> <div class="article-tags" data-astro-cid-4sn4zg3r> <span class="tag" data-astro-cid-4sn4zg3r>自动化测试</span><span class="tag" data-astro-cid-4sn4zg3r>Playwright</span><span class="tag" data-astro-cid-4sn4zg3r>MCP</span><span class="tag" data-astro-cid-4sn4zg3r>AI Agent</span> </div> </div> <h1 class="article-title" data-astro-cid-4sn4zg3r>Visual Replay Tester：下一代桌面自动化测试工具</h1> <p class="article-description" data-astro-cid-4sn4zg3r>基于 Electron + Playwright + MCP 的 AI 驱动测试平台</p> <button class="share-button" onclick="shareArticle()" data-astro-cid-4sn4zg3r> <i class="fas fa-share-alt" data-astro-cid-4sn4zg3r></i>
 分享文章
 </button> </header> <div class="article-content" data-astro-cid-4sn4zg3r> <h2 id="引言">引言</h2>
 <p>传统前端 E2E 测试存在两个问题。脚本维护成本高，UI 变动会导致测试失败。视觉覆盖不全，Canvas、Shadow DOM 等场景难以测试。</p>
@@ -230,4 +155,21 @@ const shareImg = "https://imcoders.cn/og-default.png";
 <li>MCP 协议: <a href="https://modelcontextprotocol.io">https://modelcontextprotocol.io</a></li>
 </ul> </div> <footer class="article-footer" data-astro-cid-4sn4zg3r> <a href="/blog" class="back-to-blog" data-astro-cid-4sn4zg3r> <i class="fas fa-arrow-left" data-astro-cid-4sn4zg3r></i>
 返回博客列表
-</a> </footer> </article>  </main> <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;"> <div class="container"> <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p> </div> </footer> </body></html>
+</a> </footer> </article> </main> <footer class="site-footer"> <div class="container site-footer-inner"> <div> <div class="site-footer-title">BUILD THE <span>HARNESS.</span></div> <div class="site-footer-links"> <a href="https://github.com/auenger" target="_blank" rel="noopener noreferrer">GitHub</a> <a href="mailto:yzw@imcoders.net">Email</a> <a href="/blog">博客</a> </div> </div> <div class="site-footer-meta">© 2026 杨正武<br>Harness Engineer</div> </div> </footer> <script>
+      const menuButton = document.querySelector('.menu-toggle');
+      const menu = document.querySelector('.site-links');
+      const closeMenu = () => {
+        menuButton?.setAttribute('aria-expanded', 'false');
+        menu?.classList.remove('is-open');
+        document.body.style.overflow = '';
+      };
+
+      menuButton?.addEventListener('click', () => {
+        const willOpen = menuButton.getAttribute('aria-expanded') !== 'true';
+        menuButton.setAttribute('aria-expanded', String(willOpen));
+        menu?.classList.toggle('is-open', willOpen);
+        document.body.style.overflow = willOpen ? 'hidden' : '';
+      });
+      menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+      window.matchMedia('(min-width: 769px)').addEventListener('change', closeMenu);
+    </script> </body> </html>

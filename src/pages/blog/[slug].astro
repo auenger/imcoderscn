@@ -74,7 +74,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
     }
 
     .article-date {
-      color: #d4af37;
+      color: #e23c3e;
       font-size: 0.9rem;
       font-weight: 600;
       display: flex;
@@ -108,8 +108,8 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
     }
 
     .tag:hover {
-      border-color: #d4af37;
-      color: #d4af37;
+      border-color: #e23c3e;
+      color: #e23c3e;
     }
 
     .article-title {
@@ -117,7 +117,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
       font-weight: 800;
       line-height: 1.2;
       margin-bottom: 1rem;
-      background: linear-gradient(135deg, #d4af37, #f5c842, #ffd700);
+      background: linear-gradient(135deg, #e23c3e, #ff6b68, #d92f32);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
       background-clip: text;
@@ -134,7 +134,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
       align-items: center;
       gap: 0.5rem;
       padding: 0.6rem 1.2rem;
-      background: linear-gradient(135deg, #d4af37, #f5c842);
+      background: linear-gradient(135deg, #e23c3e, #ff6b68);
       color: #0a0a0f;
       border: none;
       border-radius: 8px;
@@ -147,7 +147,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
 
     .share-button:hover {
       transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(212, 175, 55, 0.3);
+      box-shadow: 0 4px 12px rgba(226, 60, 62, 0.3);
     }
 
     .share-button.copied {
@@ -170,7 +170,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
       margin-top: 3rem;
       margin-bottom: 1.5rem;
       color: #f0f0f0;
-      border-left: 4px solid #d4af37;
+      border-left: 4px solid #e23c3e;
       padding-left: 1rem;
     }
 
@@ -187,18 +187,18 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
     }
 
     .article-content :global(a) {
-      color: #d4af37;
+      color: #e23c3e;
       text-decoration: underline;
       transition: all 0.3s ease;
     }
 
     .article-content :global(a:hover) {
-      color: #f5c842;
+      color: #ff6b68;
     }
 
     .article-content :global(code) {
       background: #141414;
-      color: #d4af37;
+      color: #e23c3e;
       padding: 0.2rem 0.5rem;
       border-radius: 4px;
       font-family: 'Courier New', monospace;
@@ -221,7 +221,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
     }
 
     .article-content :global(blockquote) {
-      border-left: 4px solid #d4af37;
+      border-left: 4px solid #e23c3e;
       padding-left: 1.5rem;
       margin: 2rem 0;
       color: #a0a0a0;
@@ -249,7 +249,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
 
     .article-content :global(th) {
       background: #141414;
-      color: #d4af37;
+      color: #e23c3e;
       padding: 1rem;
       text-align: left;
       font-weight: 600;
@@ -286,7 +286,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
       display: inline-flex;
       align-items: center;
       gap: 0.5rem;
-      color: #d4af37;
+      color: #e23c3e;
       font-weight: 600;
       text-decoration: none;
       padding: 0.75rem 1.5rem;
@@ -297,7 +297,7 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
     }
 
     .back-to-blog:hover {
-      border-color: #d4af37;
+      border-color: #e23c3e;
       transform: translateX(-3px);
     }
 
@@ -399,6 +399,61 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
       .article-title {
         font-size: 2rem;
       }
+    }
+  </style>
+
+  <style>
+    :global(body) { background: var(--ink); }
+    .article-container { width: min(100% - 64px, 1120px); max-width: none; padding: 136px 0 104px; }
+    .article-header { margin-bottom: 70px; padding-bottom: 48px; border-bottom: 2px solid var(--red); }
+    .article-meta { margin-bottom: 28px; gap: 10px 18px; }
+    .article-date { color: var(--red); }
+    .article-author { color: var(--muted-on-ink); }
+    .article-tags { gap: 6px 12px; }
+    .tag { padding: 0; color: var(--muted-on-ink); background: transparent; border: 0; border-radius: 0; }
+    .tag::before { content: "#"; color: var(--red); }
+    .tag:hover { color: var(--red); background: transparent; }
+    .article-title {
+      max-width: 980px;
+      margin-bottom: 24px;
+      color: var(--text-on-ink);
+      background: none;
+      -webkit-text-fill-color: currentColor;
+      font-family: var(--display);
+      font-size: clamp(2.8rem, 6vw, 5.8rem);
+      line-height: 1;
+      letter-spacing: -0.055em;
+    }
+    .article-description { max-width: 720px; color: var(--muted-on-ink); font-size: 1.12rem; }
+    .share-button { color: var(--paper); background: var(--red); border-color: var(--red); border-radius: 7px; }
+    .share-button:hover, .share-button.copied { color: var(--paper); background: var(--red-deep); border-color: var(--red-deep); transform: translateY(-2px); }
+
+    .article-content { max-width: 760px; margin: 0 auto; color: var(--text-on-ink); font-size: 1.06rem; line-height: 1.9; }
+    .article-content :global(p), .article-content :global(li) { color: #c9c3bd; }
+    .article-content :global(h2) { margin-top: 3.2rem; color: var(--text-on-ink); border-bottom-color: var(--line-on-ink); font-family: var(--display); font-size: 2rem; letter-spacing: -0.035em; }
+    .article-content :global(h3) { color: var(--text-on-ink); font-size: 1.35rem; }
+    .article-content :global(a) { color: var(--red); border-color: rgba(226, 60, 62, 0.35); }
+    .article-content :global(code) { color: #ff7b78; background: rgba(226, 60, 62, 0.12); }
+    .article-content :global(pre) { color: var(--text-on-ink); background: #09090d; border: 1px solid var(--line-on-ink); border-radius: var(--radius); }
+    .article-content :global(pre code) { color: var(--text-on-ink); }
+    .article-content :global(blockquote) { color: #d7d0c9; background: rgba(226, 60, 62, 0.09); border-left-color: var(--red); }
+    .article-content :global(img) { border: 0; border-radius: var(--radius); }
+    .article-content :global(table) { color: var(--text-on-ink); background: var(--ink-soft); border-color: var(--line-on-ink); }
+    .article-content :global(th) { color: var(--paper); background: #09090d; border-color: var(--line-on-ink); }
+    .article-content :global(td) { color: #c9c3bd; border-color: var(--line-on-ink); }
+    .article-footer { max-width: 760px; margin: 70px auto 0; border-top-color: var(--line-on-ink); }
+    .back-to-blog { background: var(--ink-soft); border-color: var(--line-on-ink); }
+    .back-to-blog { color: var(--red); }
+
+    @media (max-width: 768px) {
+      .article-container { width: min(100% - 32px, 1120px); padding: 104px 0 72px; }
+      .article-header { margin-bottom: 48px; padding-bottom: 34px; }
+      .article-title { font-size: clamp(2.35rem, 10.5vw, 3.6rem); }
+      .article-description { font-size: 1rem; }
+      .article-content { font-size: 1rem; line-height: 1.82; }
+      .article-content :global(h2) { font-size: 1.65rem; }
+      .article-content :global(pre) { margin-inline: -8px; border-radius: 8px; }
+      .article-content :global(table) { display: block; overflow-x: auto; }
     }
   </style>
 

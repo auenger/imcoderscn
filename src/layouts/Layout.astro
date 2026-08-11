@@ -7,100 +7,25 @@ interface Props {
 
 const { title = '杨正武 - Harness 工程师', description = '设计与 AI 智能体的高效工程实践', image } = Astro.props;
 const site = (Astro.site?.toString() || 'https://imcoders.cn').replace(/\/$/, '');
-const ogImage = image
-  ? `${site}${image.startsWith('/') ? image : '/' + image}`
-  : `${site}/og-default.png`;
+const imagePath = image ? (image.startsWith('/') ? image : '/' + image) : '/og-default.png';
+const ogImage = site + imagePath;
 const ogUrl = new URL(Astro.url.pathname, site).toString();
 const WX_SIGN_URL = import.meta.env.WX_SIGN_URL || '/api/wx-sign';
+const pathname = Astro.url.pathname;
 ---
-
-<script is:inline>
-  // 移动端菜单切换
-  let menuOpen = false;
-
-  function toggleMenu() {
-    menuOpen = !menuOpen;
-    const nav = document.querySelector('.navbar-nav');
-    const hamburger = document.querySelector('.hamburger');
-    const navbar = document.querySelector('.navbar');
-
-    if (nav && hamburger && navbar) {
-      nav.classList.toggle('active', menuOpen);
-      hamburger.classList.toggle('active', menuOpen);
-      navbar.classList.toggle('menu-open', menuOpen);
-      // 防止背景滚动
-      document.body.style.overflow = menuOpen ? 'hidden' : '';
-    }
-  }
-
-  // 点击导航链接后关闭菜单
-  document.addEventListener('DOMContentLoaded', () => {
-    const navLinks = document.querySelectorAll('.navbar-nav a');
-    navLinks.forEach(link => {
-      link.addEventListener('click', () => {
-        if (window.innerWidth <= 768) {
-          menuOpen = false;
-          const nav = document.querySelector('.navbar-nav');
-          const hamburger = document.querySelector('.hamburger');
-          const navbar = document.querySelector('.navbar');
-          if (nav && hamburger && navbar) {
-            nav.classList.remove('active');
-            hamburger.classList.remove('active');
-            navbar.classList.remove('menu-open');
-            document.body.style.overflow = '';
-          }
-        }
-      });
-    });
-
-    // 点击遮罩层关闭菜单
-    const navbar = document.querySelector('.navbar');
-    if (navbar) {
-      navbar.addEventListener('click', (e) => {
-        if (e.target === navbar && menuOpen) {
-          toggleMenu();
-        }
-      });
-    }
-  });
-
-  // 窗口大小变化时重置菜单状态
-  window.addEventListener('resize', () => {
-    if (window.innerWidth > 768) {
-      menuOpen = false;
-      const nav = document.querySelector('.navbar-nav');
-      const hamburger = document.querySelector('.hamburger');
-      const navbar = document.querySelector('.navbar');
-      if (nav && hamburger && navbar) {
-        nav.classList.remove('active');
-        hamburger.classList.remove('active');
-        navbar.classList.remove('menu-open');
-        document.body.style.overflow = '';
-      }
-    }
-  });
-
-  window.toggleMenu = toggleMenu;
-</script>
 
 <!DOCTYPE html>
 <html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <meta name="theme-color" content="#111016" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
-
-    <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png">
-    <link rel="shortcut icon" href="/monket-snow2.ico">
-
+    <link rel="icon" type="image/png" sizes="32x32" href="/monkey-32x32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="/monkey-16x16.png" />
+    <link rel="shortcut icon" href="/monket-snow2.ico" />
     <title>{title}</title>
     <meta name="description" content={description} />
-
-    <!-- Open Graph -->
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="杨正武 · imcoders" />
     <meta property="og:locale" content="zh_CN" />
@@ -110,333 +35,240 @@ const WX_SIGN_URL = import.meta.env.WX_SIGN_URL || '/api/wx-sign';
     <meta property="og:image" content={ogImage} />
     <meta property="og:image:width" content="1200" />
     <meta property="og:image:height" content="630" />
-    <meta property="og:image:alt" content={title} />
-
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
     <meta name="twitter:image" content={ogImage} />
-
-    <!-- 微信 / 结构化数据 -->
     <meta itemprop="name" content={title} />
     <meta itemprop="description" content={description} />
     <meta itemprop="image" content={ogImage} />
+
     <style is:global>
-      * {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-
       :root {
-        /* 黑金配色方案 - 专业简约 */
-        --bg-primary: #0a0a0f;
-        --bg-secondary: #141414;
-        --bg-card: #1a1a1a;
-        --bg-hover: #222;
-        --text-primary: #f0f0f0;
-        --text-secondary: #a0a0a0;
-        --text-muted: #6b7280;
-        --accent: #d4af37;
-        --accent-hover: #f5c842;
-        --border: #2a2a2a;
-        --shadow: rgba(0, 0, 0, 0.1);
-        --shadow-hover: rgba(0, 0, 0, 0.2);
-        --gradient-gold: linear-gradient(135deg, #d4af37, #f5c842, #ffd700);
-        --gradient-blue: linear-gradient(135deg, #667eea, #764ba2);
+        --ink: #111016;
+        --ink-soft: #191820;
+        --paper: #f1ece2;
+        --paper-soft: #e8e0d3;
+        --red: #e23c3e;
+        --red-deep: #bd2f33;
+        --text-on-ink: #f1ece2;
+        --text-on-paper: #17161c;
+        --muted-on-ink: #aaa6ad;
+        --muted-on-paper: #625f65;
+        --line-on-ink: rgba(241, 236, 226, 0.16);
+        --line-on-paper: rgba(23, 22, 28, 0.18);
+        --radius: 14px;
+        --display: "Arial Black", "Helvetica Neue", "PingFang SC", sans-serif;
+        --sans: "Helvetica Neue", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+
+        /* Backward-compatible tokens for legacy page styles. */
+        --bg-primary: var(--ink);
+        --bg-secondary: var(--ink-soft);
+        --bg-card: var(--ink-soft);
+        --bg-hover: #24222c;
+        --text-primary: var(--text-on-ink);
+        --text-secondary: var(--muted-on-ink);
+        --text-muted: #77737d;
+        --accent: var(--red);
+        --accent-hover: #f05052;
+        --border: var(--line-on-ink);
+        --shadow: rgba(17, 16, 22, 0.12);
+        --shadow-hover: rgba(17, 16, 22, 0.22);
       }
 
+      *, *::before, *::after { box-sizing: border-box; }
+      html { scroll-behavior: smooth; background: var(--ink); }
       body {
-        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-        background: var(--bg-primary);
-        color: var(--text-primary);
-        line-height: 1.7;
+        margin: 0;
+        min-width: 320px;
         overflow-x: hidden;
+        background: var(--paper);
+        color: var(--text-on-paper);
+        font-family: var(--sans);
+        line-height: 1.65;
+        text-rendering: optimizeLegibility;
+        -webkit-font-smoothing: antialiased;
       }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        z-index: 20;
+        pointer-events: none;
+        opacity: 0.035;
+        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.8'/%3E%3C/svg%3E");
+      }
+
+      h1, h2, h3, p, ul { margin-top: 0; }
+      img { display: block; max-width: 100%; }
+      button, input { font: inherit; }
+      a { color: inherit; text-decoration: none; }
+      ::selection { color: var(--paper); background: var(--red); }
+      :focus-visible { outline: 2px solid var(--red); outline-offset: 4px; }
 
       .container {
-        max-width: 1200px;
-        margin: 0 auto;
-        padding: 0 2rem;
+        width: min(100% - 64px, 1240px);
+        margin-inline: auto;
       }
 
-      a {
-        color: var(--accent);
-        text-decoration: none;
-        transition: all 0.3s ease;
+      .site-nav {
+        position: fixed;
+        inset: 0 0 auto;
+        z-index: 10;
+        height: 72px;
+        color: var(--text-on-ink);
+        background: rgba(17, 16, 22, 0.9);
+        border-bottom: 1px solid var(--line-on-ink);
+        backdrop-filter: blur(18px) saturate(125%);
+        -webkit-backdrop-filter: blur(18px) saturate(125%);
       }
 
-      a:hover {
-        color: var(--accent-hover);
-      }
-
-      .navbar {
-        background: rgba(20, 20, 20, 0.95);
-        backdrop-filter: blur(20px);
-        border-bottom: 1px solid var(--accent);
-        position: sticky;
-        top: 0;
-        z-index: 1000;
-        padding: 1rem 0;
-      }
-
-      .navbar .container {
+      .site-nav-inner {
+        width: min(100% - 64px, 1240px);
+        height: 100%;
+        margin-inline: auto;
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        align-items: center;
-        position: relative;
+        gap: 32px;
       }
 
-      .navbar-brand {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
+      .site-brand {
+        display: inline-flex;
+        align-items: center;
+        gap: 11px;
+        flex: 0 0 auto;
+        font-family: var(--display);
+        font-size: 1.08rem;
+        font-weight: 900;
+        letter-spacing: -0.035em;
+      }
+
+      .site-brand img { width: 34px; height: 34px; object-fit: contain; }
+      .site-brand b { color: var(--red); font-weight: 900; }
+
+      .site-links {
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        text-decoration: none;
-        z-index: 1002;
-      }
-
-      .navbar-logo {
-        width: 32px;
-        height: 32px;
-        object-fit: contain;
-        transition: transform 0.3s ease;
-      }
-
-      .navbar-brand:hover .navbar-logo {
-        transform: rotate(10deg);
-      }
-
-      .navbar-brand span {
-        color: var(--accent);
-      }
-
-      /* 汉堡菜单按钮 */
-      .hamburger {
-        display: none;
-        flex-direction: column;
-        justify-content: space-around;
-        width: 28px;
-        height: 24px;
-        background: transparent;
-        border: none;
-        cursor: pointer;
+        gap: 28px;
+        margin: 0;
         padding: 0;
-        z-index: 1002;
-      }
-
-      .hamburger span {
-        width: 100%;
-        height: 2px;
-        background: var(--accent);
-        border-radius: 2px;
-        transition: all 0.3s ease;
-      }
-
-      .hamburger.active span:nth-child(1) {
-        transform: rotate(45deg) translate(5px, 5px);
-      }
-
-      .hamburger.active span:nth-child(2) {
-        opacity: 0;
-      }
-
-      .hamburger.active span:nth-child(3) {
-        transform: rotate(-45deg) translate(7px, -7px);
-      }
-
-      .navbar-nav {
-        display: flex;
-        gap: 2.5rem;
         list-style: none;
       }
 
-      .navbar-nav a {
-        color: var(--text-secondary);
-        font-weight: 500;
-        font-size: 0.95rem;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
+      .site-links a {
         position: relative;
-        padding: 0.5rem 0;
+        display: inline-flex;
+        align-items: center;
+        min-height: 44px;
+        color: var(--muted-on-ink);
+        font-size: 0.86rem;
+        font-weight: 650;
+        transition: color 180ms ease;
       }
 
-      .navbar-nav a::after {
-        content: '';
+      .site-links a:hover,
+      .site-links a[aria-current="page"] { color: var(--text-on-ink); }
+      .site-links a[aria-current="page"]::after {
+        content: "";
         position: absolute;
-        bottom: 0;
-        left: 50%;
-        width: 0;
+        right: 0;
+        bottom: 5px;
+        left: 0;
         height: 2px;
-        background: var(--accent);
-        transform: translateX(-50%);
-        transition: width 0.3s ease;
+        background: var(--red);
       }
 
-      .navbar-nav a:hover {
-        color: var(--accent);
+      .menu-toggle {
+        display: none;
+        width: 44px;
+        height: 44px;
+        padding: 11px 8px;
+        border: 0;
+        color: var(--text-on-ink);
+        background: transparent;
+        cursor: pointer;
       }
 
-      .navbar-nav a:hover::after {
-        width: 100%;
+      .menu-toggle span {
+        display: block;
+        height: 2px;
+        margin: 5px 0;
+        background: currentColor;
+        transition: transform 180ms ease, opacity 180ms ease;
       }
 
-      ::-webkit-scrollbar {
-        width: 10px;
+      .menu-toggle[aria-expanded="true"] span:first-child { transform: translateY(7px) rotate(45deg); }
+      .menu-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+      .menu-toggle[aria-expanded="true"] span:last-child { transform: translateY(-7px) rotate(-45deg); }
+
+      main { min-height: 70dvh; }
+
+      .site-footer {
+        position: relative;
+        overflow: hidden;
+        padding: 80px 0 28px;
+        color: var(--text-on-ink);
+        background: var(--ink);
       }
 
-      ::-webkit-scrollbar-track {
-        background: var(--bg-secondary);
+      .site-footer-inner {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 64px;
+        align-items: end;
       }
 
-      ::-webkit-scrollbar-thumb {
-        background: var(--accent);
-        border-radius: 5px;
+      .site-footer-title {
+        max-width: 680px;
+        margin-bottom: 28px;
+        font-family: var(--display);
+        font-size: clamp(2.5rem, 5.8vw, 5.7rem);
+        line-height: 0.92;
+        letter-spacing: -0.07em;
       }
 
-      ::-webkit-scrollbar-thumb:hover {
-        background: var(--accent-hover);
-      }
+      .site-footer-title span { color: var(--red); }
+      .site-footer-links { display: flex; flex-wrap: wrap; gap: 10px 24px; }
+      .site-footer-links a { color: var(--muted-on-ink); font-size: 0.9rem; }
+      .site-footer-links a:hover { color: var(--text-on-ink); }
+      .site-footer-meta { color: var(--muted-on-ink); font-size: 0.82rem; text-align: right; }
 
-      ::selection {
-        background: var(--accent);
-        color: #0a0a0f;
-      }
-
-      html {
-        scroll-behavior: smooth;
-      }
-
-      /* 响应式断点 */
-
-      /* 手机和小平板（最大宽度 768px）- 使用汉堡菜单 */
       @media (max-width: 768px) {
-        .container {
-          padding: 0 1rem;
-        }
-
-        .navbar {
-          padding: 0.75rem 0;
-        }
-
-        .navbar-brand {
-          font-size: 1.2rem;
-        }
-
-        .navbar-logo {
-          width: 28px;
-          height: 28px;
-        }
-
-        /* 显示汉堡菜单按钮 */
-        .hamburger {
-          display: flex;
-        }
-
-        /* 移动端导航菜单样式 */
-        .navbar-nav {
+        .container, .site-nav-inner { width: min(100% - 32px, 1240px); }
+        .site-nav { height: 64px; }
+        .site-brand { font-size: 0.98rem; }
+        .site-brand img { width: 30px; height: 30px; }
+        .menu-toggle { display: block; }
+        .site-links {
           position: fixed;
-          top: 0;
-          right: -100%;
-          width: 70%;
-          max-width: 280px;
-          height: 100vh;
-          background: rgba(20, 20, 20, 0.98);
-          backdrop-filter: blur(20px);
-          flex-direction: column;
+          inset: 64px 0 auto;
+          display: grid;
           gap: 0;
-          padding: 5rem 1.5rem 2rem;
-          border-left: 1px solid var(--border);
-          transition: right 0.3s ease;
-          overflow-y: auto;
-        }
-
-        .navbar-nav.active {
-          right: 0;
-        }
-
-        .navbar-nav li {
-          width: 100%;
-          border-bottom: 1px solid var(--border);
-        }
-
-        .navbar-nav a {
-          display: block;
-          width: 100%;
-          padding: 1rem 0;
-          font-size: 1rem;
-        }
-
-        .navbar-nav a::after {
-          display: none;
-        }
-
-        .navbar-nav a:hover {
-          color: var(--accent);
-          background: rgba(212, 175, 55, 0.1);
-          padding-left: 0.5rem;
-        }
-
-        /* 遮罩层 */
-        .navbar::after {
-          content: '';
-          position: fixed;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          background: rgba(0, 0, 0, 0.6);
-          opacity: 0;
+          padding: 12px 16px 20px;
+          background: rgba(17, 16, 22, 0.98);
+          border-bottom: 1px solid var(--line-on-ink);
+          transform: translateY(-120%);
           visibility: hidden;
-          transition: all 0.3s ease;
-          z-index: 1001;
+          transition: transform 220ms cubic-bezier(.16, 1, .3, 1), visibility 220ms;
         }
 
-        .navbar.menu-open::after {
-          opacity: 1;
-          visibility: visible;
-        }
+        .site-links.is-open { transform: translateY(0); visibility: visible; }
+        .site-links a { min-height: 52px; border-bottom: 1px solid var(--line-on-ink); }
+        .site-links li:last-child a { border-bottom: 0; }
+        .site-links a[aria-current="page"]::after { display: none; }
+        .site-footer { padding-top: 56px; }
+        .site-footer-inner { grid-template-columns: 1fr; gap: 38px; }
+        .site-footer-meta { text-align: left; }
       }
 
-      /* 中小平板（769px - 1024px）- 简化导航 */
-      @media (min-width: 769px) and (max-width: 1024px) {
-        .container {
-          padding: 0 1.5rem;
-        }
-
-        .navbar-brand {
-          font-size: 1.3rem;
-        }
-
-        .navbar-nav {
-          gap: 1.5rem;
-        }
-
-        .navbar-nav a {
-          font-size: 0.85rem;
-          padding: 0.4rem 0;
-        }
-      }
-
-      /* 小屏幕电脑/大平板（1025px - 1280px）*/
-      @media (min-width: 1025px) and (max-width: 1280px) {
-        .container {
-          max-width: 1100px;
-        }
-      }
-
-      /* 超大屏幕（1281px+）*/
-      @media (min-width: 1281px) {
-        .container {
-          max-width: 1400px;
-        }
+      @media (prefers-reduced-motion: reduce) {
+        html { scroll-behavior: auto; }
+        *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; }
       }
     </style>
 
-    <!-- 微信 JS-SDK：自定义“微信内打开网页后点分享”的卡片 -->
     <script is:inline src="https://res.wx.qq.com/open/js/jweixin-1.6.0.js"></script>
     <script is:inline define:vars={{ signUrl: WX_SIGN_URL, shareTitle: title, shareDesc: description, shareLink: ogUrl, shareImg: ogImage }}>
       (function () {
@@ -446,55 +278,68 @@ const WX_SIGN_URL = import.meta.env.WX_SIGN_URL || '/api/wx-sign';
           .then(function (r) { return r.json(); })
           .then(function (d) {
             if (!d || !d.signature) return;
-            wx.config({
-              debug: false,
-              appId: d.appId,
-              timestamp: d.timestamp,
-              nonceStr: d.nonceStr,
-              signature: d.signature,
-              jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData']
-            });
+            wx.config({ debug: false, appId: d.appId, timestamp: d.timestamp, nonceStr: d.nonceStr, signature: d.signature, jsApiList: ['updateAppMessageShareData', 'updateTimelineShareData'] });
             wx.ready(function () {
               wx.updateAppMessageShareData({ title: shareTitle, desc: shareDesc, link: shareLink, imgUrl: shareImg });
               wx.updateTimelineShareData({ title: shareTitle, link: shareLink, imgUrl: shareImg });
             });
-            wx.error(function (res) { console.warn('[wx-sign] config failed:', res && res.errMsg); });
           })
-          .catch(function (e) { console.error('wx-sign failed', e); });
+          .catch(function (error) { console.error('wx-sign failed', error); });
       })();
     </script>
   </head>
   <body>
-    <nav class="navbar" id="navbar">
-      <div class="container">
-        <a href="/" class="navbar-brand">
-          <img src="/monket-snow2.png" alt="Logo" class="navbar-logo">
-          杨正武<span>.imcoders</span>
+    <nav class="site-nav" aria-label="主导航">
+      <div class="site-nav-inner">
+        <a href="/" class="site-brand" aria-label="杨正武个人站首页">
+          <img src="/monket-snow2.png" alt="" />
+          杨正武<b>/IMCODERS</b>
         </a>
-        <button class="hamburger" onclick="toggleMenu()" aria-label="切换菜单">
-          <span></span>
-          <span></span>
-          <span></span>
+        <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-links" aria-label="打开导航菜单">
+          <span></span><span></span><span></span>
         </button>
-        <ul class="navbar-nav">
-          <li><a href="/">首页</a></li>
-          <li><a href="/#about">核心理念</a></li>
-          <li><a href="/#projects">代表作品</a></li>
-          <li><a href="/#skills">技术领域</a></li>
-          <li><a href="/blog">博客</a></li>
+        <ul class="site-links" id="site-links">
+          <li><a href="/" aria-current={pathname === '/' ? 'page' : undefined}>首页</a></li>
+          <li><a href="/#projects">作品</a></li>
+          <li><a href="/blog" aria-current={pathname.startsWith('/blog') ? 'page' : undefined}>博客</a></li>
           <li><a href="/#contact">联系</a></li>
         </ul>
       </div>
     </nav>
 
-    <main>
-      <slot />
-    </main>
+    <main><slot /></main>
 
-    <footer style="background: var(--bg-primary); border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; color: var(--text-secondary); margin-top: 5rem;">
-      <div class="container">
-        <p style="font-size: 0.85rem; opacity: 0.8;">© 2026 杨正武 · Harness 工程师</p>
+    <footer class="site-footer">
+      <div class="container site-footer-inner">
+        <div>
+          <div class="site-footer-title">BUILD THE <span>HARNESS.</span></div>
+          <div class="site-footer-links">
+            <a href="https://github.com/auenger" target="_blank" rel="noopener noreferrer">GitHub</a>
+            <a href="mailto:yzw@imcoders.net">Email</a>
+            <a href="/blog">博客</a>
+          </div>
+        </div>
+        <div class="site-footer-meta">© 2026 杨正武<br />Harness Engineer</div>
       </div>
     </footer>
+
+    <script is:inline>
+      const menuButton = document.querySelector('.menu-toggle');
+      const menu = document.querySelector('.site-links');
+      const closeMenu = () => {
+        menuButton?.setAttribute('aria-expanded', 'false');
+        menu?.classList.remove('is-open');
+        document.body.style.overflow = '';
+      };
+
+      menuButton?.addEventListener('click', () => {
+        const willOpen = menuButton.getAttribute('aria-expanded') !== 'true';
+        menuButton.setAttribute('aria-expanded', String(willOpen));
+        menu?.classList.toggle('is-open', willOpen);
+        document.body.style.overflow = willOpen ? 'hidden' : '';
+      });
+      menu?.querySelectorAll('a').forEach((link) => link.addEventListener('click', closeMenu));
+      window.matchMedia('(min-width: 769px)').addEventListener('change', closeMenu);
+    </script>
   </body>
 </html>
