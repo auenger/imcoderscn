@@ -1,0 +1,20 @@
+---
+book: harness
+title: "围绕治理重新设计角色"
+description: "当 Agent 接管了执行层，工程师的日常工作从\"写代码实现功能\"变成了\"设计和维护 Agent 高效执行的环境\"。这个环境包括规约体系、验证框架、Skill 库、上下文工程策略、反馈基础设施。维护这个环境的能力，和写出高质量代码的能..."
+order: 29
+part: "卷三：治理百倍速的组织"
+chapter: "07A"
+updatedAt: 2026-07-10
+sourceUrl: "https://github.com/Agents-Zone/harness-engineering-playbook/blob/46a94234f8840f148e3c0ce9465be6ad10ca6065/zh/chapters/07a-new-roles.md"
+sourceRevision: "46a94234f8840f148e3c0ce9465be6ad10ca6065"
+---
+> 🚧 本节正在开发中。
+
+当 Agent 接管了执行层，工程师的日常工作从"写代码实现功能"变成了"设计和维护 Agent 高效执行的环境"。这个环境包括规约体系、验证框架、Skill 库、上下文工程策略、反馈基础设施。维护这个环境的能力，和写出高质量代码的能力，是两种不同的技能。
+
+角色设计需要围绕治理而非执行来展开。规约的质量由谁负责，验证框架由谁维护，Agent 的行为边界由谁定义，跨模块的架构一致性由谁把关。这些问题在人类开发时期分散在各个角色中（架构师管设计，QA 管测试，Tech Lead 管协调），在 Agent 时代需要重新聚合和分配。绩效衡量也需要相应调整：衡量的不再是代码产出量，而是 Agent 执行环境的质量和团队产出的可靠性。
+
+---
+
+*Harness Engineering Playbook · [AgentsZone](https://agentszone.ai) Community*

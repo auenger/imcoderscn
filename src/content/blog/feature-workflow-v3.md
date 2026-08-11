@@ -10,6 +10,8 @@ author: "杨正武"
 
 在上一篇文章中，我介绍了 Feature Workflow 基于 Git Worktree 的多特性并行开发范式。经过几个实际项目的落地验证，工作流经历了从 v1 到 v3 的架构演进。这次更新不只是技术层面的重构，更是一次关于 AI 工作流设计哲学的重新思考。
 
+Feature Workflow 是 AILock-Step 项目中的核心工作流。Harness Engineering Playbook 使用 “AILock-Step 框架” 描述的实践，正是这套工作流从规约、执行到验证的完整链路。基础案例可从 [Playbook 实践章节](/playbook/harness/02d-case-study) 开始阅读。
+
 一个核心观点需要先说清楚：**模板化的工作流不是银弹，每一个项目都需要针对自身特点进行 Skill 的重新规划和设计。**
 
 ## v3 架构演进
@@ -273,5 +275,7 @@ Skill 不是一次设计就定型的。每完成几个 feature 后，回顾 Skil
 * [Feature Workflow v1 文章](/blog/feature-workflow)
 
 * [AILock-Step 协议介绍](/blog/ai-agent-engineering)
+
+* [Harness Playbook 实践章节](/playbook/harness/02d-case-study)
 
 ⠀

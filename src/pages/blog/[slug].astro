@@ -27,7 +27,9 @@ const shareText = `${shareDescription}\n\n${shareUrl}`;
 <Layout
   title={`${post.data.title} - 杨正武`}
   description={post.data.description}
-  image={post.data.image}
+  image={post.data.image || '/og-default.png'}
+  imageWidth={post.data.image ? undefined : 720}
+  imageHeight={post.data.image ? undefined : 720}
 >
   <script define:vars={{ shareText }}>
     // 分享功能

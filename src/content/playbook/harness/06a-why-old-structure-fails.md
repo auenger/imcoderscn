@@ -1,0 +1,18 @@
+---
+book: harness
+title: "为什么旧结构失效了"
+description: "传统团队按功能分工：前端两人，后端三人，QA 一人。这种结构的隐含假设是每个人的产出能力大致相当，工作量可以按人头均分。当 Agent 让个人产出差异从两倍拉大到十倍，这个假设就不成立了。同一个级别的两个后端工程师，一个用 Agent..."
+order: 25
+part: "卷三：治理百倍速的组织"
+chapter: "06A"
+updatedAt: 2026-07-10
+sourceUrl: "https://github.com/Agents-Zone/harness-engineering-playbook/blob/46a94234f8840f148e3c0ce9465be6ad10ca6065/zh/chapters/06a-why-old-structure-fails.md"
+sourceRevision: "46a94234f8840f148e3c0ce9465be6ad10ca6065"
+---
+> 🚧 本节正在开发中。
+
+传统团队按功能分工：前端两人，后端三人，QA 一人。这种结构的隐含假设是每个人的产出能力大致相当，工作量可以按人头均分。当 Agent 让个人产出差异从两倍拉大到十倍，这个假设就不成立了。同一个级别的两个后端工程师，一个用 Agent 每天完成过去一周的工作量，另一个还在用传统方式逐行写代码。按旧结构分配任务，前者吃不饱，后者跟不上。不用 Agent 的人感到焦虑和被边缘化，高效使用 Agent 的人觉得付出和回报不匹配。问题不在个人态度，在于组织结构的设计前提已经改变。
+
+---
+
+*Harness Engineering Playbook · [AgentsZone](https://agentszone.ai) Community*

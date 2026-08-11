@@ -1,0 +1,24 @@
+---
+book: harness
+title: "规约：让意图能被并行分发"
+description: "卷一里 spec 是一份共享工作台。你和一个 Agent 在这份工作台上来回。你写方案，它执行，你审核，你修改。所有意图对齐都在这个来回里完成。"
+order: 12
+part: "卷二：规模化 Agent 开发（10→100x）"
+chapter: "04"
+updatedAt: 2026-07-10
+sourceUrl: "https://github.com/Agents-Zone/harness-engineering-playbook/blob/46a94234f8840f148e3c0ce9465be6ad10ca6065/zh/chapters/04-spec-distributed.md"
+sourceRevision: "46a94234f8840f148e3c0ce9465be6ad10ca6065"
+---
+> 🚧 本章正在开发中。
+
+卷一里 spec 是一份共享工作台。你和一个 Agent 在这份工作台上来回。你写方案，它执行，你审核，你修改。所有意图对齐都在这个来回里完成。
+
+卷二这套工作台模式不再成立。你启动的不是一个 Agent，是十几个 Agent 在不同子空间并行跑。你要盯的对话流从一条变成十几条。人的物理带宽跟不上这个规模。
+
+规模扩展到一定程度之后，spec 就必须换一种形态。它不再是你和一个 Agent 共享的工作台，而是一份能独立传输意图的载体。这一章讲这个转变。载体应该长什么样，人要怎么产出这份载体，产出过程里人和大模型的分工是什么。
+
+从诊断卷一模式为什么在多子空间下失效开始，建立一条约束载体形态的原则，然后讲怎么和大模型共同产出一份满足原则的载体，最后用一个真实项目走完整个流程。
+
+---
+
+*Harness Engineering Playbook · [AgentsZone](https://agentszone.ai) Community*

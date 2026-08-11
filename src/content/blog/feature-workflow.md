@@ -12,6 +12,8 @@ author: "杨正武"
 
 为了解决这些问题，我设计了 Feature Workflow。这是一个融合了 Bmad 和 OpenSpec 优秀理念的工作流范式，基于 Git Worktree 实现真正的物理隔离，支持多 Agent 并行开发，从根本上避免了代码冲突问题。
 
+这里需要明确名称之间的关系：**AILock-Step 是项目与方法体系的名称，Feature Workflow 是其中面向 AI Agent 软件交付的核心工作流。** Harness Engineering Playbook 中提到的 “AILock-Step 框架” 和 “AILock-Step Feature Workflow”，指的都是这套由我设计并持续演进的工作流体系。Playbook 中的完整案例见 [实践：AILock-Step Feature Workflow](/playbook/harness/02d-case-study)。
+
 ## Worktree 物理隔离
 
 ### 传统开发方式的问题
@@ -216,4 +218,5 @@ Worktree 方式 (独立工作目录):
 
 - [Feature Workflow 源码](https://github.com/auenger/AILock-Step/tree/main/feature-workflow-LockStep)
 - [AILock-Step 协议文档](https://github.com/auenger/AILock-Step)
+- [Harness Playbook 实践章节](/playbook/harness/02d-case-study)
 - [OA_Tool 项目实践](https://github.com/auenger/OA_Tool)

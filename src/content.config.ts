@@ -13,4 +13,20 @@ const blog = defineCollection({
   }),
 });
 
-export const collections = { blog };
+const playbook = defineCollection({
+  type: 'content',
+  schema: z.object({
+    book: z.enum(['harness', 'agent']),
+    title: z.string(),
+    description: z.string(),
+    order: z.number(),
+    part: z.string(),
+    chapter: z.string(),
+    updatedAt: z.coerce.date(),
+    sourceUrl: z.string().url().optional(),
+    sourceRevision: z.string().optional(),
+    draft: z.boolean().default(false),
+  }),
+});
+
+export const collections = { blog, playbook };

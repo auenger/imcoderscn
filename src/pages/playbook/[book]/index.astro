@@ -1,0 +1,191 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { getChapterSlug, playbooks, type PlaybookKey } from '../../../data/playbooks';
+
+export function getStaticPaths() {
+  return (Object.keys(playbooks) as PlaybookKey[]).map((book) => ({ params: { book }, props: { book } }));
+}
+
+const bookKey = Astro.props.book as PlaybookKey;
+const book = playbooks[bookKey];
+const chapters = (await getCollection('playbook'))
+  .filter((entry) => !entry.data.draft && entry.data.book === bookKey)
+  .sort((a, b) => a.data.order - b.data.order);
+
+const parts = chapters.reduce((groups, entry) => {
+  const part = entry.data.part;
+  if (!groups.has(part)) groups.set(part, []);
+  groups.get(part)?.push(entry);
+  return groups;
+}, new Map<string, typeof chapters>());
+---
+
+<Layout
+  title={`${book.title} Playbook - 杨正武`}
+  description={book.description}
+  image={book.cover}
+  imageWidth={book.key === 'harness' ? 720 : 1774}
+  imageHeight={book.key === 'harness' ? 720 : 887}
+>
+  <style>
+    :global(body) { background: var(--ink); }
+    .book-home {
+      min-height: 100dvh;
+      padding: 118px 0 110px;
+      color: var(--text-on-ink);
+      background: radial-gradient(circle at 82% 16%, rgba(226, 60, 62, 0.14), transparent 28%), var(--ink);
+    }
+    .book-wrap { width: min(100% - 64px, 1240px); margin-inline: auto; }
+    .back-library { display: inline-block; margin-bottom: 32px; color: var(--muted-on-ink); font-size: 0.82rem; font-weight: 700; }
+    .back-library:hover { color: var(--red); }
+    .book-hero {
+      position: relative;
+      isolation: isolate;
+      display: grid;
+      grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+      align-items: center;
+      gap: clamp(36px, 6vw, 88px);
+      min-height: calc(100dvh - 260px);
+      padding-bottom: 88px;
+    }
+    .book-copy { position: relative; z-index: 2; min-width: 0; }
+    .book-kicker { margin-bottom: 24px; color: var(--red); font-size: 0.76rem; font-weight: 800; letter-spacing: 0.14em; }
+    .book-hero h1 {
+      max-width: 780px;
+      margin-bottom: 28px;
+      font-family: var(--display);
+      font-size: clamp(3.4rem, 6.6vw, 6.8rem);
+      line-height: 0.88;
+      letter-spacing: -0.075em;
+    }
+    .book-hero h1 span { display: block; color: var(--red); }
+    .book-intro { max-width: 610px; margin-bottom: 34px; color: var(--muted-on-ink); font-size: clamp(1rem, 1.4vw, 1.18rem); }
+    .book-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+    .book-action {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 50px;
+      padding: 0 22px;
+      border: 1px solid var(--line-on-ink);
+      border-radius: 7px;
+      color: var(--paper);
+      font-size: 0.9rem;
+      font-weight: 750;
+      white-space: nowrap;
+      transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+    }
+    .book-action.primary { background: var(--red); border-color: var(--red); }
+    .book-action:hover { transform: translateY(-2px); border-color: var(--red); }
+    .book-action:active { transform: translateY(1px); }
+    .book-cover-wrap { position: relative; z-index: 0; justify-self: end; width: min(100%, 430px); }
+    .book-cover-wrap::before {
+      content: "";
+      position: absolute;
+      inset: 22px -18px -22px 18px;
+      border: 1px solid rgba(226, 60, 62, 0.5);
+      border-radius: var(--radius);
+    }
+    .book-cover { position: relative; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: var(--radius); box-shadow: 0 32px 80px rgba(8, 7, 11, 0.42); }
+    .book-home[data-book="agent"] .book-cover { object-position: 72% center; }
+
+    .contents {
+      display: grid;
+      grid-template-columns: minmax(210px, 0.38fr) minmax(0, 1.62fr);
+      gap: clamp(48px, 8vw, 110px);
+      padding-top: 82px;
+      border-top: 2px solid var(--red);
+    }
+    .contents-heading { position: sticky; top: 112px; align-self: start; }
+    .contents-heading h2 { margin-bottom: 18px; font-family: var(--display); font-size: clamp(2.35rem, 4vw, 4.4rem); line-height: 0.95; letter-spacing: -0.055em; }
+    .contents-heading p { max-width: 270px; margin: 0; color: var(--muted-on-ink); font-size: 0.92rem; }
+    .part + .part { margin-top: 60px; }
+    .part-title { margin-bottom: 18px; color: var(--red); font-size: 0.82rem; font-weight: 800; letter-spacing: 0.1em; }
+    .chapter-list { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line-on-ink); }
+    .chapter-link {
+      display: grid;
+      grid-template-columns: 108px minmax(0, 1fr) auto;
+      align-items: baseline;
+      gap: 24px;
+      padding: 24px 0;
+      border-bottom: 1px solid var(--line-on-ink);
+      transition: color 180ms ease, padding 180ms ease;
+    }
+    .chapter-link:hover { padding-left: 10px; color: var(--red); }
+    .chapter-label { color: var(--muted-on-ink); font-size: 0.78rem; font-weight: 700; }
+    .chapter-link h3 { margin: 0; font-family: var(--display); font-size: clamp(1.25rem, 2vw, 1.8rem); letter-spacing: -0.035em; }
+    .chapter-arrow { color: var(--red); font-size: 1.2rem; }
+
+    @media (max-width: 980px) {
+      .book-hero { grid-template-columns: minmax(0, 1fr) minmax(260px, 0.58fr); gap: 28px; min-height: auto; padding: 34px 0 88px; }
+      .book-hero h1 { font-size: clamp(3.1rem, 7.8vw, 4.8rem); }
+      .book-cover-wrap { width: min(100%, 340px); }
+      .contents { grid-template-columns: 1fr; gap: 42px; }
+      .contents-heading { position: static; }
+      .contents-heading p { max-width: 560px; }
+    }
+    @media (max-width: 680px) {
+      .book-home { padding: 92px 0 78px; }
+      .book-wrap { width: min(100% - 32px, 1240px); }
+      .book-hero { grid-template-columns: 1fr; gap: 54px; padding: 18px 0 72px; }
+      .book-copy { z-index: 2; }
+      .book-hero h1 { font-size: clamp(3rem, 14vw, 4.4rem); }
+      .book-cover-wrap { z-index: 0; justify-self: center; width: min(84vw, 390px); }
+      .contents { padding-top: 58px; }
+      .chapter-link { grid-template-columns: 82px minmax(0, 1fr) auto; gap: 12px; padding: 20px 0; }
+      .chapter-link:hover { padding-left: 0; }
+    }
+    @media (prefers-reduced-motion: no-preference) {
+      .book-copy { animation: book-enter 700ms cubic-bezier(.16,1,.3,1) both; }
+      .book-cover-wrap { animation: cover-enter 780ms 80ms cubic-bezier(.16,1,.3,1) both; }
+    }
+    @keyframes book-enter { from { opacity: 0; transform: translateY(18px); } }
+    @keyframes cover-enter { from { opacity: 0; transform: translateY(24px) rotate(1.5deg); } }
+  </style>
+
+  <div class="book-home" data-book={bookKey}>
+    <div class="book-wrap">
+      <a class="back-library" href="/playbook">← 返回书架</a>
+      <section class="book-hero">
+        <div class="book-copy">
+          <div class="book-kicker">ONLINE PLAYBOOK</div>
+          <h1>{book.displayTitle} <span>{book.accentTitle}</span></h1>
+          <p class="book-intro">{book.description}</p>
+          <div class="book-actions">
+            <a class="book-action primary" href={`/playbook/${bookKey}/${getChapterSlug(chapters[0].slug)}`}>开始阅读</a>
+            <a class="book-action" href="#contents">查看目录</a>
+          </div>
+        </div>
+        <figure class="book-cover-wrap">
+          <img class="book-cover" src={book.cover} alt={book.coverAlt} width="1200" height="1200" fetchpriority="high" />
+        </figure>
+      </section>
+
+      <section class="contents" id="contents">
+        <header class="contents-heading">
+          <h2>目录</h2>
+          <p>{book.description}</p>
+        </header>
+        <div>
+          {[...parts.entries()].map(([part, entries]) => (
+            <section class="part">
+              <h3 class="part-title">{part}</h3>
+              <ol class="chapter-list">
+                {entries.map((entry) => (
+                  <li>
+                    <a class="chapter-link" href={`/playbook/${bookKey}/${getChapterSlug(entry.slug)}`}>
+                      <span class="chapter-label">{entry.data.chapter}</span>
+                      <h3>{entry.data.title}</h3>
+                      <span class="chapter-arrow" aria-hidden="true">→</span>
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          ))}
+        </div>
+      </section>
+    </div>
+  </div>
+</Layout>

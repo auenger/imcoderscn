@@ -1,0 +1,129 @@
+---
+book: harness
+title: "Harness Engineering 手册：百倍生产力的可靠软件交付"
+description: "如何组织 AI 与人类完成可靠的软件交付"
+order: 0
+part: "导读"
+chapter: "关于本书"
+updatedAt: 2026-07-10
+sourceUrl: "https://github.com/Agents-Zone/harness-engineering-playbook/blob/46a94234f8840f148e3c0ce9465be6ad10ca6065/zh/README.md"
+sourceRevision: "46a94234f8840f148e3c0ce9465be6ad10ca6065"
+---
+如何组织 AI 与人类完成可靠的软件交付
+
+**AgentsZone 社区集体创作** | 编者: 付权智，马驰
+
+> **📖 早期草稿** 本书仍在积极开发中，目前的内容仅为预览使用。如果你对本书的主题感兴趣，或在实践中有相关经验愿意分享，欢迎[联系我们](/playbook/harness/contributors)。
+
+## 杨正武与 AILock-Step Feature Workflow
+
+杨正武是 [AILock-Step Feature Workflow](/blog/feature-workflow) 的设计者，也是本书相关实践案例的贡献者。本书中出现的 “AILock-Step”“AILock-Step 框架” 与 “AILock-Step Feature Workflow”，均指向这套持续演进的 Feature Workflow 工作流体系。
+
+AILock-Step 是项目与方法体系的名称，Feature Workflow 是其中面向 AI Agent 软件交付的核心工作流。它融合 BMAD 与 OpenSpec 的思路，以规约、任务、检查清单和 Git Worktree 组织 feature 的完整生命周期，让多个 Agent 可以隔离执行并通过验证闭环交付。
+
+相关内容可以继续阅读：[Feature Workflow v1](/blog/feature-workflow)、[Feature Workflow v3](/blog/feature-workflow-v3)，以及本书的 [AILock-Step 实践章节](/playbook/harness/02d-case-study)。
+
+## Agent Coding：1.5x 还是 100x
+
+过去两年，AI 编码工具的能力边界在持续扩展。从函数级补全到模块级生成，再到完整项目的构建，每一代模型都在刷新能处理的问题上限。开发者的体感也在同步提升：写代码确实更快了，自己变成了 1.5 倍、2 倍工程师。
+
+但当团队真正回顾交付数据时，一个令人困惑的现象浮现了。PR 数量上升，但是同时review的时间越来越长，线上的bug数量好像也越来越多。模型变强了，工具变好了，体感更快了，综合生产力的提升却远没有跟上。
+
+与此同时，另一批人用同样的工具交出了完全不同的成绩。PingCAP 的 CTO 黄东旭用 AI 将 TiDB 的 PostgreSQL 兼容层重写为接近生产水平的 Rust 代码。Pigsty 创始人冯若航一个人用 AI 维护着集成了 460 多个扩展的企业级 PostgreSQL 发行版，日常同时调度十个 Agent 并行推进。他们的生产力提升以数十倍计，而且产出的是上了生产、经过验证的代码。
+
+两边都是真实的体感。你觉得自己只能 1.5 倍，是对的。他们做到了几十倍并且上了生产，也是对的。同样的模型，同样的工具，差距在哪里？在于缺乏一套系统性的工程方法来管理AI的产出。在这本书中，我们将介绍让Agent稳定产出生产级代码的理论框架：Harness Engineering的基本原则和核心概念，并结合Agent特区社区与数百位开发者的实践交流。本书系统性地总结了通过Harness Engineering实现从 1.5x 到 100x 生产力跃升的具体方法论和工程实践。
+
+如果你是编程小白或产品人，已经用 Vibe Coding 做出了能跑的产品，现在开始思考怎么迭代、怎么让它在生产环境中稳定运行，卷一关于规约和验证的内容会直接帮到你。如果你是程序员，正在经历从"自己写代码"到"指挥 Agent 写代码"的转型，全书的生产力阶梯就是你的转型路径：从管好一个任务，到管好一群 Agent，到重新定义自己在团队中的角色。如果你是企业的技术负责人，正在推动团队的 AI-native 转型，卷三关于组织架构的讨论会直接相关。无论你是什么程度的读者，在阅读这本书后，你将不仅对Harness Engineering的基本原则有深入的认知，精准的定位Agent软件工程失控的根因，判断层出不穷的Agent管理框架是否在解决真实的问题，同时也将收获具体可操作的实践方法论，实现真正的生产力跃升。
+
+## 差异来自制度
+
+回到那个核心问题：1.5x 和 100x 之间的差距到底在哪？
+
+主流讨论集中在 prompt 技巧、工具选择和模型能力对比。这些有价值，但停留在操作层面，无法解释同一个工具在不同团队手里产生截然不同的结果。
+
+我们的观察是：差异来自制度。100 倍生产力的团队，都建立了与 AI Agent 特征匹配的工程制度。1 倍生产力的团队，还在用为人类执行者设计的旧制度指挥 Agent。
+
+软件工程六十年积累的制度体系，代码审查、测试策略、模块化、团队分工，是围绕人类执行者的认知特征设计的。人类程序员用常识补全模糊的需求，对高风险操作本能地放慢节奏，在项目中积累隐性知识并通过协作自然传递。这些能力一直活在执行者身上，流程文档无需记载，因为执行者自带。
+
+当执行者从人类变为 AI Agent，这些隐含的前提全部失效。Agent 忠实执行输入，模糊之处变成随机决策。它的有效处理容量有硬上限，任务规模一大，质量断崖式下降。它的记忆止于会话边界，每次都是新员工的第一天。它的注意力止于当前指令，修改一行文案和修改支付核心逻辑在它看来完全一样。与此同时，它的产出速度是人类的 10 到 100 倍，放大了以上每一个问题的影响。
+
+OpenAI给新的制度起了一个很好的名字：Harness Engineering(约束工程)，我们需要崭新完整的软件工程制度来管理AI这些性质带来的不确定性。
+
+执行者变了，制度必须跟着变。在引言中将详细分析这五个结构性特征及其导致的工程挑战。
+
+## 为什么 Vibe Coding 和现有框架都不够
+
+理解了这些，可以看清当前各种方法的局限。
+
+Vibe Coding 是起点：凭感觉写 prompt，让 AI 生成代码，能跑就行。对于一次性脚本和快速原型，它确实高效。但 Vibe Coding 是开环控制：发出指令，接受结果，凭主观感觉判断好坏。没有规约定义"对"是什么，没有自动化验证检查产出是否符合意图。开环系统在小规模下勉强可用，一旦项目需要长期维护和团队协作，随机性就不可接受了。
+
+一部分团队意识到了这个问题，开始尝试用软件工程的方法组织 AI 开发。bmad、OpenSpec、SpecKit 等框架应运而生，给 AI Agent 提供结构化的规约，用工程流程约束生成过程。方向是对的，比 Vibe Coding 前进了一大步。
+
+但这些框架的关注点集中在代码生成阶段。软件工程几十年来的核心教训恰恰在另一面：代码从发布那一刻起就成为债务。生成是软件生命周期中最便宜的环节。设计、验证、调试、部署、维护，这些环节的成本总和远超编码本身。一个软件系统 80% 的生命周期花在发布之后。只关注生成阶段的方法，在优化整个链条中成本最低的一环。
+
+更根本的是，这些框架仍然假设了人类执行者的存在。它们的流程设计、质量保障机制和协作模式，背后仍然依赖人类自带的常识、经验和判断力。Agent 作为执行者的结构性差异，在这些框架中没有被正视。
+
+## 两个基本原则
+
+面对这些挑战，本书的应对建立在两个工程原则之上。
+
+**闭环。** 能够大规模使用 Agent 的团队，都建立了某种形式的闭环控制：明确的规约定义输入，自动化的验证检查输出，偏差被即时发现并纠正。闭环控制是工程学的基本原则。恒温器、自动驾驶、工业流水线，所有需要可靠运行的系统都依赖反馈回路。在人类执行环境下，程序员本身就是反馈环的一部分，他们会自我检查、自我纠正。Agent 不会。反馈环必须被显式地工程化到系统中。Vibe Coding 的本质问题就是开环控制。
+
+**演进。** 软件必须被持续维护、迭代、适配新需求。Agent 驱动的开发放大了这个挑战：Agent 会忠实复制代码库中已有的模式，包括坏的模式。合并后的代码成为后续生成的参考集。如果没有持续改进的机制，系统会自我强化地滑向退化。规约、测试、Skill 卡片、组织流程，每一层都需要持续演进。
+
+这两个原则贯穿本书的每一章。闭环保证每一步可靠，演进保证系统越来越好。
+
+
+## 路线图与目录
+
+全书按生产力阶梯展开。第一章分析 Agent 的结构性特征和工程挑战，建立全书的理论基础。之后的内容分为三卷，每一卷对应一个生产力跃迁的阶段。
+
+**卷一：可靠的 Agent 编程（1→10x）。** 从 Vibe Coding 到工程化的第一步。你仍然坐在 Agent 前面，一问一答，但产出从充满随机性的Vibe，变为了可靠可检验的生产级代码。第二章通过规约将模糊变为确定，第三章通过自动化验证闭合反馈回路。掌握这两章，你就从凭感觉写 prompt 进入了有规约、有验证、有闭环的工程模式，生产力提升到过去的数倍。
+
+**卷二：规模化 Agent 开发（10→100x）。** 有了卷一的规约和验证体系，你才有可能放手让 Agent 自主执行。没有规约的自主执行就是 YOLO mode，灾难是确定的。第四章解决长期执行中的上下文崩塌、跨会话记忆，以及 Session 这一基本执行单元的工程化问题，让一个 Agent 能跨会话、跨天地持续推进项目。第五章在此基础上进一步扩展到多 Agent 并行，解决隔离与集成问题。你从 Agent 的实时对话伙伴变成了任务的设计者和验收者，生产力再提升一个数量级。
+
+**卷三：治理百倍速的组织。** 个人生产力的提升终有上限。当多个人类需要协作来指挥各自的 Agent 军团，问题超越了技术层面，进入组织设计领域。卷一卷二建立的工程实践（规约、验证、分解、平台）是组织级协作的基础设施，没有这些基础设施，团队级的 Agent 协作无从谈起。第六章分析传统团队结构为什么失效，探索新的角色分工和治理模式。第七章讨论 Agent 时代的组织资产：什么是新的护城河。
+
+---
+
+### 卷一：可靠的 Agent 编程 (1→10x)
+
+* [规约：与 Agent 对齐意图](/playbook/harness/02a-intent-alignment)
+  * [意图对齐：Vibe Coding 为什么失败](/playbook/harness/02a-intent-alignment)
+  * [用结构传达意图：分层与维度](/playbook/harness/02b-structured-intent)
+  * [迭代出一份可执行的规约](/playbook/harness/02c-iterative-spec)
+  * [实践：AILock-Step Feature Workflow](/playbook/harness/02d-case-study)
+* [验证：确保代码忠实于规约](/playbook/harness/03-verification)
+  * [测试基建前置：把规约变成可执行约束](/playbook/harness/03a-test-first)
+  * [Code Review：补位测试覆盖不到的意图漂移](/playbook/harness/03b-code-review)
+  * [实践：AILock-Step 的验证链路](/playbook/harness/03c-practice)
+* [演进：规约与验证的持续迭代](/playbook/harness/evolution-v1)
+* [卷一回顾：从闭环到演进](/playbook/harness/v1-conclusion)
+
+### 卷二：规模化 Agent 开发 (10→100x)
+
+* [放手让 Agent 跑：分解、上下文与记忆](/playbook/harness/04-spec-distributed)
+  * [上下文崩塌：长任务失控的结构性原因](/playbook/harness/04a-artifact-role)
+  * [任务分解：控制每个执行块的粒度](/playbook/harness/04b-artifact-principle)
+  * [上下文工程：决定 Agent 看到什么](/playbook/harness/04c-cocreation)
+  * [跨会话持久化：记忆与任务交接](/playbook/harness/04d-case-study)
+* [多 Agent 并行：隔离与集成](/playbook/harness/05-verification-defense)
+  * [隔离：避免 Agent 间的并发冲突](/playbook/harness/05a-verification-to-mechanism)
+  * [集成：确保独立产出的一致性](/playbook/harness/05b-drift-locations)
+  * [平台工程：搭建多层反馈基础设施](/playbook/harness/05c-three-layers)
+* [演进：从人工巡检到自动化漂移检测](/playbook/harness/evolution-v2)
+
+### 卷三：治理百倍速的组织
+
+* [组织重构：当 Agent 改变了协作的前提](/playbook/harness/06-hybrid-team)
+  * [为什么旧结构失效了](/playbook/harness/06a-why-old-structure-fails)
+  * [瓶颈转移：从代码到组织](/playbook/harness/06b-bottleneck-shift)
+  * [让流程匹配 Agent 速度](/playbook/harness/06c-process-speed)
+* [角色重定义：从写代码到设计验证体系](/playbook/harness/07-role-redefinition)
+  * [围绕治理重新设计角色](/playbook/harness/07a-new-roles)
+  * [用机制替代人际协调](/playbook/harness/07b-coordination)
+* [演进：组织资产与新护城河](/playbook/harness/evolution-v3)
+
+---
+
+* [贡献者](/playbook/harness/contributors)

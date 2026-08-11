@@ -1,0 +1,109 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { getCollection } from 'astro:content';
+import { playbooks, type PlaybookKey } from '../../data/playbooks';
+
+const allChapters = (await getCollection('playbook')).filter((entry) => !entry.data.draft);
+const books = (Object.keys(playbooks) as PlaybookKey[]).map((key) => ({
+  ...playbooks[key],
+  chapters: allChapters.filter((entry) => entry.data.book === key).length,
+}));
+---
+
+<Layout
+  title="Engineering Playbooks - 杨正武"
+  description="Harness Engineering 与 Agent Engineering 两本在线工程手册。"
+  image="/og-default.png"
+  imageWidth={720}
+  imageHeight={720}
+>
+  <style>
+    :global(body) { background: var(--ink); }
+    .library {
+      min-height: 100dvh;
+      padding: 126px 0 110px;
+      color: var(--text-on-ink);
+      background: radial-gradient(circle at 74% 12%, rgba(226, 60, 62, 0.13), transparent 27%), var(--ink);
+    }
+    .library-wrap { width: min(100% - 64px, 1240px); margin-inline: auto; }
+    .library-header { max-width: 880px; margin-bottom: 74px; }
+    .library-kicker { margin-bottom: 22px; color: var(--red); font-size: 0.76rem; font-weight: 800; letter-spacing: 0.14em; }
+    .library-header h1 {
+      margin-bottom: 24px;
+      font-family: var(--display);
+      font-size: clamp(3.5rem, 7.5vw, 7.6rem);
+      line-height: 0.88;
+      letter-spacing: -0.075em;
+    }
+    .library-header h1 span { color: var(--red); }
+    .library-header p { max-width: 620px; margin: 0; color: var(--muted-on-ink); font-size: 1.08rem; }
+
+    .bookshelf { display: grid; grid-template-columns: 1.08fr 0.92fr; gap: clamp(30px, 5vw, 70px); align-items: end; }
+    .book-card { display: grid; gap: 24px; color: var(--paper); }
+    .book-card:nth-child(2) { transform: translateY(54px); }
+    .book-card-image {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 4 / 3;
+      border: 1px solid var(--line-on-ink);
+      border-radius: var(--radius);
+      background: var(--ink-soft);
+    }
+    .book-card-image img { width: 100%; height: 100%; object-fit: cover; transition: transform 520ms cubic-bezier(.16,1,.3,1); }
+    .book-card:first-child .book-card-image img { object-position: center 38%; }
+    .book-card:nth-child(2) .book-card-image img { object-position: center 34%; }
+    .book-card:hover .book-card-image img { transform: scale(1.025); }
+    .book-card-copy { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 22px; align-items: end; padding-top: 20px; border-top: 2px solid var(--red); }
+    .book-card-meta { margin-bottom: 10px; color: var(--muted-on-ink); font-size: 0.75rem; font-weight: 700; }
+    .book-card h2 { margin-bottom: 10px; font-family: var(--display); font-size: clamp(2rem, 3.6vw, 3.75rem); line-height: 0.96; letter-spacing: -0.055em; }
+    .book-card p { max-width: 560px; margin: 0; color: var(--muted-on-ink); font-size: 0.92rem; }
+    .book-card-arrow { color: var(--red); font-size: 1.7rem; transition: transform 180ms ease; }
+    .book-card:hover .book-card-arrow { transform: translateX(5px); }
+
+    @media (max-width: 800px) {
+      .library { padding: 104px 0 78px; }
+      .library-wrap { width: min(100% - 32px, 1240px); }
+      .library-header { margin-bottom: 54px; }
+      .library-header h1 { font-size: clamp(3.1rem, 15vw, 5rem); }
+      .bookshelf { grid-template-columns: 1fr; gap: 58px; }
+      .book-card:nth-child(2) { transform: none; }
+      .book-card-image { aspect-ratio: 1 / 1; }
+      .book-card-copy { grid-template-columns: 1fr auto; }
+    }
+
+    @media (prefers-reduced-motion: no-preference) {
+      .library-header { animation: library-enter 650ms cubic-bezier(.16,1,.3,1) both; }
+      .book-card { animation: library-enter 700ms 80ms cubic-bezier(.16,1,.3,1) both; }
+      .book-card:nth-child(2) { animation-delay: 150ms; }
+    }
+    @keyframes library-enter { from { opacity: 0; translate: 0 18px; } }
+  </style>
+
+  <div class="library">
+    <div class="library-wrap">
+      <header class="library-header">
+        <div class="library-kicker">ENGINEERING PLAYBOOKS</div>
+        <h1>TWO BOOKS.<br /><span>ONE SYSTEM.</span></h1>
+        <p>一本研究 Agent 如何工作，一本研究怎样为 Agent 建造可靠的工程环境。</p>
+      </header>
+
+      <section class="bookshelf" aria-label="Playbook 书架">
+        {books.map((book) => (
+          <a class="book-card" href={`/playbook/${book.key}`}>
+            <div class="book-card-image">
+              <img src={book.cover} alt={book.coverAlt} width="1200" height="1200" loading={book.key === 'harness' ? 'eager' : 'lazy'} />
+            </div>
+            <div class="book-card-copy">
+              <div>
+                <div class="book-card-meta">{book.chapters} 个章节</div>
+                <h2>{book.title}</h2>
+                <p>{book.description}</p>
+              </div>
+              <span class="book-card-arrow" aria-hidden="true">→</span>
+            </div>
+          </a>
+        ))}
+      </section>
+    </div>
+  </div>
+</Layout>

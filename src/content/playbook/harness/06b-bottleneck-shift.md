@@ -1,0 +1,18 @@
+---
+book: harness
+title: "瓶颈转移：从代码到组织"
+description: "传统软件团队的瓶颈在执行层：代码写得不够快，功能交付赶不上需求。Agent 消除了执行瓶颈之后，新的瓶颈浮现在组织层。review 队列堆积，reviewer 的时间成为稀缺资源。部署窗口为人类节奏设计，一天两次的发布频率扛不住 Ag..."
+order: 26
+part: "卷三：治理百倍速的组织"
+chapter: "06B"
+updatedAt: 2026-07-10
+sourceUrl: "https://github.com/Agents-Zone/harness-engineering-playbook/blob/46a94234f8840f148e3c0ce9465be6ad10ca6065/zh/chapters/06b-bottleneck-shift.md"
+sourceRevision: "46a94234f8840f148e3c0ce9465be6ad10ca6065"
+---
+> 🚧 本节正在开发中。
+
+传统软件团队的瓶颈在执行层：代码写得不够快，功能交付赶不上需求。Agent 消除了执行瓶颈之后，新的瓶颈浮现在组织层。review 队列堆积，reviewer 的时间成为稀缺资源。部署窗口为人类节奏设计，一天两次的发布频率扛不住 Agent 的产出速度。跨团队协调仍然依赖会议和文档，而 Agent 的产出速度让协调延迟的代价成倍放大。需求拆分的精细度跟不上 Agent 的消费速度，产品经理成了新的瓶颈。这些问题的共同根因是：执行层加速了，但执行层之上的组织层没有跟着变。
+
+---
+
+*Harness Engineering Playbook · [AgentsZone](https://agentszone.ai) Community*
