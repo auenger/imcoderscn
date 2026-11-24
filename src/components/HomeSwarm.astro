@@ -1,0 +1,175 @@
+<!-- Homepage-only cursor choreography, independently implemented for this site. -->
+<home-swarm aria-hidden="true"><canvas></canvas></home-swarm>
+
+<style>
+  home-swarm { position: fixed; inset: 0; z-index: 15; pointer-events: none; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+  :global(.hero[data-swarm-running] .chara-stage),
+  :global(.hero[data-swarm-running] .hero-orbit) { animation-play-state: paused; }
+  @media (max-width: 900px), (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+    home-swarm { display: none; }
+  }
+</style>
+
+<script>
+  type Point = { x: number; y: number };
+  type Job = {
+    element: HTMLElement;
+    x: number; y: number; w: number; h: number;
+    start: number; color: string; label: string;
+    reveal: Animation;
+  };
+
+  class HomeSwarm extends HTMLElement {
+    private dispose?: () => void;
+
+    connectedCallback() {
+      this.dispose?.();
+      const hero = this.closest<HTMLElement>('.hero');
+      const canvas = this.querySelector('canvas');
+      const ctx = canvas?.getContext('2d');
+      if (!hero || !canvas || !ctx) return;
+      const eligibility = matchMedia('(min-width: 901px) and (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)');
+      if (!eligibility.matches) return;
+
+      let stopped = false;
+      let frame = 0;
+      let jobs: Job[] = [];
+      const events = new AbortController();
+      const finish = () => {
+        stopped = true;
+        cancelAnimationFrame(frame);
+        jobs.forEach(job => job.reveal.cancel());
+        hero.removeAttribute('data-swarm-running');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        events.abort();
+      };
+      this.dispose = finish;
+      const options = { signal: events.signal, passive: true };
+      // Leave the page immediately usable when a visitor starts interacting.
+      window.addEventListener('pointerdown', finish, options);
+      window.addEventListener('keydown', finish, options);
+      window.addEventListener('scroll', finish, options);
+      window.addEventListener('resize', finish, options);
+      window.addEventListener('pagehide', finish, options);
+      document.addEventListener('visibilitychange', () => { if (document.hidden) finish(); }, options);
+      eligibility.addEventListener('change', finish, options);
+
+      const start = () => {
+        if (stopped || document.hidden || scrollY > 80 || !eligibility.matches) { finish(); return; }
+        // A viewport layer also covers the fixed navigation, above its z-index.
+        const bounds = { left: 0, top: 0, width: innerWidth, height: innerHeight };
+        const ratio = Math.min(devicePixelRatio || 1, 2);
+        canvas.width = Math.round(bounds.width * ratio);
+        canvas.height = Math.round(bounds.height * ratio);
+        ctx.scale(ratio, ratio);
+        const headerColors = ['#ed6263', '#eac486', '#8fb8c8', '#c3acdf'];
+        const headerSpecs = Array.from(document.querySelectorAll<HTMLElement>('.site-brand, .site-links a'))
+          .map((element, index) => ({ element, label: index === 0 ? 'IDENTITY' : `NAV ${String(index).padStart(2, '0')}`,
+            color: headerColors[index % headerColors.length], start: index * 55 }));
+        const heroSpecs = [
+          { selector: '.hero-kicker', label: 'CONTEXT', color: '#eac486', start: 200 },
+          { selector: '.hero h1', label: 'BUILD', color: '#ed6263', start: 350 },
+          { selector: '.hero-lead', label: 'COPY', color: '#eac486', start: 510 },
+          { selector: '.hero-actions a:first-child', label: 'TOOLS', color: '#8fb8c8', start: 620 },
+          { selector: '.hero-actions a:last-child', label: 'LINK', color: '#c3acdf', start: 720 },
+          { selector: '.hero-visual', label: 'RENDER', color: '#c3acdf', start: 420 },
+        ].flatMap(spec => {
+          const element = hero.querySelector<HTMLElement>(spec.selector);
+          return element ? [{ element, label: spec.label, color: spec.color, start: spec.start }] : [];
+        });
+        const specs = [...headerSpecs, ...heroSpecs];
+        hero.setAttribute('data-swarm-running', '');
+        jobs = specs.flatMap(spec => {
+          const { element } = spec;
+          const rect = element.getBoundingClientRect();
+          const reveal = element.animate([
+            { clipPath: 'inset(0 100% 0 0)' },
+            { clipPath: 'inset(0 0% 0 0)' },
+          ], { duration: 650, delay: spec.start + 1100, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' });
+          return [{ x: rect.left - bounds.left, y: rect.top - bounds.top,
+            w: rect.width, h: rect.height, ...spec, reveal }];
+        });
+
+        const clamp = (n: number) => Math.max(0, Math.min(1, n));
+        const ease = (n: number) => { const p = clamp(n); return 1 - Math.pow(1 - p, 3); };
+        const mix = (a: Point, b: Point, t: number): Point => ({ x: a.x + (b.x-a.x)*t, y: a.y + (b.y-a.y)*t });
+        const origin = { x: bounds.width * .52, y: bounds.height * .42 };
+        const roundedBox = (job: Job, progress: number, alpha: number) => {
+          const width = job.w * progress;
+          const height = job.h * progress;
+          ctx.save();
+          ctx.globalAlpha = alpha;
+          ctx.strokeStyle = job.color;
+          ctx.lineWidth = 1;
+          ctx.setLineDash([4, 4]);
+          ctx.strokeRect(job.x - 6, job.y - 6, width + 12, height + 12);
+          ctx.setLineDash([]);
+          for (const p of [{x:job.x-6,y:job.y-6},{x:job.x+width+6,y:job.y-6},
+            {x:job.x-6,y:job.y+height+6},{x:job.x+width+6,y:job.y+height+6}]) {
+            ctx.fillStyle = '#17171b'; ctx.fillRect(p.x-2.5,p.y-2.5,5,5);
+            ctx.strokeRect(p.x-2.5,p.y-2.5,5,5);
+          }
+          ctx.restore();
+        };
+        const cursor = (point: Point, job: Job, alpha: number) => {
+          ctx.save();
+          ctx.translate(point.x, point.y);
+          ctx.globalAlpha = alpha;
+          ctx.beginPath();
+          ctx.moveTo(0,0); ctx.lineTo(1,22); ctx.lineTo(7,16);
+          ctx.lineTo(12,26); ctx.lineTo(17,23); ctx.lineTo(12,14); ctx.lineTo(21,13); ctx.closePath();
+          ctx.fillStyle = job.color; ctx.strokeStyle = '#17171b'; ctx.lineWidth = 1.5; ctx.fill(); ctx.stroke();
+          ctx.font = '700 10px system-ui, sans-serif';
+          const w = ctx.measureText(job.label).width + 16;
+          ctx.fillStyle = job.color;
+          ctx.beginPath(); ctx.roundRect(20, 24, w, 21, 4); ctx.fill();
+          ctx.fillStyle = '#17171b'; ctx.fillText(job.label, 28, 38);
+          ctx.restore();
+        };
+        const finishAt = Math.max(...jobs.map(job => job.start)) + 2900;
+        const begin = performance.now();
+        const draw = (now: number) => {
+          if (stopped) return;
+          const elapsed = now - begin;
+          ctx.clearRect(0, 0, bounds.width, bounds.height);
+          jobs.forEach((job, i) => {
+            const time = elapsed - job.start;
+            if (time < 0) return;
+            const top = { x: job.x - 6, y: job.y - 6 };
+            const end = { x: job.x + job.w + 6, y: job.y + job.h + 6 };
+            const entry = { x: origin.x + Math.cos(i * 1.6) * 45, y: origin.y + Math.sin(i * 1.6) * 45 };
+            let point: Point;
+            if (time < 550) {
+              point = mix(entry, top, ease(time / 550));
+            } else if (time < 1100) {
+              const progress = ease((time - 550) / 550);
+              point = mix(top, end, progress);
+              roundedBox(job, progress, .65);
+            } else if (time < 1900) {
+              const progress = clamp((time - 1100) / 650);
+              point = { x: job.x + job.w * progress, y: job.y + job.h + 6 };
+              roundedBox(job, 1, .65 * (1 - clamp((time - 1650) / 250)));
+              ctx.save(); ctx.globalAlpha = .45 * (1-progress); ctx.strokeStyle = job.color;
+              ctx.beginPath(); ctx.moveTo(point.x, job.y); ctx.lineTo(point.x, job.y+job.h); ctx.stroke(); ctx.restore();
+            } else {
+              const destination = {x: origin.x + (i - 1.5) * 36, y: origin.y + i * 15};
+              point = mix({x:end.x,y:end.y}, destination, ease((time-1900)/650));
+            }
+            const alpha = clamp(time / 160) * (1 - clamp((elapsed - (finishAt - 400)) / 400));
+            cursor(point, job, alpha);
+          });
+          if (elapsed >= finishAt) finish();
+          else frame = requestAnimationFrame(draw);
+        };
+        frame = requestAnimationFrame(draw);
+      };
+      // The normal HTML is already visible; there is no load-blocking overlay.
+      if (document.readyState === 'complete') start();
+      else window.addEventListener('load', start, { once: true, signal: events.signal });
+    }
+
+    disconnectedCallback() { this.dispose?.(); }
+  }
+  if (!customElements.get('home-swarm')) customElements.define('home-swarm', HomeSwarm);
+</script>
